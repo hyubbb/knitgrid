@@ -10,6 +10,7 @@ import {
   ArrowUp,
   CheckSquare,
   Copy,
+  Crop,
   Download,
   Eraser,
   Eye,
@@ -520,7 +521,26 @@ const luminance = (hex) => {
 const INITIAL_IMAGE_OPTIONS = {
   fit: 'cover',
   alignX: 'center',
-  alignY: 'center'
+  alignY: 'center',
+  crop: {
+    enabled: false,
+    x: 0,
+    y: 0,
+    width: 1,
+    height: 1
+  }
+};
+
+const normalizeCrop = (crop = INITIAL_IMAGE_OPTIONS.crop) => {
+  const width = clampFiniteNumber(crop.width, 0.05, 1);
+  const height = clampFiniteNumber(crop.height, 0.05, 1);
+  return {
+    enabled: crop.enabled === true,
+    x: clampFiniteNumber(crop.x, 0, 1 - width),
+    y: clampFiniteNumber(crop.y, 0, 1 - height),
+    width,
+    height
+  };
 };
 
 const IMAGE_PALETTE_MODES = [
@@ -730,14 +750,38 @@ const drawImageToAnalysisCanvas = ({ image, rows, cols, imageOptions }) => {
   ctx.imageSmoothingQuality = 'high';
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const crop = normalizeCrop(imageOptions.crop);
+  const source = crop.enabled
+    ? {
+        x: crop.x * image.naturalWidth,
+        y: crop.y * image.naturalHeight,
+        width: crop.width * image.naturalWidth,
+        height: crop.height * image.naturalHeight
+      }
+    : {
+        x: 0,
+        y: 0,
+        width: image.naturalWidth,
+        height: image.naturalHeight
+      };
   const placement = getImagePlacement({
-    imageWidth: image.naturalWidth,
-    imageHeight: image.naturalHeight,
+    imageWidth: source.width,
+    imageHeight: source.height,
     targetWidth: canvas.width,
     targetHeight: canvas.height,
     ...imageOptions
   });
-  ctx.drawImage(image, placement.dx, placement.dy, placement.width, placement.height);
+  ctx.drawImage(
+    image,
+    source.x,
+    source.y,
+    source.width,
+    source.height,
+    placement.dx,
+    placement.dy,
+    placement.width,
+    placement.height
+  );
   return {
     canvas,
     imageData: ctx.getImageData(0, 0, canvas.width, canvas.height)
@@ -963,6 +1007,8 @@ function App() {
   const [displayMode, setDisplayMode] = useState('color-code');
   const [zoom, setZoom] = useState(86);
   const [guideEvery, setGuideEvery] = useState(10);
+  const [guideColorMode, setGuideColorMode] = useState('black');
+  const [guideCustomColor, setGuideCustomColor] = useState('#111827');
   const [numberStart, setNumberStart] = useState(1);
   const [rowDirection, setRowDirection] = useState('bottom-up');
   const [showOppositeHeaders, setShowOppositeHeaders] = useState(true);
@@ -974,6 +1020,7 @@ function App() {
   const [future, setFuture] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const [projectName, setProjectName] = useState('코지 파우치 패턴');
+  const [cropDraft, setCropDraft] = useState(null);
   const [imageDraft, setImageDraft] = useState(null);
   const [imageOptions, setImageOptions] = useState(INITIAL_IMAGE_OPTIONS);
   const [imagePaletteMode, setImagePaletteMode] = useState('extract');
@@ -993,6 +1040,7 @@ function App() {
   const [paletteNotice, setPaletteNotice] = useState('');
   const [pendingResize, setPendingResize] = useState(null);
   const [moveSteps, setMoveSteps] = useState(1);
+  const [isInspectorCollapsed, setIsInspectorCollapsed] = useState(false);
   const [currentLocalProjectId, setCurrentLocalProjectId] = useState('');
   const [localProjects, setLocalProjects] = useState([]);
   const [localProjectsOpen, setLocalProjectsOpen] = useState(false);
@@ -1001,6 +1049,7 @@ function App() {
   const [pendingNewProject, setPendingNewProject] = useState(false);
   const fileInputRef = useRef(null);
   const projectInputRef = useRef(null);
+  const gridScrollRef = useRef(null);
   const autoSaveTimerRef = useRef(null);
   const lastSavedSignatureRef = useRef('');
   const appliedSourceDragRef = useRef(null);
@@ -1078,6 +1127,35 @@ function App() {
     () => imageCandidates.find((candidate) => candidate.id === selectedImageCandidateId) ?? imageCandidates[0] ?? null,
     [imageCandidates, selectedImageCandidateId]
   );
+  const cropDraftCrop = useMemo(() => normalizeCrop(cropDraft?.crop), [cropDraft?.crop]);
+
+  const updateCropDraft = useCallback((patch) => {
+    setCropDraft((previous) => {
+      if (!previous) return previous;
+      const current = normalizeCrop(previous.crop);
+      return {
+        ...previous,
+        crop: normalizeCrop({
+          ...current,
+          enabled: true,
+          ...patch
+        })
+      };
+    });
+  }, []);
+
+  const resetCropDraft = useCallback(() => {
+    setCropDraft((previous) => {
+      if (!previous) return previous;
+      return {
+        ...previous,
+        crop: {
+          ...INITIAL_IMAGE_OPTIONS.crop,
+          enabled: true
+        }
+      };
+    });
+  }, []);
 
   const appliedSourceSizeChanged = Boolean(
     appliedSourceImage && (appliedSourceImage.rows !== rows || appliedSourceImage.cols !== cols)
@@ -1085,6 +1163,23 @@ function App() {
   const appliedSourceTransformCss = appliedSourceOverlayTransform.scaleMode === 'free'
     ? `translate(calc(${appliedSourceOverlayTransform.offsetX} * var(--cell)), calc(${appliedSourceOverlayTransform.offsetY} * var(--cell))) scale(${appliedSourceOverlayTransform.scaleX / 100}, ${appliedSourceOverlayTransform.scaleY / 100})`
     : `translate(calc(${appliedSourceOverlayTransform.offsetX} * var(--cell)), calc(${appliedSourceOverlayTransform.offsetY} * var(--cell))) scale(${appliedSourceOverlayTransform.scale / 100})`;
+  const guideLineColor = guideColorMode === 'white'
+    ? '#ffffff'
+    : guideColorMode === 'custom'
+      ? normalizeHex(guideCustomColor) ?? '#111827'
+      : '#111827';
+
+  useEffect(() => {
+    const scrollNode = gridScrollRef.current;
+    if (!scrollNode) return undefined;
+
+    const frame = requestAnimationFrame(() => {
+      scrollNode.scrollLeft = Math.max(0, (scrollNode.scrollWidth - scrollNode.clientWidth) / 2);
+      scrollNode.scrollTop = Math.max(0, (scrollNode.scrollHeight - scrollNode.clientHeight) / 2);
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [rows, cols, zoom, showOppositeHeaders, isInspectorCollapsed]);
 
   const resetAppliedSourceOverlayTransform = useCallback(() => {
     setAppliedSourceOverlayTransform(DEFAULT_APPLIED_SOURCE_OVERLAY_TRANSFORM);
@@ -1194,9 +1289,11 @@ function App() {
     grid,
     activePaletteId,
     displayMode,
+    guideColorMode,
+    guideCustomColor,
     rowDirection,
     numberStart
-  }), [activePaletteId, cols, displayMode, grid, numberStart, palette, projectName, rowDirection, rows]);
+  }), [activePaletteId, cols, displayMode, grid, guideColorMode, guideCustomColor, numberStart, palette, projectName, rowDirection, rows]);
 
   const applyProjectData = useCallback((data, options = {}) => {
     const loadedPalette = normalizePaletteItems(data.palette);
@@ -1222,6 +1319,8 @@ function App() {
     setActivePaletteId(loadedActivePaletteId);
     setExpandedPaletteId('');
     setDisplayMode(data.displayMode || 'color-code');
+    setGuideColorMode(data.guideColorMode || 'black');
+    setGuideCustomColor(normalizeHex(data.guideCustomColor) || '#111827');
     setRowDirection(data.rowDirection || 'bottom-up');
     setNumberStart(data.numberStart || 1);
     setCurrentCell((cell) => clampCellToGrid(cell, nextRows, nextCols));
@@ -1753,13 +1852,14 @@ function App() {
 
   const colNumber = (colIndex) => colIndex + numberStart;
 
-  const buildExportCanvas = ({ includeLegend = true } = {}) => {
+  const buildExportCanvas = ({ includeLegend = true, includeSymbols = true, includeHeaders = true } = {}) => {
     const cell = 18;
-    const header = 34;
+    const header = includeHeaders ? 34 : 0;
+    const margin = 18;
     const legendWidth = includeLegend ? 260 : 0;
     const canvas = document.createElement('canvas');
-    canvas.width = header * 2 + cols * cell + legendWidth + 36;
-    canvas.height = header * 2 + rows * cell + 36;
+    canvas.width = margin * 2 + header * 2 + cols * cell + legendWidth;
+    canvas.height = margin * 2 + header * 2 + rows * cell;
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1767,17 +1867,53 @@ function App() {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    const ox = header + 18;
-    const oy = header + 18;
-    for (let c = 0; c < cols; c += 1) {
-      ctx.fillStyle = '#344054';
-      ctx.fillText(colNumber(c), ox + c * cell + cell / 2, 18);
-      ctx.fillText(colNumber(c), ox + c * cell + cell / 2, oy + rows * cell + 18);
-    }
-    for (let r = 0; r < rows; r += 1) {
-      ctx.fillStyle = '#344054';
-      ctx.fillText(rowNumber(r), 18, oy + r * cell + cell / 2);
-      ctx.fillText(rowNumber(r), ox + cols * cell + 18, oy + r * cell + cell / 2);
+    const chartX = margin;
+    const chartY = margin;
+    const ox = chartX + header;
+    const oy = chartY + header;
+    const gridRight = ox + cols * cell;
+    const gridBottom = oy + rows * cell;
+
+    if (includeHeaders) {
+      ctx.font = 'bold 12px Arial';
+      ctx.fillStyle = '#e9f1f8';
+      ctx.strokeStyle = '#b6c4d2';
+      ctx.lineWidth = 1;
+      ctx.fillRect(chartX, chartY, header, header);
+      ctx.strokeRect(chartX, chartY, header, header);
+      ctx.fillRect(gridRight, chartY, header, header);
+      ctx.strokeRect(gridRight, chartY, header, header);
+      ctx.fillRect(chartX, gridBottom, header, header);
+      ctx.strokeRect(chartX, gridBottom, header, header);
+      ctx.fillRect(gridRight, gridBottom, header, header);
+      ctx.strokeRect(gridRight, gridBottom, header, header);
+
+      for (let c = 0; c < cols; c += 1) {
+        const x = ox + c * cell;
+        ctx.fillStyle = '#e9f1f8';
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 1;
+        ctx.fillRect(x, chartY, cell, header);
+        ctx.strokeRect(x, chartY, cell, header);
+        ctx.fillRect(x, gridBottom, cell, header);
+        ctx.strokeRect(x, gridBottom, cell, header);
+        ctx.fillStyle = '#344054';
+        ctx.fillText(colNumber(c), x + cell / 2, chartY + header / 2);
+        ctx.fillText(colNumber(c), x + cell / 2, gridBottom + header / 2);
+      }
+      for (let r = 0; r < rows; r += 1) {
+        const y = oy + r * cell;
+        ctx.fillStyle = '#e9f1f8';
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 1;
+        ctx.fillRect(chartX, y, header, cell);
+        ctx.strokeRect(chartX, y, header, cell);
+        ctx.fillRect(gridRight, y, header, cell);
+        ctx.strokeRect(gridRight, y, header, cell);
+        ctx.fillStyle = '#344054';
+        ctx.fillText(rowNumber(r), chartX + header / 2, y + cell / 2);
+        ctx.fillText(rowNumber(r), gridRight + header / 2, y + cell / 2);
+      }
     }
 
     grid.forEach((row, r) => {
@@ -1788,10 +1924,7 @@ function App() {
         const shouldShowCell = cellData.active && display.visible;
         ctx.fillStyle = shouldShowCell ? display.color : '#ffffff';
         ctx.fillRect(x, y, cell, cell);
-        ctx.strokeStyle = (r + 1) % guideEvery === 0 || (c + 1) % guideEvery === 0 ? '#697586' : '#d8dee7';
-        ctx.lineWidth = (r + 1) % guideEvery === 0 || (c + 1) % guideEvery === 0 ? 1.2 : 0.5;
-        ctx.strokeRect(x, y, cell, cell);
-        if (shouldShowCell && display.symbol) {
+        if (includeSymbols && shouldShowCell && display.symbol) {
           ctx.fillStyle = luminance(display.color) < 0.55 ? '#ffffff' : '#111827';
           ctx.font = '8px Arial';
           ctx.fillText(display.symbol, x + cell / 2, y + cell / 2);
@@ -1799,8 +1932,31 @@ function App() {
       });
     });
 
+    ctx.lineCap = 'square';
+    for (let c = 0; c <= cols; c += 1) {
+      const isGuideLine = c > 0 && c < cols && c % guideEvery === 0;
+      const x = ox + c * cell;
+      ctx.beginPath();
+      ctx.strokeStyle = isGuideLine ? guideLineColor : '#aeb8c4';
+      ctx.lineWidth = isGuideLine ? 2.2 : 0.9;
+      ctx.moveTo(x, oy);
+      ctx.lineTo(x, gridBottom);
+      ctx.stroke();
+    }
+
+    for (let r = 0; r <= rows; r += 1) {
+      const isGuideLine = r > 0 && r < rows && r % guideEvery === 0;
+      const y = oy + r * cell;
+      ctx.beginPath();
+      ctx.strokeStyle = isGuideLine ? guideLineColor : '#aeb8c4';
+      ctx.lineWidth = isGuideLine ? 2.2 : 0.9;
+      ctx.moveTo(ox, y);
+      ctx.lineTo(gridRight, y);
+      ctx.stroke();
+    }
+
     if (includeLegend) {
-      const lx = ox + cols * cell + 56;
+      const lx = gridRight + header + 22;
       ctx.textAlign = 'left';
       ctx.font = 'bold 15px Arial';
       ctx.fillStyle = '#111827';
@@ -1825,7 +1981,7 @@ function App() {
   };
 
   const exportPng = () => {
-    const canvas = buildExportCanvas();
+    const canvas = buildExportCanvas({ includeLegend: false, includeSymbols: false, includeHeaders: true });
     const link = document.createElement('a');
     link.download = `${projectName || 'knitgrid'}.png`;
     link.href = canvas.toDataURL('image/png');
@@ -1889,11 +2045,15 @@ function App() {
       setImageCandidateSeed(0);
       setShowOriginalOverlay(false);
       setOriginalOverlayOpacity(46);
-      setImageDraft({
+      setCropDraft({
         src,
         name: file.name,
         width: image.naturalWidth,
-        height: image.naturalHeight
+        height: image.naturalHeight,
+        crop: {
+          ...INITIAL_IMAGE_OPTIONS.crop,
+          enabled: true
+        }
       });
     };
     image.onerror = () => {
@@ -1902,6 +2062,30 @@ function App() {
     };
     image.src = src;
     event.target.value = '';
+  };
+
+  const closeCropDraft = () => {
+    if (cropDraft?.src) URL.revokeObjectURL(cropDraft.src);
+    setCropDraft(null);
+  };
+
+  const completeCropDraft = () => {
+    if (!cropDraft) return;
+    const crop = normalizeCrop(cropDraft.crop);
+    setImageOptions({
+      ...INITIAL_IMAGE_OPTIONS,
+      crop: {
+        ...crop,
+        enabled: true
+      }
+    });
+    setImageDraft({
+      src: cropDraft.src,
+      name: cropDraft.name,
+      width: cropDraft.width,
+      height: cropDraft.height
+    });
+    setCropDraft(null);
   };
 
   const closeImageDraft = () => {
@@ -2048,7 +2232,7 @@ function App() {
   };
 
   return (
-    <div className="app" onPointerUp={handlePointerUp} onPointerLeave={handlePointerUp}>
+    <div className={`app ${isInspectorCollapsed ? 'inspector-collapsed' : ''}`} onPointerUp={handlePointerUp} onPointerLeave={handlePointerUp}>
       <header className="topbar">
         <div className="brand">
           <div className="brand-mark">
@@ -2307,13 +2491,14 @@ function App() {
             </div>
           ) : null}
 
-          <div className={`grid-scroll mode-${mode}`}>
+          <div ref={gridScrollRef} className={`grid-scroll mode-${mode}`}>
             <div
               className="chart-grid"
               style={{
                 '--rows': rows,
                 '--cols': cols,
-                '--cell': `${Math.round((zoom / 100) * 24)}px`
+                '--cell': `${Math.round((zoom / 100) * 24)}px`,
+                '--guide-color': guideLineColor
               }}
             >
               <div className="corner top-left" />
@@ -2347,7 +2532,8 @@ function App() {
                 {grid.map((row, r) =>
                   row.map((cell, c) => {
                     const actualRowNumber = rowNumber(r);
-                    const guide = (r + 1) % guideEvery === 0 || (c + 1) % guideEvery === 0;
+                    const guideRow = (r + 1) % guideEvery === 0;
+                    const guideCol = (c + 1) % guideEvery === 0;
                     const progress = mode === 'progress' && actualRowNumber === progressRow;
                     const completed = mode === 'progress' && completedRows.has(actualRowNumber);
                     const display = resolveCellDisplay(cell, palette);
@@ -2356,7 +2542,7 @@ function App() {
                     return (
                       <button
                         key={`${r}-${c}`}
-                        className={`cell ${cell.active ? 'filled' : ''} ${isInsertAnchor ? 'insert-anchor' : ''} ${!display.visible ? 'palette-hidden' : ''} ${guide ? 'guide' : ''} ${progress ? 'progress-row' : ''} ${completed ? 'completed-row' : ''}`}
+                        className={`cell ${cell.active ? 'filled' : ''} ${isInsertAnchor ? 'insert-anchor' : ''} ${!display.visible ? 'palette-hidden' : ''} ${guideRow ? 'guide-row' : ''} ${guideCol ? 'guide-col' : ''} ${progress ? 'progress-row' : ''} ${completed ? 'completed-row' : ''}`}
                         style={{ background: shouldShowCell && displayMode !== 'code' ? display.color : '#fff' }}
                         onPointerDown={() => handlePointerDown(r, c)}
                         onPointerEnter={() => handlePointerEnter(r, c)}
@@ -2381,11 +2567,31 @@ function App() {
         </section>
       </main>
 
-      <aside className="inspector">
+      <aside className={`inspector ${isInspectorCollapsed ? 'collapsed' : ''}`} aria-label="격자 설정 사이드메뉴">
+        {isInspectorCollapsed ? (
+          <button
+            className="inspector-expand"
+            onClick={() => setIsInspectorCollapsed(false)}
+            title="격자 설정 펼치기"
+            aria-label="격자 설정 펼치기"
+          >
+            <Settings2 size={17} />
+            <ArrowLeft size={16} />
+          </button>
+        ) : (
+          <>
         <section className="panel setup-panel">
           <div className="panel-title">
             <Settings2 size={17} />
             <strong>격자 설정</strong>
+            <button
+              className="icon-toggle"
+              onClick={() => setIsInspectorCollapsed(true)}
+              title="격자 설정 접기"
+              aria-label="격자 설정 접기"
+            >
+              <ArrowRight size={15} />
+            </button>
           </div>
           <div className="preset-grid">
             {PRESETS.map((preset) => (
@@ -2527,6 +2733,30 @@ function App() {
                 <option value="10">10칸</option>
               </select>
             </label>
+          </div>
+          <div className="two-cols guide-color-fields">
+            <label>
+              보조선 색상
+              <select value={guideColorMode} onChange={(event) => setGuideColorMode(event.target.value)}>
+                <option value="black">검은색</option>
+                <option value="white">흰색</option>
+                <option value="custom">커스텀</option>
+              </select>
+            </label>
+            {guideColorMode === 'custom' ? (
+              <label>
+                커스텀
+                <input
+                  type="color"
+                  value={guideCustomColor}
+                  onInput={(event) => setGuideCustomColor(event.target.value)}
+                  onChange={(event) => setGuideCustomColor(event.target.value)}
+                  aria-label="커스텀 보조선 색상"
+                />
+              </label>
+            ) : (
+              <div className="guide-color-preview" style={{ '--guide-color': guideLineColor }} aria-hidden="true" />
+            )}
           </div>
           <label className="check-row">
             <input type="checkbox" checked={showOppositeHeaders} onChange={(event) => setShowOppositeHeaders(event.target.checked)} />
@@ -2789,6 +3019,8 @@ function App() {
           <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp" onChange={prepareImageDraft} hidden />
           <input ref={projectInputRef} type="file" accept="application/json,.json" onChange={loadProject} hidden />
         </section>
+          </>
+        )}
       </aside>
 
       {localProjectsOpen ? (
@@ -2913,6 +3145,90 @@ function App() {
               </button>
               <button className="primary" onClick={() => commitGridResize(pendingResize.rows, pendingResize.cols, 'keep')}>
                 그림 유지
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+
+      {cropDraft ? (
+        <div className="modal-backdrop" role="presentation">
+          <section className="image-modal crop-modal" role="dialog" aria-modal="true" aria-labelledby="crop-modal-title">
+            <div className="image-modal-header">
+              <div>
+                <strong id="crop-modal-title">이미지 크롭</strong>
+                <span>{cropDraft.name} · {cropDraft.width} x {cropDraft.height}px</span>
+              </div>
+              <button onClick={closeCropDraft} aria-label="이미지 크롭 닫기">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="crop-modal-body">
+              <div
+                className="crop-preview-frame crop-modal-preview active"
+                style={{ aspectRatio: `${cropDraft.width} / ${cropDraft.height}` }}
+              >
+                <img src={cropDraft.src} alt="크롭할 원본 이미지" />
+                <div
+                  className="crop-selection"
+                  style={{
+                    left: `${cropDraftCrop.x * 100}%`,
+                    top: `${cropDraftCrop.y * 100}%`,
+                    width: `${cropDraftCrop.width * 100}%`,
+                    height: `${cropDraftCrop.height * 100}%`
+                  }}
+                />
+              </div>
+              <div className="crop-modal-controls">
+                <div className="crop-sliders">
+                  <label>
+                    왼쪽
+                    <input
+                      type="range"
+                      min="0"
+                      max={Math.round((1 - cropDraftCrop.width) * 100)}
+                      value={Math.round(cropDraftCrop.x * 100)}
+                      onChange={(event) => updateCropDraft({ x: Number(event.target.value) / 100 })}
+                    />
+                  </label>
+                  <label>
+                    위
+                    <input
+                      type="range"
+                      min="0"
+                      max={Math.round((1 - cropDraftCrop.height) * 100)}
+                      value={Math.round(cropDraftCrop.y * 100)}
+                      onChange={(event) => updateCropDraft({ y: Number(event.target.value) / 100 })}
+                    />
+                  </label>
+                  <label>
+                    너비
+                    <input
+                      type="range"
+                      min="5"
+                      max={Math.round((1 - cropDraftCrop.x) * 100)}
+                      value={Math.round(cropDraftCrop.width * 100)}
+                      onChange={(event) => updateCropDraft({ width: Number(event.target.value) / 100 })}
+                    />
+                  </label>
+                  <label>
+                    높이
+                    <input
+                      type="range"
+                      min="5"
+                      max={Math.round((1 - cropDraftCrop.y) * 100)}
+                      value={Math.round(cropDraftCrop.height * 100)}
+                      onChange={(event) => updateCropDraft({ height: Number(event.target.value) / 100 })}
+                    />
+                  </label>
+                </div>
+                <button onClick={resetCropDraft}>전체 선택</button>
+              </div>
+            </div>
+            <div className="image-modal-actions">
+              <button onClick={closeCropDraft}>취소</button>
+              <button className="primary" onClick={completeCropDraft}>
+                크롭 완료
               </button>
             </div>
           </section>
