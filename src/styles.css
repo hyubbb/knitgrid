@@ -258,7 +258,7 @@
   }
 
   .chart-grid {
-    @apply grid w-max items-start overflow-hidden rounded-md border border-[#b6c4d2] bg-white shadow-[0_18px_45px_rgba(15,23,42,0.14)];
+    @apply relative grid w-max items-start overflow-visible rounded-md border border-[#b6c4d2] bg-white shadow-[0_18px_45px_rgba(15,23,42,0.14)];
     margin: auto;
     grid-template-columns: 38px max-content 38px;
     grid-template-rows: 32px max-content 32px;
@@ -333,7 +333,11 @@
   }
 
   .applied-source-overlay {
-    @apply pointer-events-none absolute inset-0 z-[1] size-full mix-blend-multiply;
+    @apply pointer-events-none absolute z-[6] mix-blend-multiply;
+    left: 38px;
+    top: 32px;
+    width: calc(var(--cols) * var(--cell));
+    height: calc(var(--rows) * var(--cell));
     transform-origin: center center;
   }
 
@@ -942,16 +946,24 @@
     @apply grid gap-4 overflow-y-auto p-5;
   }
 
-  .crop-modal-preview {
-    @apply h-auto min-h-[360px] max-h-[min(620px,64vh)];
+  .cropper-shell {
+    @apply relative grid h-[min(620px,64vh)] min-h-[360px] place-items-center overflow-hidden rounded-lg border border-[#d7e0ea] bg-[#111827] p-4;
+  }
+
+  .cropper-shell .ReactCrop {
+    @apply max-h-full max-w-full;
+  }
+
+  .crop-source-image {
+    @apply block max-h-[calc(min(620px,64vh)-32px)] max-w-full object-contain;
   }
 
   .crop-modal-controls {
-    @apply grid gap-3 rounded-lg border border-[#d7e0ea] bg-[#fbfdff] p-3;
+    @apply flex justify-end rounded-lg border border-[#d7e0ea] bg-[#fbfdff] p-3;
   }
 
   .crop-modal-controls > button {
-    @apply min-h-8 rounded-[7px] text-[12px] font-bold text-[#263447];
+    @apply min-h-8 rounded-[7px] px-3 text-[12px] font-bold text-[#263447];
   }
 
   .setting-block {
@@ -960,50 +972,6 @@
 
   .setting-block > strong {
     @apply text-[12px] text-[#263447];
-  }
-
-  .crop-title {
-    @apply flex items-center justify-between gap-2;
-  }
-
-  .crop-title > strong {
-    @apply text-[12px] text-[#263447];
-  }
-
-  .crop-title div {
-    @apply flex items-center gap-1.5;
-  }
-
-  .crop-title button {
-    @apply inline-flex min-h-8 items-center justify-center gap-1.5 rounded-[7px] px-2.5 text-[12px] font-bold;
-  }
-
-  .crop-title button.active {
-    @apply border-[#77add7] bg-[#e8f4ff] text-[#155d9a];
-  }
-
-  .crop-preview-frame {
-    @apply relative h-[150px] overflow-hidden rounded-lg border border-[#d7e0ea] bg-[#f8fbfd];
-  }
-
-  .crop-preview-frame img {
-    @apply size-full object-fill;
-  }
-
-  .crop-selection {
-    @apply pointer-events-none absolute z-10 border-2 border-[#e84f7f] bg-transparent shadow-[0_0_0_999px_rgba(15,23,42,0.32)];
-  }
-
-  .crop-sliders {
-    @apply grid grid-cols-2 gap-2;
-  }
-
-  .crop-sliders label {
-    @apply gap-1;
-  }
-
-  .crop-sliders input[type="range"] {
-    @apply h-7 min-h-0 p-0 accent-[#1f7ecf];
   }
 
   .option-stack {

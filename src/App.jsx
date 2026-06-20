@@ -2537,34 +2537,34 @@ export function App() {
                 '--guide-color': guideLineColor
               }}
             >
+              {appliedSourceImage && showAppliedSourceOverlay ? (
+                <div
+                  className={`applied-source-overlay ${isAdjustingAppliedSourceOverlay ? 'adjusting' : ''}`}
+                  aria-hidden="true"
+                  style={{
+                    opacity: appliedSourceOverlayOpacity / 100,
+                    transform: appliedSourceTransformCss
+                  }}
+                  onPointerDown={handleAppliedSourceOverlayPointerDown}
+                  onPointerMove={handleAppliedSourceOverlayPointerMove}
+                  onPointerUp={handleAppliedSourceOverlayPointerUp}
+                  onPointerCancel={handleAppliedSourceOverlayPointerUp}
+                >
+                  <img
+                    src={appliedSourceImage.src}
+                    alt=""
+                    style={{
+                      objectFit: appliedSourceImage.imageOptions.fit === 'stretch' ? 'fill' : appliedSourceImage.imageOptions.fit,
+                      objectPosition: `${appliedSourceImage.imageOptions.alignX === 'left' ? 0 : appliedSourceImage.imageOptions.alignX === 'right' ? 100 : 50}% ${appliedSourceImage.imageOptions.alignY === 'top' ? 0 : appliedSourceImage.imageOptions.alignY === 'bottom' ? 100 : 50}%`
+                    }}
+                  />
+                </div>
+              ) : null}
               <div className="corner top-left" />
               <HeaderRow cols={cols} colNumber={colNumber} area="top" />
               <div className="corner top-right" />
               <HeaderColumn rows={rows} rowNumber={rowNumber} area="left" completedRows={completedRows} />
               <div className="cells" style={{ gridTemplateColumns: `repeat(${cols}, var(--cell))` }}>
-                {appliedSourceImage && showAppliedSourceOverlay ? (
-                  <div
-                    className={`applied-source-overlay ${isAdjustingAppliedSourceOverlay ? 'adjusting' : ''}`}
-                    aria-hidden="true"
-                    style={{
-                      opacity: appliedSourceOverlayOpacity / 100,
-                      transform: appliedSourceTransformCss
-                    }}
-                    onPointerDown={handleAppliedSourceOverlayPointerDown}
-                    onPointerMove={handleAppliedSourceOverlayPointerMove}
-                    onPointerUp={handleAppliedSourceOverlayPointerUp}
-                    onPointerCancel={handleAppliedSourceOverlayPointerUp}
-                  >
-                    <img
-                      src={appliedSourceImage.src}
-                      alt=""
-                      style={{
-                        objectFit: appliedSourceImage.imageOptions.fit === 'stretch' ? 'fill' : appliedSourceImage.imageOptions.fit,
-                        objectPosition: `${appliedSourceImage.imageOptions.alignX === 'left' ? 0 : appliedSourceImage.imageOptions.alignX === 'right' ? 100 : 50}% ${appliedSourceImage.imageOptions.alignY === 'top' ? 0 : appliedSourceImage.imageOptions.alignY === 'bottom' ? 100 : 50}%`
-                      }}
-                    />
-                  </div>
-                ) : null}
                 {grid.map((row, r) =>
                   row.map((cell, c) => {
                     const actualRowNumber = rowNumber(r);
@@ -3511,4 +3511,3 @@ function HeaderColumn({ rows, rowNumber, area, completedRows }) {
     </div>
   );
 }
-
