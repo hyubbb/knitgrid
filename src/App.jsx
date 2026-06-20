@@ -2950,6 +2950,7 @@ export function App() {
         )}
       </aside>
 
+      {localProjectsOpen ? (
       <Modal
         open={localProjectsOpen}
         title="내 작업"
@@ -3005,7 +3006,9 @@ export function App() {
           </div>
         )}
       </Modal>
+      ) : null}
 
+      {pendingNewProject ? (
       <Modal
         open={Boolean(pendingNewProject)}
         title="새 작업 시작"
@@ -3029,7 +3032,9 @@ export function App() {
           <p>로컬 저장을 선택하면 이 브라우저의 내 작업 목록에 저장한 뒤 새 빈 격자로 전환합니다.</p>
         </div>
       </Modal>
+      ) : null}
 
+      {pendingResize ? (
       <Modal
         open={Boolean(pendingResize)}
         title="격자 크기 변경"
@@ -3053,7 +3058,9 @@ export function App() {
           <p>그림을 유지하면 좌상단 기준으로 보존되고, 줄어드는 영역의 오른쪽/아래 칸은 잘립니다.</p>
         </div>
       </Modal>
+      ) : null}
 
+      {cropDraft ? (
       <Modal
         open={Boolean(cropDraft)}
         title="이미지 크롭"
@@ -3086,7 +3093,9 @@ export function App() {
           <Button onClick={resetCropDraft}>초기화</Button>
         </div>
       </Modal>
+      ) : null}
 
+      {imageDraft ? (
       <Modal
         open={Boolean(imageDraft)}
         title="이미지 변환 미리보기"
@@ -3331,6 +3340,7 @@ export function App() {
                 ) : null}
               </div>
       </Modal>
+      ) : null}
 
       <StatusBar>
         <span>도구: {TOOLS.find((item) => item.id === tool)?.label}</span>
