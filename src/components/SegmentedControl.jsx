@@ -8,10 +8,11 @@
  * @param {number} [props.iconSize=15]
  * @param {string} props.className - 컨테이너 클래스 (필수: 시각 스타일이 여기서 옴)
  * @param {string} [props.ariaLabel]
+ * @param {string} [props.as='nav'] - 컨테이너 태그. 원본 마크업과 동일하게: mode-tabs='nav', display-tabs='div'
  */
-export function SegmentedControl({ items, value, onChange, iconSize = 15, className, ariaLabel }) {
+export function SegmentedControl({ items, value, onChange, iconSize = 15, className, ariaLabel, as: Tag = 'nav' }) {
   return (
-    <nav className={className} aria-label={ariaLabel}>
+    <Tag className={className} aria-label={ariaLabel}>
       {items.map((item) => {
         const Icon = item.icon;
         return (
@@ -21,6 +22,6 @@ export function SegmentedControl({ items, value, onChange, iconSize = 15, classN
           </button>
         );
       })}
-    </nav>
+    </Tag>
   );
 }

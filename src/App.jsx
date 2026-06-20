@@ -2682,7 +2682,7 @@ export function App() {
           title="팔레트 / 코드"
           action={<Button onClick={addPaletteColor}>추가</Button>}
         >
-          <SegmentedControl className="display-tabs" items={DISPLAY_MODES} value={displayMode} onChange={setDisplayMode} />
+          <SegmentedControl as="div" className="display-tabs" items={DISPLAY_MODES} value={displayMode} onChange={setDisplayMode} />
           {paletteNotice ? <div className="palette-notice">{paletteNotice}</div> : null}
           <div className="palette-list">
             {palette.map((item) => (
