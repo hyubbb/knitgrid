@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactCrop from 'react-image-crop';
 import * as iq from 'image-q';
-import { Button, IconButton, FileButton, SegmentedControl, Slider, TextField, NumberField, Select, Toggle } from './components/index.js';
+import { Button, IconButton, FileButton, SegmentedControl, Slider, TextField, NumberField, Select, Toggle, Panel, Toolbar, ToolRail, Modal, StatusBar } from './components/index.js';
 import {
   AlertTriangle,
   ArrowDown,
@@ -2293,7 +2293,7 @@ export function App() {
           onChange={setMode}
         />
 
-        <div className="command-group">
+        <Toolbar className="command-group">
           <span className={`local-save-state state-${localSaveState}`} title={localSaveMessage || localSaveStatusLabel}>
             {localSaveStatusLabel}
           </span>
@@ -2306,24 +2306,15 @@ export function App() {
           <Button icon={FileImage} onClick={exportPng}>PNG</Button>
           <Button icon={FileText} onClick={exportPdf}>PDF</Button>
           <Button icon={Download} onClick={saveProject}>JSON</Button>
-        </div>
+        </Toolbar>
       </header>
 
-      <aside className="tool-rail" aria-label="편집 도구">
-        {TOOLS.map((item) => {
-          const Icon = item.icon;
-          return (
-            <button
-              key={item.id}
-              className={tool === item.id ? 'active' : ''}
-              onClick={() => (item.id === 'mirror' ? mirrorGrid() : setTool(item.id))}
-              title={item.label}
-            >
-              <Icon size={20} />
-              <span>{item.label}</span>
-            </button>
-          );
-        })}
+      <ToolRail
+        items={TOOLS}
+        value={tool}
+        onSelect={(id) => id === 'mirror' ? mirrorGrid() : setTool(id)}
+        ariaLabel="편집 도구"
+      >
         <button onClick={rotateGrid} title="회전">
           <RotateCcw size={20} />
           <span>회전</span>
@@ -2332,11 +2323,11 @@ export function App() {
           <Copy size={20} />
           <span>반복</span>
         </button>
-      </aside>
+      </ToolRail>
 
       <main className="workspace">
         <section className="canvas-panel">
-          <div className="canvas-toolbar">
+          <Toolbar className="canvas-toolbar">
             <div>
               <strong>{cols} x {rows}</strong>
               <span>{guideEvery}칸 보조선 · 최대 200 x 200</span>
@@ -2486,7 +2477,7 @@ export function App() {
                 <Trash2 size={14} />
               </button>
             </div>
-          </div>
+          </Toolbar>
           {appliedSourceImage && appliedSourceSizeChanged ? (
             <div className="source-overlay-note">
               원본은 {appliedSourceImage.cols} x {appliedSourceImage.rows}칸 적용 당시 기준입니다.
@@ -2582,10 +2573,11 @@ export function App() {
           </button>
         ) : (
           <>
-        <section className="panel setup-panel">
-          <div className="panel-title">
-            <Settings2 size={17} />
-            <strong>격자 설정</strong>
+        <Panel
+          className="setup-panel"
+          icon={Settings2}
+          title="격자 설정"
+          action={
             <button
               className="icon-toggle"
               onClick={() => setIsInspectorCollapsed(true)}
@@ -2594,7 +2586,8 @@ export function App() {
             >
               <ArrowRight size={15} />
             </button>
-          </div>
+          }
+        >
           <div className="preset-grid">
             {PRESETS.map((preset) => (
               <button
@@ -2739,14 +2732,13 @@ export function App() {
             우측/하단 번호 표시
           </label>
           <Select label="행 번호 방향" value={rowDirection} onChange={setRowDirection} options={[{ value: 'bottom-up', label: '아래에서 위' }, { value: 'top-down', label: '위에서 아래' }]} />
-        </section>
+        </Panel>
 
-        <section className="panel">
-          <div className="panel-title">
-            <Palette size={17} />
-            <strong>팔레트 / 코드</strong>
-            <Button onClick={addPaletteColor}>추가</Button>
-          </div>
+        <Panel
+          icon={Palette}
+          title="팔레트 / 코드"
+          action={<Button onClick={addPaletteColor}>추가</Button>}
+        >
           <SegmentedControl className="display-tabs" items={DISPLAY_MODES} value={displayMode} onChange={setDisplayMode} />
           {paletteNotice ? <div className="palette-notice">{paletteNotice}</div> : null}
           <div className="palette-list">
@@ -2908,13 +2900,9 @@ export function App() {
               );
             })}
           </div>
-        </section>
+        </Panel>
 
-        <section className="panel progress-panel">
-          <div className="panel-title">
-            <CheckSquare size={17} />
-            <strong>진행 모드</strong>
-          </div>
+        <Panel className="progress-panel" icon={CheckSquare} title="진행 모드">
           <label>
             현재 행
             <input type="range" min={numberStart} max={rows + numberStart - 1} value={progressRow} onChange={(event) => setProgressRow(Number(event.target.value))} />
@@ -2940,13 +2928,9 @@ export function App() {
               );
             })}
           </div>
-        </section>
+        </Panel>
 
-        <section className="panel export-panel">
-          <div className="panel-title">
-            <ArrowDownToLine size={17} />
-            <strong>가져오기 / 내보내기</strong>
-          </div>
+        <Panel className="export-panel" icon={ArrowDownToLine} title="가져오기 / 내보내기">
           <div className="local-project-actions">
             <Button icon={Plus} iconSize={15} onClick={requestNewProject}>새 작업</Button>
             <Button icon={FileText} iconSize={15} onClick={openLocalProjectsModal}>내 작업</Button>
@@ -2961,181 +2945,167 @@ export function App() {
           </div>
           <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp" onChange={prepareImageDraft} hidden />
           <input ref={projectInputRef} type="file" accept="application/json,.json" onChange={loadProject} hidden />
-        </section>
+        </Panel>
           </>
         )}
       </aside>
 
-      {localProjectsOpen ? (
-        <div className="modal-backdrop" role="presentation">
-          <section className="image-modal local-project-modal" role="dialog" aria-modal="true" aria-labelledby="local-project-modal-title">
-            <div className="image-modal-header">
-              <div>
-                <strong id="local-project-modal-title">내 작업</strong>
-                <span>이 브라우저에 저장된 KnitGrid 작업입니다. 다른 기기나 브라우저와 자동 공유되지는 않습니다.</span>
-              </div>
-              <button onClick={() => setLocalProjectsOpen(false)} aria-label="내 작업 닫기">
-                <X size={18} />
-              </button>
-            </div>
-            <div className="local-project-modal-body">
-              {localProjects.length ? (
-                <div className="local-project-list">
-                  {localProjects.map((project) => (
-                    <article
-                      key={project.id}
-                      className={`local-project-row ${currentLocalProjectId === project.id ? 'active' : ''}`}
-                    >
-                      <img src={project.thumbnail} alt="" aria-hidden="true" />
-                      <div className="local-project-meta">
-                        <strong>{project.name || project.projectData?.projectName || '이름 없는 작업'}</strong>
-                        <span>{formatProjectDate(project.updatedAt)} 수정</span>
-                        <div>
-                          <b>{project.summary?.cols ?? project.projectData?.cols} x {project.summary?.rows ?? project.projectData?.rows}</b>
-                          <b>{project.summary?.colorCount ?? project.projectData?.palette?.length ?? 0}색</b>
-                          <b>{project.summary?.paintedCells ?? countPaintedCells(project.projectData?.grid || [])}칸</b>
-                        </div>
-                      </div>
-                      <div className="local-project-row-actions">
-                        <Button variant="primary" onClick={() => openLocalProject(project.id)}>열기</Button>
-                        <Button onClick={() => duplicateProject(project.id)}>복제</Button>
-                        <Button onClick={() => renameLocalProject(project)}>이름 변경</Button>
-                        <Button
-                          variant="danger"
-                          onClick={() => {
-                            if (window.confirm(`${project.name || '작업'}을 삭제할까요?`)) removeLocalProject(project.id);
-                          }}
-                        >삭제</Button>
-                      </div>
-                    </article>
-                  ))}
+      <Modal
+        open={localProjectsOpen}
+        title="내 작업"
+        subtitle="이 브라우저에 저장된 KnitGrid 작업입니다. 다른 기기나 브라우저와 자동 공유되지는 않습니다."
+        onClose={() => setLocalProjectsOpen(false)}
+        variant="local-project-modal"
+        bodyClassName="local-project-modal-body"
+        titleId="local-project-modal-title"
+        closeLabel="내 작업 닫기"
+        actions={
+          <>
+            <Button onClick={() => setLocalProjectsOpen(false)}>닫기</Button>
+            <Button variant="primary" onClick={saveCurrentLocalProject} disabled={localSaveState === 'saving'}>현재 작업 로컬 저장</Button>
+          </>
+        }
+      >
+        {localProjects.length ? (
+          <div className="local-project-list">
+            {localProjects.map((project) => (
+              <article
+                key={project.id}
+                className={`local-project-row ${currentLocalProjectId === project.id ? 'active' : ''}`}
+              >
+                <img src={project.thumbnail} alt="" aria-hidden="true" />
+                <div className="local-project-meta">
+                  <strong>{project.name || project.projectData?.projectName || '이름 없는 작업'}</strong>
+                  <span>{formatProjectDate(project.updatedAt)} 수정</span>
+                  <div>
+                    <b>{project.summary?.cols ?? project.projectData?.cols} x {project.summary?.rows ?? project.projectData?.rows}</b>
+                    <b>{project.summary?.colorCount ?? project.projectData?.palette?.length ?? 0}색</b>
+                    <b>{project.summary?.paintedCells ?? countPaintedCells(project.projectData?.grid || [])}칸</b>
+                  </div>
                 </div>
-              ) : (
-                <div className="empty-local-projects">
-                  <FileText size={24} />
-                  <strong>아직 저장된 작업이 없습니다.</strong>
-                  <p>상단의 로컬 저장을 누르면 이 브라우저에 작업이 저장됩니다.</p>
+                <div className="local-project-row-actions">
+                  <Button variant="primary" onClick={() => openLocalProject(project.id)}>열기</Button>
+                  <Button onClick={() => duplicateProject(project.id)}>복제</Button>
+                  <Button onClick={() => renameLocalProject(project)}>이름 변경</Button>
+                  <Button
+                    variant="danger"
+                    onClick={() => {
+                      if (window.confirm(`${project.name || '작업'}을 삭제할까요?`)) removeLocalProject(project.id);
+                    }}
+                  >삭제</Button>
                 </div>
-              )}
-            </div>
-            <div className="image-modal-actions">
-              <Button onClick={() => setLocalProjectsOpen(false)}>닫기</Button>
-              <Button variant="primary" onClick={saveCurrentLocalProject} disabled={localSaveState === 'saving'}>현재 작업 로컬 저장</Button>
-            </div>
-          </section>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="empty-local-projects">
+            <FileText size={24} />
+            <strong>아직 저장된 작업이 없습니다.</strong>
+            <p>상단의 로컬 저장을 누르면 이 브라우저에 작업이 저장됩니다.</p>
+          </div>
+        )}
+      </Modal>
+
+      <Modal
+        open={Boolean(pendingNewProject)}
+        title="새 작업 시작"
+        subtitle="현재 편집 중인 작업을 어떻게 처리할지 선택하세요."
+        onClose={() => setPendingNewProject(false)}
+        variant="resize-modal"
+        bodyClassName="resize-modal-body"
+        titleId="new-project-modal-title"
+        closeLabel="새 작업 취소"
+        actions={
+          <>
+            <Button onClick={() => setPendingNewProject(false)}>취소</Button>
+            <Button variant="danger" onClick={resetToNewProject}>저장하지 않고 새로 만들기</Button>
+            <Button variant="primary" onClick={saveAndStartNewProject} disabled={localSaveState === 'saving'}>현재 작업 저장 후 새로 만들기</Button>
+          </>
+        }
+      >
+        <AlertTriangle size={20} />
+        <div>
+          <strong>현재 작업이 초기화됩니다.</strong>
+          <p>로컬 저장을 선택하면 이 브라우저의 내 작업 목록에 저장한 뒤 새 빈 격자로 전환합니다.</p>
         </div>
-      ) : null}
+      </Modal>
 
-      {pendingNewProject ? (
-        <div className="modal-backdrop" role="presentation">
-          <section className="image-modal resize-modal" role="dialog" aria-modal="true" aria-labelledby="new-project-modal-title">
-            <div className="image-modal-header">
-              <div>
-                <strong id="new-project-modal-title">새 작업 시작</strong>
-                <span>현재 편집 중인 작업을 어떻게 처리할지 선택하세요.</span>
-              </div>
-              <button onClick={() => setPendingNewProject(false)} aria-label="새 작업 취소">
-                <X size={18} />
-              </button>
-            </div>
-            <div className="resize-modal-body">
-              <AlertTriangle size={20} />
-              <div>
-                <strong>현재 작업이 초기화됩니다.</strong>
-                <p>로컬 저장을 선택하면 이 브라우저의 내 작업 목록에 저장한 뒤 새 빈 격자로 전환합니다.</p>
-              </div>
-            </div>
-            <div className="image-modal-actions">
-              <Button onClick={() => setPendingNewProject(false)}>취소</Button>
-              <Button variant="danger" onClick={resetToNewProject}>저장하지 않고 새로 만들기</Button>
-              <Button variant="primary" onClick={saveAndStartNewProject} disabled={localSaveState === 'saving'}>현재 작업 저장 후 새로 만들기</Button>
-            </div>
-          </section>
+      <Modal
+        open={Boolean(pendingResize)}
+        title="격자 크기 변경"
+        subtitle={pendingResize ? `현재 ${cols} x ${rows}칸에서 ${pendingResize.cols} x ${pendingResize.rows}칸으로 바꿉니다.` : undefined}
+        onClose={() => setPendingResize(null)}
+        variant="resize-modal"
+        bodyClassName="resize-modal-body"
+        titleId="resize-modal-title"
+        closeLabel="격자 크기 변경 취소"
+        actions={
+          <>
+            <Button onClick={() => setPendingResize(null)}>취소</Button>
+            <Button variant="danger" onClick={() => commitGridResize(pendingResize.rows, pendingResize.cols, 'reset')}>초기화</Button>
+            <Button variant="primary" onClick={() => commitGridResize(pendingResize.rows, pendingResize.cols, 'keep')}>그림 유지</Button>
+          </>
+        }
+      >
+        <AlertTriangle size={20} />
+        <div>
+          <strong>그려진 칸 {paintedCellCount}개가 있습니다.</strong>
+          <p>그림을 유지하면 좌상단 기준으로 보존되고, 줄어드는 영역의 오른쪽/아래 칸은 잘립니다.</p>
         </div>
-      ) : null}
+      </Modal>
 
-      {pendingResize ? (
-        <div className="modal-backdrop" role="presentation">
-          <section className="image-modal resize-modal" role="dialog" aria-modal="true" aria-labelledby="resize-modal-title">
-            <div className="image-modal-header">
-              <div>
-                <strong id="resize-modal-title">격자 크기 변경</strong>
-                <span>
-                  현재 {cols} x {rows}칸에서 {pendingResize.cols} x {pendingResize.rows}칸으로 바꿉니다.
-                </span>
-              </div>
-              <button onClick={() => setPendingResize(null)} aria-label="격자 크기 변경 취소">
-                <X size={18} />
-              </button>
-            </div>
-            <div className="resize-modal-body">
-              <AlertTriangle size={20} />
-              <div>
-                <strong>그려진 칸 {paintedCellCount}개가 있습니다.</strong>
-                <p>그림을 유지하면 좌상단 기준으로 보존되고, 줄어드는 영역의 오른쪽/아래 칸은 잘립니다.</p>
-              </div>
-            </div>
-            <div className="image-modal-actions">
-              <Button onClick={() => setPendingResize(null)}>취소</Button>
-              <Button variant="danger" onClick={() => commitGridResize(pendingResize.rows, pendingResize.cols, 'reset')}>초기화</Button>
-              <Button variant="primary" onClick={() => commitGridResize(pendingResize.rows, pendingResize.cols, 'keep')}>그림 유지</Button>
-            </div>
-          </section>
+      <Modal
+        open={Boolean(cropDraft)}
+        title="이미지 크롭"
+        subtitle={cropDraft ? `${cropDraft.name} · ${cropDraft.width} x ${cropDraft.height}px` : undefined}
+        onClose={closeCropDraft}
+        variant="crop-modal"
+        bodyClassName="crop-modal-body"
+        titleId="crop-modal-title"
+        closeLabel="이미지 크롭 닫기"
+        actions={
+          <>
+            <Button onClick={closeCropDraft}>취소</Button>
+            <Button variant="primary" onClick={completeCropDraft} disabled={!cropDraft?.cropArea}>크롭 완료</Button>
+          </>
+        }
+      >
+        <div className="cropper-shell">
+          <ReactCrop
+            crop={cropDraft?.cropSelection}
+            keepSelection
+            minWidth={8}
+            minHeight={8}
+            onChange={(_, percentCrop) => updateCropDraftSelection(percentCrop)}
+            onComplete={(_, percentCrop) => completeCropDraftSelection(percentCrop)}
+          >
+            <img className="crop-source-image" src={cropDraft?.src} alt="크롭할 원본 이미지" />
+          </ReactCrop>
         </div>
-      ) : null}
-
-      {cropDraft ? (
-        <div className="modal-backdrop" role="presentation">
-          <section className="image-modal crop-modal" role="dialog" aria-modal="true" aria-labelledby="crop-modal-title">
-            <div className="image-modal-header">
-              <div>
-                <strong id="crop-modal-title">이미지 크롭</strong>
-                <span>{cropDraft.name} · {cropDraft.width} x {cropDraft.height}px</span>
-              </div>
-              <button onClick={closeCropDraft} aria-label="이미지 크롭 닫기">
-                <X size={18} />
-              </button>
-            </div>
-            <div className="crop-modal-body">
-              <div className="cropper-shell">
-                <ReactCrop
-                  crop={cropDraft.cropSelection}
-                  keepSelection
-                  minWidth={8}
-                  minHeight={8}
-                  onChange={(_, percentCrop) => updateCropDraftSelection(percentCrop)}
-                  onComplete={(_, percentCrop) => completeCropDraftSelection(percentCrop)}
-                >
-                  <img className="crop-source-image" src={cropDraft.src} alt="크롭할 원본 이미지" />
-                </ReactCrop>
-              </div>
-              <div className="crop-modal-controls">
-                <Button onClick={resetCropDraft}>초기화</Button>
-              </div>
-            </div>
-            <div className="image-modal-actions">
-              <Button onClick={closeCropDraft}>취소</Button>
-              <Button variant="primary" onClick={completeCropDraft} disabled={!cropDraft.cropArea}>크롭 완료</Button>
-            </div>
-          </section>
+        <div className="crop-modal-controls">
+          <Button onClick={resetCropDraft}>초기화</Button>
         </div>
-      ) : null}
+      </Modal>
 
-      {imageDraft ? (
-        <div className="modal-backdrop" role="presentation">
-          <section className="image-modal" role="dialog" aria-modal="true" aria-labelledby="image-modal-title">
-            <div className="image-modal-header">
-              <div>
-                <strong id="image-modal-title">이미지 변환 미리보기</strong>
-                <span>{imageDraft.name} · 원본 {imageDraft.width} x {imageDraft.height}px → 격자 {cols} x {rows}칸</span>
-              </div>
-              <button onClick={closeImageDraft} aria-label="이미지 변환 닫기">
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="image-modal-body">
-              <div className="image-preview-panel">
+      <Modal
+        open={Boolean(imageDraft)}
+        title="이미지 변환 미리보기"
+        subtitle={imageDraft ? `${imageDraft.name} · 원본 ${imageDraft.width} x ${imageDraft.height}px → 격자 ${cols} x ${rows}칸` : undefined}
+        onClose={closeImageDraft}
+        variant=""
+        bodyClassName="image-modal-body"
+        titleId="image-modal-title"
+        closeLabel="이미지 변환 닫기"
+        actions={
+          <>
+            <Button onClick={closeImageDraft}>취소</Button>
+            <Button variant="primary" onClick={applyImageDraft} disabled={imageCandidateLoading || !selectedImageCandidate}>
+              {imageCandidateLoading ? '계산 중' : '선택 후보로 격자 생성'}
+            </Button>
+          </>
+        }
+      >
+        <div className="image-preview-panel">
                 <div className="image-preview-tools">
                   <button
                     className={showOriginalOverlay ? 'active' : ''}
@@ -3360,24 +3330,14 @@ export function App() {
                   </div>
                 ) : null}
               </div>
-            </div>
+      </Modal>
 
-            <div className="image-modal-actions">
-              <Button onClick={closeImageDraft}>취소</Button>
-              <Button variant="primary" onClick={applyImageDraft} disabled={imageCandidateLoading || !selectedImageCandidate}>
-                {imageCandidateLoading ? '계산 중' : '선택 후보로 격자 생성'}
-              </Button>
-            </div>
-          </section>
-        </div>
-      ) : null}
-
-      <footer className="statusbar">
+      <StatusBar>
         <span>도구: {TOOLS.find((item) => item.id === tool)?.label}</span>
         <span>현재 위치: {rowNumber(currentCell.row)}행 {colNumber(currentCell.col)}열</span>
         <span>활성 코드: {activePalette.code} · {activePalette.name}</span>
         <span>{mode === 'progress' ? '진행 행 하이라이트 켜짐' : '편집 가능'}</span>
-      </footer>
+      </StatusBar>
     </div>
   );
 }

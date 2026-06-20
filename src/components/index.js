@@ -9,3 +9,8 @@ export { TextField } from './TextField.jsx';
 export { NumberField } from './NumberField.jsx';
 export { Select } from './Select.jsx';
 export { Toggle } from './Toggle.jsx';
+export { Panel } from './Panel.jsx';
+export { Toolbar } from './Toolbar.jsx';
+export { ToolRail } from './ToolRail.jsx';
+export { Modal } from './Modal.jsx';
+export { StatusBar } from './StatusBar.jsx';
