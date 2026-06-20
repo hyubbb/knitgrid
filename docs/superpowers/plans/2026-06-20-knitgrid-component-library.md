@@ -611,7 +611,15 @@ export function ToolRail({ items, value, onSelect, iconSize = 20, ariaLabel, chi
 
 ## Task 13: `Modal`
 
-기존 4종 모달: `modal-backdrop > section.image-modal[변형] > image-modal-header(제목/부제 + 닫기 X) + 본문 + image-modal-actions`. (local-project/resize/crop/image)
+기존 **5종** 모달: `modal-backdrop > section.image-modal[변형] > image-modal-header(제목/부제 + 닫기 X) + 본문 + image-modal-actions`. 정확한 목록(누락 주의 — "새 작업"과 "리사이즈"는 둘 다 resize-modal 변형이라 헷갈리기 쉬움):
+
+| 조건(open) | title | variant(두번째 클래스) | bodyClassName | titleId |
+|---|---|---|---|---|
+| `localProjectsOpen` | 내 작업 | `local-project-modal` | `local-project-modal-body` | `local-project-modal-title` |
+| `pendingNewProject` | 새 작업 시작 | `resize-modal` | `resize-modal-body` | `new-project-modal-title` |
+| `pendingResize` | (리사이즈 제목) | `resize-modal` | `resize-modal-body` | `resize-modal-title` |
+| `cropDraft` | (크롭 제목) | `crop-modal` | `crop-modal-body` | `crop-modal-title` |
+| `imageDraft` | (이미지 설정 제목) | (없음) | `image-modal-body` | `image-modal-title` |
 
 **Files:** Create `src/components/Modal.jsx`; Modify `index.js`, `App.jsx`.
 
@@ -659,8 +667,8 @@ export function Modal({ open, title, subtitle, onClose, variant = '', bodyClassN
 
 > 각 모달의 본문 내용(목록/슬라이더/입력 등)과 액션 버튼들은 App에 그대로 두고 children/actions로 주입한다. **로직(핸들러, 상태)은 이동하지 않는다.** 각 모달의 `bodyClassName`을 기존 값과 정확히 맞춘다(local: `local-project-modal-body`, resize/new: `resize-modal-body`, crop: `crop-modal-body`, image: `image-modal-body`). `variant`도 기존 second class와 일치(`local-project-modal`, `resize-modal`, `crop-modal`, 이미지 모달은 없음).
 
-- [ ] **Step 2:** export 추가. App.jsx의 4개 모달을 `Modal`로 치환. 각 모달의 `{조건 ? (...) : null}` 래핑을 `<Modal open={조건} ...>`로 바꾼다(Modal 내부에서 open 처리).
-- [ ] **Step 3 (검증):** 빌드 통과. **검증 화면: 4종 모달을 각각 열고 닫기 — 제목/부제/본문/액션/X 버튼 동작 및 시각 비교.** 특히 크롭 모달 슬라이더, 이미지 설정 모달이 정확한지 확인.
+- [ ] **Step 2:** export 추가. App.jsx의 **5개 모달 전부**를 `Modal`로 치환. 각 모달의 `{조건 ? (...) : null}` 래핑을 `<Modal open={조건} ...>`로 바꾼다(Modal 내부에서 open 처리). 위 표의 5개를 하나도 빠뜨리지 말 것.
+- [ ] **Step 3 (검증):** 빌드 통과. **검증 화면: 5종 모달을 각각 열고 닫기 — 제목/부제/본문/액션/X 버튼 동작 및 시각 비교.** 특히 크롭 모달 슬라이더, 이미지 설정 모달이 정확한지 확인.
 - [ ] **Step 4 (커밋).**
 
 ---
@@ -802,7 +810,7 @@ export function Chip({ label, done, current, onClick }) {
 }
 ```
 
-- [ ] **Step 2:** export 추가. App.jsx `row-chips` 안 버튼 → `<Chip key={row} label={row} done={completedRows.has(row)} current={progressRow === row} onClick={() => { setProgressRow(row); toggleCompletedRow(row); }} />`.
+- [ ] **Step 2:** export 추가. App.jsx `row-chips` 안 버튼 → `<Chip key={row} label={row} done={completedRows.has(row)} current={progressRow === row} onClick={() => { setProgressRow(row); toggleCompletedRow(row); }} />`. **주의: 칩을 감싼 `Array.from({length: Math.min(rows, 36)}, ...)` 루프와 `rowDirection`/`numberStart` 행 번호 계산 로직은 App.jsx에 그대로 유지한다(컴포넌트로 옮기지 말 것).**
 - [ ] **Step 3 (검증):** 빌드 통과. **검증 화면: 진행 패널 행 칩(클릭 시 완료 토글/현재 행).**
 - [ ] **Step 4 (커밋).**
 
