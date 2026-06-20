@@ -14,14 +14,12 @@ import {
   Download,
   Eraser,
   Eye,
-  EyeOff,
   FileImage,
   FileText,
   Grid3X3,
   Hand,
   ImagePlus,
   Maximize2,
-  Minus,
   MousePointer2,
   PaintBucket,
   Palette,
@@ -37,7 +35,6 @@ import {
   Trash2,
   Undo2,
   Upload,
-  X,
   ZoomIn,
   ZoomOut
 } from 'lucide-react';
