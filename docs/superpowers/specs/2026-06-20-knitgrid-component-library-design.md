@@ -8,8 +8,8 @@
 
 KnitGrid는 Vite + React 19 + Tailwind v4 기반의 단일 페이지 애플리케이션(한국어 뜨개 도안 에디터)이다. 현재 소스는 사실상 두 파일이다:
 
-- `src/main.jsx` (3,527줄): 단일 `App()` 컴포넌트(997~3498줄) + 두 개의 작은 헬퍼(`HeaderRow`, `HeaderColumn`). `createRoot`로 직접 렌더.
-- `src/styles.css` (1,252줄): Tailwind `@apply`(280회 사용)로 구성된 **시맨틱 클래스 기반** 스타일(`.panel`, `.tool-rail button`, `.palette-swatch`, `.primary`/`.danger`/`.active` 변형 등).
+- `src/main.jsx` (~3,519줄): 단일 `App()` 컴포넌트(~1029~3489줄) + 두 개의 작은 헬퍼(`HeaderRow`, `HeaderColumn`). `createRoot`로 직접 렌더.
+- `src/styles.css` (~1,216줄): Tailwind `@apply`(280회 사용)로 구성된 **시맨틱 클래스 기반** 스타일(`.panel`, `.tool-rail button`, `.palette-swatch`, `.primary`/`.danger`/`.active` 변형 등).
 
 **export된 컴포넌트가 전혀 없고**(`export` 없음, `package.json`은 `"private": true`, `main`/`module`/`exports` 없음), Storybook도 없다. 따라서 design-sync가 가져갈 재사용 부품이 현재로선 없다. 이 작업은 그 부품을 만든다.
 
