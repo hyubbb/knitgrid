@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactCrop from 'react-image-crop';
 import * as iq from 'image-q';
+import { Button, IconButton } from './components/index.js';
 import {
   AlertTriangle,
   ArrowDown,
@@ -2300,41 +2301,19 @@ export function App() {
           <span className={`local-save-state state-${localSaveState}`} title={localSaveMessage || localSaveStatusLabel}>
             {localSaveStatusLabel}
           </span>
-          <button onClick={requestNewProject}>
-            <Plus size={16} />
-            새 작업
-          </button>
-          <button onClick={openLocalProjectsModal}>
-            <FileText size={16} />
-            내 작업
-          </button>
-          <button className="primary" onClick={saveCurrentLocalProject} disabled={localSaveState === 'saving'}>
-            <Save size={16} />
-            로컬 저장
-          </button>
-          <button onClick={undo} disabled={!history.length} title="되돌리기">
-            <Undo2 size={16} />
-          </button>
-          <button onClick={redo} disabled={!future.length} title="다시 실행">
-            <Redo2 size={16} />
-          </button>
+          <Button icon={Plus} onClick={requestNewProject}>새 작업</Button>
+          <Button icon={FileText} onClick={openLocalProjectsModal}>내 작업</Button>
+          <Button variant="primary" icon={Save} onClick={saveCurrentLocalProject} disabled={localSaveState === 'saving'}>로컬 저장</Button>
+          <IconButton icon={Undo2} label="되돌리기" size={16} onClick={undo} disabled={!history.length} title="되돌리기" />
+          <IconButton icon={Redo2} label="다시 실행" size={16} onClick={redo} disabled={!future.length} title="다시 실행" />
           <label className="file-button" title="이미지 업로드">
             <ImagePlus size={16} />
             이미지
             <input type="file" accept="image/png,image/jpeg,image/webp" onChange={prepareImageDraft} />
           </label>
-          <button onClick={exportPng}>
-            <FileImage size={16} />
-            PNG
-          </button>
-          <button onClick={exportPdf}>
-            <FileText size={16} />
-            PDF
-          </button>
-          <button onClick={saveProject}>
-            <Download size={16} />
-            JSON
-          </button>
+          <Button icon={FileImage} onClick={exportPng}>PNG</Button>
+          <Button icon={FileText} onClick={exportPdf}>PDF</Button>
+          <Button icon={Download} onClick={saveProject}>JSON</Button>
         </div>
       </header>
 
@@ -2650,10 +2629,7 @@ export function App() {
               <input type="number" min="1" max="200" value={draftRows} onChange={(event) => setDraftRows(Math.min(200, Number(event.target.value)))} />
             </label>
           </div>
-          <button className="wide" onClick={() => requestGridResize(draftRows, draftCols)}>
-            <Sparkles size={16} />
-            격자 크기 적용
-          </button>
+          <Button wide icon={Sparkles} onClick={() => requestGridResize(draftRows, draftCols)}>격자 크기 적용</Button>
           <div className="structure-panel">
             <div className="structure-title">
               <strong>도안 이동</strong>
@@ -2811,7 +2787,7 @@ export function App() {
           <div className="panel-title">
             <Palette size={17} />
             <strong>팔레트 / 코드</strong>
-            <button onClick={addPaletteColor}>추가</button>
+            <Button onClick={addPaletteColor}>추가</Button>
           </div>
           <div className="display-tabs">
             {DISPLAY_MODES.map((item) => (
@@ -2970,14 +2946,13 @@ export function App() {
                             ))}
                         </select>
                       ) : (
-                        <button
-                          className="danger"
+                        <Button
+                          variant="danger"
+                          icon={Trash2}
+                          iconSize={14}
                           onClick={() => deletePaletteItem(item.id)}
                           disabled={palette.length <= 1}
-                        >
-                          <Trash2 size={14} />
-                          삭제
-                        </button>
+                        >삭제</Button>
                       )}
                     </div>
                   </div>
@@ -3026,31 +3001,16 @@ export function App() {
             <strong>가져오기 / 내보내기</strong>
           </div>
           <div className="local-project-actions">
-            <button onClick={requestNewProject}>
-              <Plus size={15} />
-              새 작업
-            </button>
-            <button onClick={openLocalProjectsModal}>
-              <FileText size={15} />
-              내 작업
-            </button>
-            <button onClick={saveCurrentLocalProject} disabled={localSaveState === 'saving'}>
-              <Save size={15} />
-              로컬 저장
-            </button>
+            <Button icon={Plus} iconSize={15} onClick={requestNewProject}>새 작업</Button>
+            <Button icon={FileText} iconSize={15} onClick={openLocalProjectsModal}>내 작업</Button>
+            <Button icon={Save} iconSize={15} onClick={saveCurrentLocalProject} disabled={localSaveState === 'saving'}>로컬 저장</Button>
           </div>
-          <button className="wide" onClick={() => fileInputRef.current?.click()}>
-            <Upload size={16} />
-            이미지로 초안 생성
-          </button>
-          <button className="wide" onClick={() => projectInputRef.current?.click()}>
-            <Download size={16} />
-            프로젝트 열기
-          </button>
+          <Button wide icon={Upload} onClick={() => fileInputRef.current?.click()}>이미지로 초안 생성</Button>
+          <Button wide icon={Download} onClick={() => projectInputRef.current?.click()}>프로젝트 열기</Button>
           <div className="export-grid">
-            <button onClick={exportPng}>PNG</button>
-            <button onClick={exportPdf}>PDF</button>
-            <button onClick={saveProject}>JSON</button>
+            <Button onClick={exportPng}>PNG</Button>
+            <Button onClick={exportPdf}>PDF</Button>
+            <Button onClick={saveProject}>JSON</Button>
           </div>
           <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp" onChange={prepareImageDraft} hidden />
           <input ref={projectInputRef} type="file" accept="application/json,.json" onChange={loadProject} hidden />
@@ -3090,17 +3050,15 @@ export function App() {
                         </div>
                       </div>
                       <div className="local-project-row-actions">
-                        <button className="primary" onClick={() => openLocalProject(project.id)}>열기</button>
-                        <button onClick={() => duplicateProject(project.id)}>복제</button>
-                        <button onClick={() => renameLocalProject(project)}>이름 변경</button>
-                        <button
-                          className="danger"
+                        <Button variant="primary" onClick={() => openLocalProject(project.id)}>열기</Button>
+                        <Button onClick={() => duplicateProject(project.id)}>복제</Button>
+                        <Button onClick={() => renameLocalProject(project)}>이름 변경</Button>
+                        <Button
+                          variant="danger"
                           onClick={() => {
                             if (window.confirm(`${project.name || '작업'}을 삭제할까요?`)) removeLocalProject(project.id);
                           }}
-                        >
-                          삭제
-                        </button>
+                        >삭제</Button>
                       </div>
                     </article>
                   ))}
@@ -3114,10 +3072,8 @@ export function App() {
               )}
             </div>
             <div className="image-modal-actions">
-              <button onClick={() => setLocalProjectsOpen(false)}>닫기</button>
-              <button className="primary" onClick={saveCurrentLocalProject} disabled={localSaveState === 'saving'}>
-                현재 작업 로컬 저장
-              </button>
+              <Button onClick={() => setLocalProjectsOpen(false)}>닫기</Button>
+              <Button variant="primary" onClick={saveCurrentLocalProject} disabled={localSaveState === 'saving'}>현재 작업 로컬 저장</Button>
             </div>
           </section>
         </div>
@@ -3143,11 +3099,9 @@ export function App() {
               </div>
             </div>
             <div className="image-modal-actions">
-              <button onClick={() => setPendingNewProject(false)}>취소</button>
-              <button className="danger" onClick={resetToNewProject}>저장하지 않고 새로 만들기</button>
-              <button className="primary" onClick={saveAndStartNewProject} disabled={localSaveState === 'saving'}>
-                현재 작업 저장 후 새로 만들기
-              </button>
+              <Button onClick={() => setPendingNewProject(false)}>취소</Button>
+              <Button variant="danger" onClick={resetToNewProject}>저장하지 않고 새로 만들기</Button>
+              <Button variant="primary" onClick={saveAndStartNewProject} disabled={localSaveState === 'saving'}>현재 작업 저장 후 새로 만들기</Button>
             </div>
           </section>
         </div>
@@ -3175,13 +3129,9 @@ export function App() {
               </div>
             </div>
             <div className="image-modal-actions">
-              <button onClick={() => setPendingResize(null)}>취소</button>
-              <button className="danger" onClick={() => commitGridResize(pendingResize.rows, pendingResize.cols, 'reset')}>
-                초기화
-              </button>
-              <button className="primary" onClick={() => commitGridResize(pendingResize.rows, pendingResize.cols, 'keep')}>
-                그림 유지
-              </button>
+              <Button onClick={() => setPendingResize(null)}>취소</Button>
+              <Button variant="danger" onClick={() => commitGridResize(pendingResize.rows, pendingResize.cols, 'reset')}>초기화</Button>
+              <Button variant="primary" onClick={() => commitGridResize(pendingResize.rows, pendingResize.cols, 'keep')}>그림 유지</Button>
             </div>
           </section>
         </div>
@@ -3213,14 +3163,12 @@ export function App() {
                 </ReactCrop>
               </div>
               <div className="crop-modal-controls">
-                <button onClick={resetCropDraft}>초기화</button>
+                <Button onClick={resetCropDraft}>초기화</Button>
               </div>
             </div>
             <div className="image-modal-actions">
-              <button onClick={closeCropDraft}>취소</button>
-              <button className="primary" onClick={completeCropDraft} disabled={!cropDraft.cropArea}>
-                크롭 완료
-              </button>
+              <Button onClick={closeCropDraft}>취소</Button>
+              <Button variant="primary" onClick={completeCropDraft} disabled={!cropDraft.cropArea}>크롭 완료</Button>
             </div>
           </section>
         </div>
@@ -3468,10 +3416,10 @@ export function App() {
             </div>
 
             <div className="image-modal-actions">
-              <button onClick={closeImageDraft}>취소</button>
-              <button className="primary" onClick={applyImageDraft} disabled={imageCandidateLoading || !selectedImageCandidate}>
+              <Button onClick={closeImageDraft}>취소</Button>
+              <Button variant="primary" onClick={applyImageDraft} disabled={imageCandidateLoading || !selectedImageCandidate}>
                 {imageCandidateLoading ? '계산 중' : '선택 후보로 격자 생성'}
-              </button>
+              </Button>
             </div>
           </section>
         </div>
