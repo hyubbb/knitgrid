@@ -2,3 +2,10 @@
 // 각 컴포넌트는 src/styles.css의 시맨틱 클래스를 사용하며 props로만 제어된다.
 
 export { Button, IconButton } from './Button.jsx';
+export { FileButton } from './FileButton.jsx';
+export { SegmentedControl } from './SegmentedControl.jsx';
+export { Slider } from './Slider.jsx';
+export { TextField } from './TextField.jsx';
+export { NumberField } from './NumberField.jsx';
+export { Select } from './Select.jsx';
+export { Toggle } from './Toggle.jsx';

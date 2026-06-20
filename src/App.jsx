@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactCrop from 'react-image-crop';
 import * as iq from 'image-q';
-import { Button, IconButton } from './components/index.js';
+import { Button, IconButton, FileButton, SegmentedControl, Slider, TextField, NumberField, Select, Toggle } from './components/index.js';
 import {
   AlertTriangle,
   ArrowDown,
@@ -2277,25 +2277,21 @@ export function App() {
           </div>
           <div>
             <strong>KnitGrid</strong>
-            <input value={projectName} onChange={(event) => setProjectName(event.target.value)} aria-label="프로젝트 이름" />
+            <TextField value={projectName} onChange={setProjectName} ariaLabel="프로젝트 이름" />
           </div>
         </div>
 
-        <nav className="mode-tabs" aria-label="작업 모드">
-          {[
+        <SegmentedControl
+          className="mode-tabs"
+          ariaLabel="작업 모드"
+          items={[
             { id: 'edit', label: 'Edit', icon: PenLine },
             { id: 'preview', label: 'Preview', icon: Eye },
             { id: 'progress', label: 'Progress', icon: Rows3 }
-          ].map((item) => {
-            const Icon = item.icon;
-            return (
-              <button key={item.id} className={mode === item.id ? 'active' : ''} onClick={() => setMode(item.id)}>
-                <Icon size={15} />
-                {item.label}
-              </button>
-            );
-          })}
-        </nav>
+          ]}
+          value={mode}
+          onChange={setMode}
+        />
 
         <div className="command-group">
           <span className={`local-save-state state-${localSaveState}`} title={localSaveMessage || localSaveStatusLabel}>
@@ -2306,11 +2302,7 @@ export function App() {
           <Button variant="primary" icon={Save} onClick={saveCurrentLocalProject} disabled={localSaveState === 'saving'}>로컬 저장</Button>
           <IconButton icon={Undo2} label="되돌리기" size={16} onClick={undo} disabled={!history.length} title="되돌리기" />
           <IconButton icon={Redo2} label="다시 실행" size={16} onClick={redo} disabled={!future.length} title="다시 실행" />
-          <label className="file-button" title="이미지 업로드">
-            <ImagePlus size={16} />
-            이미지
-            <input type="file" accept="image/png,image/jpeg,image/webp" onChange={prepareImageDraft} />
-          </label>
+          <FileButton icon={ImagePlus} accept="image/png,image/jpeg,image/webp" title="이미지 업로드" onFiles={(files) => prepareImageDraft({ target: { files } })}>이미지</FileButton>
           <Button icon={FileImage} onClick={exportPng}>PNG</Button>
           <Button icon={FileText} onClick={exportPdf}>PDF</Button>
           <Button icon={Download} onClick={saveProject}>JSON</Button>
@@ -2349,12 +2341,7 @@ export function App() {
               <strong>{cols} x {rows}</strong>
               <span>{guideEvery}칸 보조선 · 최대 200 x 200</span>
             </div>
-            <div className="zoom-control">
-              <ZoomOut size={15} />
-              <input min="46" max="132" type="range" value={zoom} onChange={(event) => setZoom(Number(event.target.value))} />
-              <ZoomIn size={15} />
-              <b>{zoom}%</b>
-            </div>
+            <Slider min={46} max={132} value={zoom} onChange={setZoom} leftIcon={ZoomOut} rightIcon={ZoomIn} valueLabel={`${zoom}%`} />
             <div className="source-overlay-control">
               <button
                 className={showAppliedSourceOverlay ? 'active' : ''}
@@ -2620,14 +2607,8 @@ export function App() {
             ))}
           </div>
           <div className="two-cols">
-            <label>
-              가로
-              <input type="number" min="1" max="200" value={draftCols} onChange={(event) => setDraftCols(Math.min(200, Number(event.target.value)))} />
-            </label>
-            <label>
-              세로
-              <input type="number" min="1" max="200" value={draftRows} onChange={(event) => setDraftRows(Math.min(200, Number(event.target.value)))} />
-            </label>
+            <NumberField label="가로" min={1} max={200} value={draftCols} onChange={(v) => setDraftCols(Math.min(200, v))} />
+            <NumberField label="세로" min={1} max={200} value={draftRows} onChange={(v) => setDraftRows(Math.min(200, v))} />
           </div>
           <Button wide icon={Sparkles} onClick={() => requestGridResize(draftRows, draftCols)}>격자 크기 적용</Button>
           <div className="structure-panel">
@@ -2635,13 +2616,12 @@ export function App() {
               <strong>도안 이동</strong>
               <label>
                 <span>칸</span>
-                <input
-                  type="number"
-                  min="1"
-                  max="200"
+                <NumberField
+                  min={1}
+                  max={200}
                   value={moveSteps}
-                  onChange={(event) => setMoveSteps(clampNumber(event.target.value, 1, 200))}
-                  aria-label="이동 칸 수"
+                  onChange={(v) => setMoveSteps(clampNumber(v, 1, 200))}
+                  ariaLabel="이동 칸 수"
                 />
               </label>
             </div>
@@ -2734,27 +2714,11 @@ export function App() {
             </div>
           </div>
           <div className="two-cols">
-            <label>
-              번호 시작
-              <input type="number" value={numberStart} onChange={(event) => setNumberStart(Number(event.target.value))} />
-            </label>
-            <label>
-              보조선
-              <select value={guideEvery} onChange={(event) => setGuideEvery(Number(event.target.value))}>
-                <option value="5">5칸</option>
-                <option value="10">10칸</option>
-              </select>
-            </label>
+            <NumberField label="번호 시작" value={numberStart} onChange={(v) => setNumberStart(v)} />
+            <Select label="보조선" value={String(guideEvery)} onChange={(v) => setGuideEvery(Number(v))} options={[{ value: '5', label: '5칸' }, { value: '10', label: '10칸' }]} />
           </div>
           <div className="two-cols guide-color-fields">
-            <label>
-              보조선 색상
-              <select value={guideColorMode} onChange={(event) => setGuideColorMode(event.target.value)}>
-                <option value="black">검은색</option>
-                <option value="white">흰색</option>
-                <option value="custom">커스텀</option>
-              </select>
-            </label>
+            <Select label="보조선 색상" value={guideColorMode} onChange={setGuideColorMode} options={[{ value: 'black', label: '검은색' }, { value: 'white', label: '흰색' }, { value: 'custom', label: '커스텀' }]} />
             {guideColorMode === 'custom' ? (
               <label>
                 커스텀
@@ -2774,13 +2738,7 @@ export function App() {
             <input type="checkbox" checked={showOppositeHeaders} onChange={(event) => setShowOppositeHeaders(event.target.checked)} />
             우측/하단 번호 표시
           </label>
-          <label>
-            행 번호 방향
-            <select value={rowDirection} onChange={(event) => setRowDirection(event.target.value)}>
-              <option value="bottom-up">아래에서 위</option>
-              <option value="top-down">위에서 아래</option>
-            </select>
-          </label>
+          <Select label="행 번호 방향" value={rowDirection} onChange={setRowDirection} options={[{ value: 'bottom-up', label: '아래에서 위' }, { value: 'top-down', label: '위에서 아래' }]} />
         </section>
 
         <section className="panel">
@@ -2789,13 +2747,7 @@ export function App() {
             <strong>팔레트 / 코드</strong>
             <Button onClick={addPaletteColor}>추가</Button>
           </div>
-          <div className="display-tabs">
-            {DISPLAY_MODES.map((item) => (
-              <button key={item.id} className={displayMode === item.id ? 'active' : ''} onClick={() => setDisplayMode(item.id)}>
-                {item.label}
-              </button>
-            ))}
-          </div>
+          <SegmentedControl className="display-tabs" items={DISPLAY_MODES} value={displayMode} onChange={setDisplayMode} />
           {paletteNotice ? <div className="palette-notice">{paletteNotice}</div> : null}
           <div className="palette-list">
             {palette.map((item) => {
@@ -2900,25 +2852,22 @@ export function App() {
                       이름
                       <input value={item.name} onChange={(event) => updatePaletteItem(item.id, { name: event.target.value })} aria-label="확장 이름" />
                     </label>
-                    <label className="palette-merge-field">
-                      기존 색상으로 병합
-                      <select
-                        value=""
-                        onChange={(event) => {
-                          if (event.target.value) mergePaletteItems({ sourceId: item.id, targetId: event.target.value });
-                        }}
-                        aria-label="기존 색상으로 병합"
-                      >
-                        <option value="">대상 선택</option>
-                        {palette
-                          .filter((target) => target.id !== item.id)
-                          .map((target) => (
-                            <option key={target.id} value={target.id}>
-                              {target.code} · {target.name}
-                            </option>
-                          ))}
-                      </select>
-                    </label>
+                    <Select
+                      label="기존 색상으로 병합"
+                      className="palette-merge-field"
+                      value=""
+                      onChange={(v) => { if (v) mergePaletteItems({ sourceId: item.id, targetId: v }); }}
+                      ariaLabel="기존 색상으로 병합"
+                    >
+                      <option value="">대상 선택</option>
+                      {palette
+                        .filter((target) => target.id !== item.id)
+                        .map((target) => (
+                          <option key={target.id} value={target.id}>
+                            {target.code} · {target.name}
+                          </option>
+                        ))}
+                    </Select>
                     <div className="palette-delete-field">
                       <div>
                         <strong>컬러코드 삭제</strong>
@@ -2928,12 +2877,10 @@ export function App() {
                         </span>
                       </div>
                       {activeCounts.get(item.id) ? (
-                        <select
+                        <Select
                           value=""
-                          onChange={(event) => {
-                            if (event.target.value) deletePaletteItem(item.id, event.target.value);
-                          }}
-                          aria-label="삭제하며 대체할 색상"
+                          onChange={(v) => { if (v) deletePaletteItem(item.id, v); }}
+                          ariaLabel="삭제하며 대체할 색상"
                           disabled={palette.length <= 1}
                         >
                           <option value="">대체 색상 선택</option>
@@ -2944,7 +2891,7 @@ export function App() {
                                 {target.code} · {target.name}
                               </option>
                             ))}
-                        </select>
+                        </Select>
                       ) : (
                         <Button
                           variant="danger"
