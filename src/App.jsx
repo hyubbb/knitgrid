@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactCrop from 'react-image-crop';
 import * as iq from 'image-q';
-import { Button, IconButton, FileButton, SegmentedControl, Slider, TextField, NumberField, Select, Toggle, Panel, Toolbar, ToolRail, Modal, StatusBar } from './components/index.js';
+import { Button, IconButton, FileButton, SegmentedControl, Slider, TextField, NumberField, Select, Toggle, Panel, Toolbar, ToolRail, Modal, StatusBar, PaletteRow } from './components/index.js';
 import {
   AlertTriangle,
   ArrowDown,
@@ -2742,163 +2742,26 @@ export function App() {
           <SegmentedControl className="display-tabs" items={DISPLAY_MODES} value={displayMode} onChange={setDisplayMode} />
           {paletteNotice ? <div className="palette-notice">{paletteNotice}</div> : null}
           <div className="palette-list">
-            {palette.map((item) => {
-              const visible = isPaletteVisible(item);
-              return (
-              <div
+            {palette.map((item) => (
+              <PaletteRow
                 key={item.id}
-                data-palette-id={item.id}
-                className={`palette-row ${activePaletteId === item.id ? 'active' : ''} ${expandedPaletteId === item.id ? 'expanded' : ''} ${visible ? '' : 'hidden-color'}`}
-                onClick={() => {
-                  setActivePaletteId(item.id);
-                  setExpandedPaletteId((current) => (current === item.id ? '' : item.id));
-                }}
-              >
-                <button
-                  className={`palette-visibility-toggle ${visible ? '' : 'is-hidden'}`}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    togglePaletteVisibility(item.id);
-                  }}
-                  title={visible ? `${item.code} 도안에서 숨기기` : `${item.code} 도안에 표시`}
-                  aria-label={visible ? `${item.code} 숨기기` : `${item.code} 다시 표시`}
-                >
-                  {visible ? <EyeOff size={13} /> : <Eye size={13} />}
-                  <span>{visible ? '숨김' : '표시'}</span>
-                </button>
-                <button
-                  className="palette-swatch"
-                  style={{ background: item.color }}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setActivePaletteId(item.id);
-                    setExpandedPaletteId(item.id);
-                  }}
-                  title={`${item.code} 색상 편집`}
-                />
-                <input
-                  value={item.code}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setActivePaletteId(item.id);
-                    setExpandedPaletteId(item.id);
-                  }}
-                  onFocus={() => {
-                    setActivePaletteId(item.id);
-                    setExpandedPaletteId(item.id);
-                  }}
-                  onChange={(event) => updatePaletteItem(item.id, { code: event.target.value })}
-                  aria-label="코드"
-                />
-                <input
-                  value={item.name}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setActivePaletteId(item.id);
-                    setExpandedPaletteId(item.id);
-                  }}
-                  onFocus={() => {
-                    setActivePaletteId(item.id);
-                    setExpandedPaletteId(item.id);
-                  }}
-                  onChange={(event) => updatePaletteItem(item.id, { name: event.target.value })}
-                  aria-label="이름"
-                />
-                <span>{activeCounts.get(item.id) || 0}</span>
-                {expandedPaletteId === item.id ? (
-                  <div className="palette-editor" onClick={(event) => event.stopPropagation()}>
-                    <label>
-                      색상
-                      <input
-                        type="color"
-                        value={item.color}
-                        onChange={(event) => updatePaletteItem(item.id, { color: event.target.value })}
-                        aria-label={`${item.code} 색상`}
-                      />
-                    </label>
-                    <label>
-                      HEX
-                      <input
-                        defaultValue={item.color}
-                        key={`${item.id}-${item.color}`}
-                        onChange={(event) => {
-                          const normalized = normalizeHex(event.target.value);
-                          if (normalized && normalized !== item.color) updatePaletteItem(item.id, { color: normalized });
-                        }}
-                        onBlur={(event) => {
-                          const normalized = normalizeHex(event.target.value);
-                          if (normalized) updatePaletteItem(item.id, { color: normalized });
-                          else event.target.value = item.color;
-                        }}
-                        onKeyDown={(event) => {
-                          if (event.key === 'Enter') event.currentTarget.blur();
-                        }}
-                        aria-label="HEX 색상"
-                      />
-                    </label>
-                    <label>
-                      코드
-                      <input value={item.code} onChange={(event) => updatePaletteItem(item.id, { code: event.target.value })} aria-label="확장 코드" />
-                    </label>
-                    <label>
-                      이름
-                      <input value={item.name} onChange={(event) => updatePaletteItem(item.id, { name: event.target.value })} aria-label="확장 이름" />
-                    </label>
-                    <Select
-                      label="기존 색상으로 병합"
-                      className="palette-merge-field"
-                      value=""
-                      onChange={(v) => { if (v) mergePaletteItems({ sourceId: item.id, targetId: v }); }}
-                      ariaLabel="기존 색상으로 병합"
-                    >
-                      <option value="">대상 선택</option>
-                      {palette
-                        .filter((target) => target.id !== item.id)
-                        .map((target) => (
-                          <option key={target.id} value={target.id}>
-                            {target.code} · {target.name}
-                          </option>
-                        ))}
-                    </Select>
-                    <div className="palette-delete-field">
-                      <div>
-                        <strong>컬러코드 삭제</strong>
-                        <span>
-                          {activeCounts.get(item.id) || 0}칸에서 사용 중입니다.
-                          {activeCounts.get(item.id) ? ' 삭제하려면 대체 색상을 선택하세요.' : ' 바로 삭제할 수 있습니다.'}
-                        </span>
-                      </div>
-                      {activeCounts.get(item.id) ? (
-                        <Select
-                          value=""
-                          onChange={(v) => { if (v) deletePaletteItem(item.id, v); }}
-                          ariaLabel="삭제하며 대체할 색상"
-                          disabled={palette.length <= 1}
-                        >
-                          <option value="">대체 색상 선택</option>
-                          {palette
-                            .filter((target) => target.id !== item.id)
-                            .map((target) => (
-                              <option key={target.id} value={target.id}>
-                                {target.code} · {target.name}
-                              </option>
-                            ))}
-                        </Select>
-                      ) : (
-                        <Button
-                          variant="danger"
-                          icon={Trash2}
-                          iconSize={14}
-                          onClick={() => deletePaletteItem(item.id)}
-                          disabled={palette.length <= 1}
-                        >삭제</Button>
-                      )}
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-              );
-            })}
+                item={item}
+                visible={isPaletteVisible(item)}
+                active={activePaletteId === item.id}
+                expanded={expandedPaletteId === item.id}
+                count={activeCounts.get(item.id) || 0}
+                palette={palette}
+                canDelete={palette.length > 1}
+                onActivate={setActivePaletteId}
+                onToggleExpand={(id) => setExpandedPaletteId((current) => (current === id ? '' : id))}
+                onExpand={setExpandedPaletteId}
+                onToggleVisibility={togglePaletteVisibility}
+                onUpdate={updatePaletteItem}
+                onMerge={(sourceId, targetId) => mergePaletteItems({ sourceId, targetId })}
+                onDelete={deletePaletteItem}
+                normalizeHex={normalizeHex}
+              />
+            ))}
           </div>
         </Panel>
 

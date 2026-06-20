@@ -14,3 +14,5 @@ export { Toolbar } from './Toolbar.jsx';
 export { ToolRail } from './ToolRail.jsx';
 export { Modal } from './Modal.jsx';
 export { StatusBar } from './StatusBar.jsx';
+export { Swatch } from './Swatch.jsx';
+export { PaletteRow } from './PaletteRow.jsx';
