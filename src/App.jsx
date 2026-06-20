@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactCrop from 'react-image-crop';
 import * as iq from 'image-q';
-import { Button, IconButton, FileButton, SegmentedControl, Slider, TextField, NumberField, Select, Toggle, Panel, Toolbar, ToolRail, Modal, StatusBar, PaletteRow } from './components/index.js';
+import { Button, IconButton, FileButton, SegmentedControl, Slider, TextField, NumberField, Select, Toggle, Panel, Toolbar, ToolRail, Modal, StatusBar, PaletteRow, Chip, PresetGrid, MovePad, StepperControl, Badge } from './components/index.js';
 import {
   AlertTriangle,
   ArrowDown,
@@ -2294,9 +2294,7 @@ export function App() {
         />
 
         <Toolbar className="command-group">
-          <span className={`local-save-state state-${localSaveState}`} title={localSaveMessage || localSaveStatusLabel}>
-            {localSaveStatusLabel}
-          </span>
+          <Badge state={localSaveState} title={localSaveMessage || localSaveStatusLabel}>{localSaveStatusLabel}</Badge>
           <Button icon={Plus} onClick={requestNewProject}>새 작업</Button>
           <Button icon={FileText} onClick={openLocalProjectsModal}>내 작업</Button>
           <Button variant="primary" icon={Save} onClick={saveCurrentLocalProject} disabled={localSaveState === 'saving'}>로컬 저장</Button>
@@ -2588,17 +2586,7 @@ export function App() {
             </button>
           }
         >
-          <div className="preset-grid">
-            {PRESETS.map((preset) => (
-              <button
-                key={preset.label}
-                className={rows === preset.rows && cols === preset.cols ? 'active' : ''}
-                onClick={() => requestGridResize(preset.rows, preset.cols)}
-              >
-                {preset.label}
-              </button>
-            ))}
-          </div>
+          <PresetGrid presets={PRESETS} rows={rows} cols={cols} onSelect={requestGridResize} />
           <div className="two-cols">
             <NumberField label="가로" min={1} max={200} value={draftCols} onChange={(v) => setDraftCols(Math.min(200, v))} />
             <NumberField label="세로" min={1} max={200} value={draftRows} onChange={(v) => setDraftRows(Math.min(200, v))} />
@@ -2618,25 +2606,7 @@ export function App() {
                 />
               </label>
             </div>
-            <div className="move-pad">
-              <span />
-              <button onClick={() => movePattern(-1, 0)} disabled={!paintedCellCount} title="도안 위로 이동">
-                <ArrowUp size={15} />
-              </button>
-              <span />
-              <button onClick={() => movePattern(0, -1)} disabled={!paintedCellCount} title="도안 왼쪽으로 이동">
-                <ArrowLeft size={15} />
-              </button>
-              <div>{paintedCellCount}칸</div>
-              <button onClick={() => movePattern(0, 1)} disabled={!paintedCellCount} title="도안 오른쪽으로 이동">
-                <ArrowRight size={15} />
-              </button>
-              <span />
-              <button onClick={() => movePattern(1, 0)} disabled={!paintedCellCount} title="도안 아래로 이동">
-                <ArrowDown size={15} />
-              </button>
-              <span />
-            </div>
+            <MovePad onMove={movePattern} centerLabel={`${paintedCellCount}칸`} disabled={!paintedCellCount} />
           </div>
           <div className="structure-panel">
             <div className="structure-title">
@@ -2644,66 +2614,42 @@ export function App() {
               <span>삽입 기준: {rowNumber(insertAnchorCell.row)}행 {colNumber(insertAnchorCell.col)}열</span>
             </div>
             <div className="insert-grid">
-              <div className="insert-control">
-                <button
-                  className="remove"
-                  onClick={() => removeRow('above')}
-                  disabled={rows <= 1 || insertAnchorCell.row === 0}
-                  title="기준 위 행 제거"
-                  aria-label="기준 위 행 제거"
-                >
-                  <Minus size={14} />
-                </button>
-                <span>위 행</span>
-                <button onClick={() => insertRow('above')} disabled={rows >= 200} title="기준 위에 행 추가" aria-label="기준 위에 행 추가">
-                  <Plus size={14} />
-                </button>
-              </div>
-              <div className="insert-control">
-                <button
-                  className="remove"
-                  onClick={() => removeRow('below')}
-                  disabled={rows <= 1 || insertAnchorCell.row >= rows - 1}
-                  title="기준 아래 행 제거"
-                  aria-label="기준 아래 행 제거"
-                >
-                  <Minus size={14} />
-                </button>
-                <span>아래 행</span>
-                <button onClick={() => insertRow('below')} disabled={rows >= 200} title="기준 아래에 행 추가" aria-label="기준 아래에 행 추가">
-                  <Plus size={14} />
-                </button>
-              </div>
-              <div className="insert-control">
-                <button
-                  className="remove"
-                  onClick={() => removeCol('left')}
-                  disabled={cols <= 1 || insertAnchorCell.col === 0}
-                  title="기준 왼쪽 열 제거"
-                  aria-label="기준 왼쪽 열 제거"
-                >
-                  <Minus size={14} />
-                </button>
-                <span>왼쪽 열</span>
-                <button onClick={() => insertCol('left')} disabled={cols >= 200} title="기준 왼쪽에 열 추가" aria-label="기준 왼쪽에 열 추가">
-                  <Plus size={14} />
-                </button>
-              </div>
-              <div className="insert-control">
-                <button
-                  className="remove"
-                  onClick={() => removeCol('right')}
-                  disabled={cols <= 1 || insertAnchorCell.col >= cols - 1}
-                  title="기준 오른쪽 열 제거"
-                  aria-label="기준 오른쪽 열 제거"
-                >
-                  <Minus size={14} />
-                </button>
-                <span>오른쪽 열</span>
-                <button onClick={() => insertCol('right')} disabled={cols >= 200} title="기준 오른쪽에 열 추가" aria-label="기준 오른쪽에 열 추가">
-                  <Plus size={14} />
-                </button>
-              </div>
+              <StepperControl
+                label="위 행"
+                onAdd={() => insertRow('above')}
+                onRemove={() => removeRow('above')}
+                addDisabled={rows >= 200}
+                removeDisabled={rows <= 1 || insertAnchorCell.row === 0}
+                addTitle="기준 위에 행 추가"
+                removeTitle="기준 위 행 제거"
+              />
+              <StepperControl
+                label="아래 행"
+                onAdd={() => insertRow('below')}
+                onRemove={() => removeRow('below')}
+                addDisabled={rows >= 200}
+                removeDisabled={rows <= 1 || insertAnchorCell.row >= rows - 1}
+                addTitle="기준 아래에 행 추가"
+                removeTitle="기준 아래 행 제거"
+              />
+              <StepperControl
+                label="왼쪽 열"
+                onAdd={() => insertCol('left')}
+                onRemove={() => removeCol('left')}
+                addDisabled={cols >= 200}
+                removeDisabled={cols <= 1 || insertAnchorCell.col === 0}
+                addTitle="기준 왼쪽에 열 추가"
+                removeTitle="기준 왼쪽 열 제거"
+              />
+              <StepperControl
+                label="오른쪽 열"
+                onAdd={() => insertCol('right')}
+                onRemove={() => removeCol('right')}
+                addDisabled={cols >= 200}
+                removeDisabled={cols <= 1 || insertAnchorCell.col >= cols - 1}
+                addTitle="기준 오른쪽에 열 추가"
+                removeTitle="기준 오른쪽 열 제거"
+              />
             </div>
           </div>
           <div className="two-cols">
@@ -2778,16 +2724,16 @@ export function App() {
             {Array.from({ length: Math.min(rows, 36) }, (_, index) => {
               const row = rowDirection === 'bottom-up' ? index + numberStart : rows - index - 1 + numberStart;
               return (
-                <button
+                <Chip
                   key={row}
-                  className={`${completedRows.has(row) ? 'done' : ''} ${progressRow === row ? 'current' : ''}`}
+                  label={row}
+                  done={completedRows.has(row)}
+                  current={progressRow === row}
                   onClick={() => {
                     setProgressRow(row);
                     toggleCompletedRow(row);
                   }}
-                >
-                  {row}
-                </button>
+                />
               );
             })}
           </div>

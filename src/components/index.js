@@ -16,3 +16,8 @@ export { Modal } from './Modal.jsx';
 export { StatusBar } from './StatusBar.jsx';
 export { Swatch } from './Swatch.jsx';
 export { PaletteRow } from './PaletteRow.jsx';
+export { Chip } from './Chip.jsx';
+export { PresetGrid } from './PresetGrid.jsx';
+export { MovePad } from './MovePad.jsx';
+export { StepperControl } from './StepperControl.jsx';
+export { Badge } from './Badge.jsx';
