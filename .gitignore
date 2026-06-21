@@ -11,3 +11,10 @@ pnpm-debug.log*
 # design-sync 컴포넌트 추출 검증 도구(커밋 안 함)
 docs/superpowers/plans/baseline/
 scripts/capture.mjs
+
+# design-sync
+.ds-sync/
+ds-bundle/
+.design-sync/.cache/
+.design-sync/learnings/
+.design-sync/node_modules
