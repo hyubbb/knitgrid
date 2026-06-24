@@ -1,0 +1,407 @@
+import ReactCrop from 'react-image-crop';
+import { Button, Modal } from '../../../../components/index.js';
+import { AlertTriangle, Eye, FileText, RotateCcw } from 'lucide-react';
+import {
+  FIT_OPTIONS,
+  HORIZONTAL_ALIGNMENTS,
+  IMAGE_PALETTE_MODES,
+  VERTICAL_ALIGNMENTS,
+  countPaintedCells,
+  formatProjectDate
+} from '../../../../app/model/knitgridModel.js';
+
+export function EditorModals({ editor }) {
+  const {
+    localProjectsOpen,
+    setLocalProjectsOpen,
+    localProjects,
+    currentLocalProjectId,
+    openLocalProject,
+    duplicateProject,
+    renameLocalProject,
+    removeLocalProject,
+    saveCurrentLocalProject,
+    localSaveState,
+    pendingNewProject,
+    setPendingNewProject,
+    resetToNewProject,
+    saveAndStartNewProject,
+    pendingResize,
+    setPendingResize,
+    cols,
+    rows,
+    commitGridResize,
+    paintedCellCount,
+    cropDraft,
+    closeCropDraft,
+    completeCropDraft,
+    updateCropDraftSelection,
+    completeCropDraftSelection,
+    resetCropDraft,
+    imageDraft,
+    closeImageDraft,
+    applyImageDraft,
+    imageCandidateLoading,
+    selectedImageCandidate,
+    showOriginalOverlay,
+    setShowOriginalOverlay,
+    imageCandidateSeed,
+    setImageCandidateSeed,
+    originalOverlayOpacity,
+    setOriginalOverlayOpacity,
+    imageCandidates,
+    setSelectedImageCandidateId,
+    imageOptions,
+    setImageOptions,
+    imagePreviewCounts,
+    imagePaletteMode,
+    setImagePaletteMode,
+    imageWarnings
+  } = editor;
+
+  return (
+    <>
+      {localProjectsOpen ? (
+        <Modal
+          open={localProjectsOpen}
+          title="내 작업"
+          subtitle="이 브라우저에 저장된 KnitGrid 작업입니다. 다른 기기나 브라우저와 자동 공유되지는 않습니다."
+          onClose={() => setLocalProjectsOpen(false)}
+          variant="local-project-modal"
+          bodyClassName="local-project-modal-body"
+          titleId="local-project-modal-title"
+          closeLabel="내 작업 닫기"
+          actions={
+            <>
+              <Button onClick={() => setLocalProjectsOpen(false)}>닫기</Button>
+              <Button variant="primary" onClick={saveCurrentLocalProject} disabled={localSaveState === 'saving'}>현재 작업 로컬 저장</Button>
+            </>
+          }
+        >
+          {localProjects.length ? (
+            <div className="local-project-list">
+              {localProjects.map((project) => (
+                <article
+                  key={project.id}
+                  className={`local-project-row ${currentLocalProjectId === project.id ? 'active' : ''}`}
+                >
+                  <img src={project.thumbnail} alt="" aria-hidden="true" />
+                  <div className="local-project-meta">
+                    <strong>{project.name || project.projectData?.projectName || '이름 없는 작업'}</strong>
+                    <span>{formatProjectDate(project.updatedAt)} 수정</span>
+                    <div>
+                      <b>{project.summary?.cols ?? project.projectData?.cols} x {project.summary?.rows ?? project.projectData?.rows}</b>
+                      <b>{project.summary?.colorCount ?? project.projectData?.palette?.length ?? 0}색</b>
+                      <b>{project.summary?.paintedCells ?? countPaintedCells(project.projectData?.grid || [])}칸</b>
+                    </div>
+                  </div>
+                  <div className="local-project-row-actions">
+                    <Button variant="primary" onClick={() => openLocalProject(project.id)}>열기</Button>
+                    <Button onClick={() => duplicateProject(project.id)}>복제</Button>
+                    <Button onClick={() => renameLocalProject(project)}>이름 변경</Button>
+                    <Button
+                      variant="danger"
+                      onClick={() => {
+                        if (window.confirm(`${project.name || '작업'}을 삭제할까요?`)) removeLocalProject(project.id);
+                      }}
+                    >삭제</Button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="empty-local-projects">
+              <FileText size={24} />
+              <strong>아직 저장된 작업이 없습니다.</strong>
+              <p>상단의 로컬 저장을 누르면 이 브라우저에 작업이 저장됩니다.</p>
+            </div>
+          )}
+        </Modal>
+      ) : null}
+
+      {pendingNewProject ? (
+        <Modal
+          open={Boolean(pendingNewProject)}
+          title="새 작업 시작"
+          subtitle="현재 편집 중인 작업을 어떻게 처리할지 선택하세요."
+          onClose={() => setPendingNewProject(false)}
+          variant="resize-modal"
+          bodyClassName="resize-modal-body"
+          titleId="new-project-modal-title"
+          closeLabel="새 작업 취소"
+          actions={
+            <>
+              <Button onClick={() => setPendingNewProject(false)}>취소</Button>
+              <Button variant="danger" onClick={resetToNewProject}>저장하지 않고 새로 만들기</Button>
+              <Button variant="primary" onClick={saveAndStartNewProject} disabled={localSaveState === 'saving'}>현재 작업 저장 후 새로 만들기</Button>
+            </>
+          }
+        >
+          <AlertTriangle size={20} />
+          <div>
+            <strong>현재 작업이 초기화됩니다.</strong>
+            <p>로컬 저장을 선택하면 이 브라우저의 내 작업 목록에 저장한 뒤 새 빈 격자로 전환합니다.</p>
+          </div>
+        </Modal>
+      ) : null}
+
+      {pendingResize ? (
+        <Modal
+          open={Boolean(pendingResize)}
+          title="격자 크기 변경"
+          subtitle={pendingResize ? `현재 ${cols} x ${rows}칸에서 ${pendingResize.cols} x ${pendingResize.rows}칸으로 바꿉니다.` : undefined}
+          onClose={() => setPendingResize(null)}
+          variant="resize-modal"
+          bodyClassName="resize-modal-body"
+          titleId="resize-modal-title"
+          closeLabel="격자 크기 변경 취소"
+          actions={
+            <>
+              <Button onClick={() => setPendingResize(null)}>취소</Button>
+              <Button variant="danger" onClick={() => commitGridResize(pendingResize.rows, pendingResize.cols, 'reset')}>초기화</Button>
+              <Button variant="primary" onClick={() => commitGridResize(pendingResize.rows, pendingResize.cols, 'keep')}>그림 유지</Button>
+            </>
+          }
+        >
+          <AlertTriangle size={20} />
+          <div>
+            <strong>그려진 칸 {paintedCellCount}개가 있습니다.</strong>
+            <p>그림을 유지하면 좌상단 기준으로 보존되고, 줄어드는 영역의 오른쪽/아래 칸은 잘립니다.</p>
+          </div>
+        </Modal>
+      ) : null}
+
+      {cropDraft ? (
+        <Modal
+          open={Boolean(cropDraft)}
+          title="이미지 크롭"
+          subtitle={cropDraft ? `${cropDraft.name} · ${cropDraft.width} x ${cropDraft.height}px` : undefined}
+          onClose={closeCropDraft}
+          variant="crop-modal"
+          bodyClassName="crop-modal-body"
+          titleId="crop-modal-title"
+          closeLabel="이미지 크롭 닫기"
+          actions={
+            <>
+              <Button onClick={closeCropDraft}>취소</Button>
+              <Button variant="primary" onClick={completeCropDraft} disabled={!cropDraft?.cropArea}>크롭 완료</Button>
+            </>
+          }
+        >
+          <div className="cropper-shell">
+            <ReactCrop
+              crop={cropDraft?.cropSelection}
+              keepSelection
+              minWidth={8}
+              minHeight={8}
+              onChange={(_, percentCrop) => updateCropDraftSelection(percentCrop)}
+              onComplete={(_, percentCrop) => completeCropDraftSelection(percentCrop)}
+            >
+              <img className="crop-source-image" src={cropDraft?.src} alt="크롭할 원본 이미지" />
+            </ReactCrop>
+          </div>
+          <div className="crop-modal-controls">
+            <Button onClick={resetCropDraft}>초기화</Button>
+          </div>
+        </Modal>
+      ) : null}
+
+      {imageDraft ? (
+        <Modal
+          open={Boolean(imageDraft)}
+          title="이미지 변환 미리보기"
+          subtitle={imageDraft ? `${imageDraft.name} · 원본 ${imageDraft.width} x ${imageDraft.height}px → 격자 ${cols} x ${rows}칸` : undefined}
+          onClose={closeImageDraft}
+          variant=""
+          bodyClassName="image-modal-body"
+          titleId="image-modal-title"
+          closeLabel="이미지 변환 닫기"
+          actions={
+            <>
+              <Button onClick={closeImageDraft}>취소</Button>
+              <Button variant="primary" onClick={applyImageDraft} disabled={imageCandidateLoading || !selectedImageCandidate}>
+                {imageCandidateLoading ? '계산 중' : '선택 후보로 격자 생성'}
+              </Button>
+            </>
+          }
+        >
+          <div className="image-preview-panel">
+            <div className="image-preview-tools">
+              <button className={showOriginalOverlay ? 'active' : ''} onClick={() => setShowOriginalOverlay((value) => !value)} disabled={!selectedImageCandidate}>
+                <Eye size={14} />
+                원본 겹쳐보기
+              </button>
+              <button onClick={() => setImageCandidateSeed((value) => value + 1)} disabled={imageCandidateLoading}>
+                <RotateCcw size={14} />
+                다시 생성
+              </button>
+              <label>
+                투명도
+                <input
+                  type="range"
+                  min="20"
+                  max="85"
+                  value={originalOverlayOpacity}
+                  disabled={!showOriginalOverlay || !selectedImageCandidate}
+                  onChange={(event) => setOriginalOverlayOpacity(Number(event.target.value))}
+                  aria-label="원본 레이어 투명도"
+                />
+              </label>
+            </div>
+            <div className="image-candidate-list" aria-label="변환 후보">
+              {imageCandidateLoading && !imageCandidates.length ? (
+                <div className="image-candidate-loading">후보 생성 중</div>
+              ) : imageCandidates.map((candidate) => (
+                <button
+                  key={candidate.id}
+                  className={selectedImageCandidate?.id === candidate.id ? 'active' : ''}
+                  onClick={() => setSelectedImageCandidateId(candidate.id)}
+                >
+                  <div className="candidate-thumb" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, '--preview-rows': rows }}>
+                    {candidate.grid.map((row, rowIndex) =>
+                      row.map((cell, colIndex) => (
+                        <span key={`${rowIndex}-${colIndex}`} style={{ background: cell.active ? cell.color : '#ffffff' }} />
+                      ))
+                    )}
+                  </div>
+                  <strong>{candidate.label}</strong>
+                  <small>{candidate.tag} · {candidate.palette.length}색 · {candidate.score}점</small>
+                </button>
+              ))}
+            </div>
+            <div className="image-preview-frame" style={{ aspectRatio: `${cols} / ${rows}`, '--preview-cols': cols, '--preview-rows': rows }}>
+              {imageCandidateLoading && !selectedImageCandidate ? (
+                <div className="image-preview-loading">변환 후보 계산 중</div>
+              ) : selectedImageCandidate ? (
+                <div className="converted-preview-grid" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }} aria-label="실제 변환 결과 미리보기">
+                  {selectedImageCandidate.grid.map((row, rowIndex) =>
+                    row.map((cell, colIndex) => (
+                      <span key={`${rowIndex}-${colIndex}`} style={{ background: cell.active ? cell.color : '#ffffff' }} />
+                    ))
+                  )}
+                </div>
+              ) : (
+                <img
+                  src={imageDraft.src}
+                  alt="업로드 이미지 미리보기"
+                  style={{
+                    objectFit: imageOptions.fit === 'stretch' ? 'fill' : imageOptions.fit,
+                    objectPosition: `${imageOptions.alignX === 'left' ? 0 : imageOptions.alignX === 'right' ? 100 : 50}% ${imageOptions.alignY === 'top' ? 0 : imageOptions.alignY === 'bottom' ? 100 : 50}%`
+                  }}
+                />
+              )}
+              {selectedImageCandidate && showOriginalOverlay ? (
+                <img
+                  className="original-overlay-image"
+                  src={imageDraft.src}
+                  alt="원본 이미지 레이어"
+                  style={{
+                    opacity: originalOverlayOpacity / 100,
+                    objectFit: imageOptions.fit === 'stretch' ? 'fill' : imageOptions.fit,
+                    objectPosition: `${imageOptions.alignX === 'left' ? 0 : imageOptions.alignX === 'right' ? 100 : 50}% ${imageOptions.alignY === 'top' ? 0 : imageOptions.alignY === 'bottom' ? 100 : 50}%`
+                  }}
+                />
+              ) : null}
+              <div className="image-preview-grid" />
+            </div>
+            <p>후보 중 하나를 고르면 큰 미리보기와 원본 겹쳐보기가 그 결과 기준으로 바뀝니다.</p>
+            {selectedImageCandidate ? (
+              <div className="image-palette-preview">
+                <strong>선택 후보 팔레트</strong>
+                <div>
+                  {selectedImageCandidate.palette.map((item) => (
+                    <span key={item.id}>
+                      <i style={{ background: item.color }} />
+                      {item.code} {item.name}
+                      <b>{imagePreviewCounts.get(item.id) || 0}</b>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </div>
+
+          <div className="image-settings-panel">
+            <div className="setting-block">
+              <strong>변환 방식</strong>
+              <div className="option-stack">
+                {IMAGE_PALETTE_MODES.map((item) => (
+                  <button key={item.id} className={imagePaletteMode === item.id ? 'active' : ''} onClick={() => setImagePaletteMode(item.id)}>
+                    <span>{item.label}</span>
+                    <small>{item.description}</small>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="setting-block">
+              <strong>맞춤 방식</strong>
+              <div className="option-stack">
+                {FIT_OPTIONS.map((item) => (
+                  <button key={item.id} className={imageOptions.fit === item.id ? 'active' : ''} onClick={() => setImageOptions((previous) => ({ ...previous, fit: item.id }))}>
+                    <span>{item.label}</span>
+                    <small>{item.description}</small>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="setting-block">
+              <strong>가로 정렬</strong>
+              <div className="segmented">
+                {HORIZONTAL_ALIGNMENTS.map((item) => (
+                  <button key={item.id} className={imageOptions.alignX === item.id ? 'active' : ''} disabled={imageOptions.fit === 'stretch'} onClick={() => setImageOptions((previous) => ({ ...previous, alignX: item.id }))}>
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="setting-block">
+              <strong>세로 정렬</strong>
+              <div className="segmented">
+                {VERTICAL_ALIGNMENTS.map((item) => (
+                  <button key={item.id} className={imageOptions.alignY === item.id ? 'active' : ''} disabled={imageOptions.fit === 'stretch'} onClick={() => setImageOptions((previous) => ({ ...previous, alignY: item.id }))}>
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {imageWarnings.length ? (
+              <div className="image-warning">
+                <AlertTriangle size={18} />
+                <div>
+                  <strong>변환 전에 확인하세요</strong>
+                  {imageWarnings.map((warning) => (
+                    <p key={warning}>{warning}</p>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {selectedImageCandidate?.colorWarnings.length ? (
+              <div className="image-warning image-color-warning">
+                <AlertTriangle size={18} />
+                <div>
+                  <strong>현재 팔레트와 색상 차이가 큽니다</strong>
+                  <p>원본 색상과 가까운 코드가 없어 다른 색으로 보일 수 있습니다. 자동 추출 방식을 권장합니다.</p>
+                  <div className="color-warning-list">
+                    {selectedImageCandidate.colorWarnings.map((warning) => (
+                      <span key={`${warning.sourceHex}-${warning.targetCode}`}>
+                        <i style={{ background: warning.sourceHex }} />
+                        <em />
+                        <i style={{ background: warning.targetHex }} />
+                        {warning.targetCode}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </Modal>
+      ) : null}
+    </>
+  );
+}

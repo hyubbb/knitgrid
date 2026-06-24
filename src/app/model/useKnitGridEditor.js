@@ -1,0 +1,1570 @@
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useAtom } from 'jotai';
+import {
+  rowsAtom,
+  colsAtom,
+  draftRowsAtom,
+  draftColsAtom,
+  gridAtom,
+  paletteAtom,
+  activePaletteIdAtom,
+  toolAtom,
+  modeAtom,
+  displayModeAtom,
+  zoomAtom,
+  guideEveryAtom,
+  guideColorModeAtom,
+  guideCustomColorAtom,
+  numberStartAtom,
+  rowDirectionAtom,
+  showOppositeHeadersAtom,
+  currentCellAtom,
+  insertAnchorCellAtom,
+  progressRowAtom,
+  completedRowsAtom,
+  historyAtom,
+  futureAtom,
+  isDraggingAtom,
+  projectNameAtom,
+  cropDraftAtom,
+  imageDraftAtom,
+  imageOptionsAtom,
+  imagePaletteModeAtom,
+  imageCandidatesAtom,
+  selectedImageCandidateIdAtom,
+  imageCandidateSeedAtom,
+  imageCandidateLoadingAtom,
+  showOriginalOverlayAtom,
+  originalOverlayOpacityAtom,
+  appliedSourceImageAtom,
+  showAppliedSourceOverlayAtom,
+  appliedSourceOverlayOpacityAtom,
+  isAdjustingAppliedSourceOverlayAtom,
+  appliedSourceOverlayMoveStepAtom,
+  appliedSourceOverlayTransformAtom,
+  expandedPaletteIdAtom,
+  paletteNoticeAtom,
+  pendingResizeAtom,
+  moveStepsAtom,
+  isInspectorCollapsedAtom,
+  currentLocalProjectIdAtom,
+  localProjectsAtom,
+  localProjectsOpenAtom,
+  localSaveStateAtom,
+  localSaveMessageAtom,
+  pendingNewProjectAtom
+} from '../state/editorAtoms.js';
+import {
+  PRESETS,
+  INITIAL_PALETTE,
+  TOOLS,
+  DISPLAY_MODES,
+  PROJECT_DB_NAME,
+  PROJECT_DB_VERSION,
+  PROJECT_STORE_NAME,
+  DEFAULT_APPLIED_SOURCE_OVERLAY_TRANSFORM,
+  cloneGrid,
+  clonePalette,
+  normalizeHex,
+  getPaletteItem,
+  isPaletteVisible,
+  normalizePaletteItems,
+  openProjectDb,
+  runProjectStore,
+  listLocalProjects,
+  saveLocalProject,
+  loadLocalProject,
+  deleteLocalProject,
+  duplicateLocalProject,
+  countPaintedCells,
+  createProjectThumbnail,
+  createProjectRecord,
+  formatProjectDate,
+  resolveCellDisplay,
+  syncCellsForPaletteChange,
+  syncCellsForPaletteMerge,
+  clearCellsForPalette,
+  makeSnapshot,
+  makeCell,
+  createGrid,
+  clampNumber,
+  clampFiniteNumber,
+  clampCellToGrid,
+  hasPaintedCells,
+  resizeGridKeepingContent,
+  moveGridContent,
+  insertGridRow,
+  insertGridCol,
+  removeGridRow,
+  removeGridCol,
+  adjustCellAfterRowRemoval,
+  adjustCellAfterColRemoval,
+  seedGrid,
+  hexToRgb,
+  rgbToHex,
+  rgbToHsl,
+  srgbToLinear,
+  rgbToLab,
+  getPerceptualColorDistance,
+  mapImageColorToPalette,
+  nearestPalette,
+  luminance,
+  INITIAL_IMAGE_OPTIONS,
+  normalizeCrop,
+  INITIAL_CROP_SELECTION,
+  normalizePercentCrop,
+  convertPercentCropToImageCrop,
+  IMAGE_PALETTE_MODES,
+  IMAGE_SAMPLE_SCALE,
+  IMAGE_EXTRACT_COLOR_LIMIT,
+  IMAGE_COLOR_WARNING_DISTANCE,
+  IMAGE_CANDIDATE_CONFIGS,
+  getImageColorName,
+  shouldIgnoreImageArtifactPixel,
+  getColorBucketKey,
+  extractDominantImageColors,
+  createPaletteFromImageColors,
+  getMappablePalette,
+  getCellSampleColor,
+  drawImageToAnalysisCanvas,
+  pointContainerToCellColors,
+  buildPaletteFromCellColors,
+  buildGridFromCellColors,
+  scoreImageCandidate,
+  createPreviewSignature,
+  summarizeColorWarnings,
+  buildImageCandidateWithImageQ,
+  buildConvertedImageGrid,
+  buildImageConversionCandidates,
+  FIT_OPTIONS,
+  HORIZONTAL_ALIGNMENTS,
+  VERTICAL_ALIGNMENTS,
+  getImagePlacement
+} from './knitgridModel.js';
+
+export function useKnitGridEditor() {
+  const [rows, setRows] = useAtom(rowsAtom);
+  const [cols, setCols] = useAtom(colsAtom);
+  const [draftRows, setDraftRows] = useAtom(draftRowsAtom);
+  const [draftCols, setDraftCols] = useAtom(draftColsAtom);
+  const [grid, setGrid] = useAtom(gridAtom);
+  const [palette, setPalette] = useAtom(paletteAtom);
+  const [activePaletteId, setActivePaletteId] = useAtom(activePaletteIdAtom);
+  const [tool, setTool] = useAtom(toolAtom);
+  const [mode, setMode] = useAtom(modeAtom);
+  const [displayMode, setDisplayMode] = useAtom(displayModeAtom);
+  const [zoom, setZoom] = useAtom(zoomAtom);
+  const [guideEvery, setGuideEvery] = useAtom(guideEveryAtom);
+  const [guideColorMode, setGuideColorMode] = useAtom(guideColorModeAtom);
+  const [guideCustomColor, setGuideCustomColor] = useAtom(guideCustomColorAtom);
+  const [numberStart, setNumberStart] = useAtom(numberStartAtom);
+  const [rowDirection, setRowDirection] = useAtom(rowDirectionAtom);
+  const [showOppositeHeaders, setShowOppositeHeaders] = useAtom(showOppositeHeadersAtom);
+  const [currentCell, setCurrentCell] = useAtom(currentCellAtom);
+  const [insertAnchorCell, setInsertAnchorCell] = useAtom(insertAnchorCellAtom);
+  const [progressRow, setProgressRow] = useAtom(progressRowAtom);
+  const [completedRows, setCompletedRows] = useAtom(completedRowsAtom);
+  const [history, setHistory] = useAtom(historyAtom);
+  const [future, setFuture] = useAtom(futureAtom);
+  const [isDragging, setIsDragging] = useAtom(isDraggingAtom);
+  const [projectName, setProjectName] = useAtom(projectNameAtom);
+  const [cropDraft, setCropDraft] = useAtom(cropDraftAtom);
+  const [imageDraft, setImageDraft] = useAtom(imageDraftAtom);
+  const [imageOptions, setImageOptions] = useAtom(imageOptionsAtom);
+  const [imagePaletteMode, setImagePaletteMode] = useAtom(imagePaletteModeAtom);
+  const [imageCandidates, setImageCandidates] = useAtom(imageCandidatesAtom);
+  const [selectedImageCandidateId, setSelectedImageCandidateId] = useAtom(selectedImageCandidateIdAtom);
+  const [imageCandidateSeed, setImageCandidateSeed] = useAtom(imageCandidateSeedAtom);
+  const [imageCandidateLoading, setImageCandidateLoading] = useAtom(imageCandidateLoadingAtom);
+  const [showOriginalOverlay, setShowOriginalOverlay] = useAtom(showOriginalOverlayAtom);
+  const [originalOverlayOpacity, setOriginalOverlayOpacity] = useAtom(originalOverlayOpacityAtom);
+  const [appliedSourceImage, setAppliedSourceImage] = useAtom(appliedSourceImageAtom);
+  const [showAppliedSourceOverlay, setShowAppliedSourceOverlay] = useAtom(showAppliedSourceOverlayAtom);
+  const [appliedSourceOverlayOpacity, setAppliedSourceOverlayOpacity] = useAtom(appliedSourceOverlayOpacityAtom);
+  const [isAdjustingAppliedSourceOverlay, setIsAdjustingAppliedSourceOverlay] = useAtom(isAdjustingAppliedSourceOverlayAtom);
+  const [appliedSourceOverlayMoveStep, setAppliedSourceOverlayMoveStep] = useAtom(appliedSourceOverlayMoveStepAtom);
+  const [appliedSourceOverlayTransform, setAppliedSourceOverlayTransform] = useAtom(appliedSourceOverlayTransformAtom);
+  const [expandedPaletteId, setExpandedPaletteId] = useAtom(expandedPaletteIdAtom);
+  const [paletteNotice, setPaletteNotice] = useAtom(paletteNoticeAtom);
+  const [pendingResize, setPendingResize] = useAtom(pendingResizeAtom);
+  const [moveSteps, setMoveSteps] = useAtom(moveStepsAtom);
+  const [isInspectorCollapsed, setIsInspectorCollapsed] = useAtom(isInspectorCollapsedAtom);
+  const [currentLocalProjectId, setCurrentLocalProjectId] = useAtom(currentLocalProjectIdAtom);
+  const [localProjects, setLocalProjects] = useAtom(localProjectsAtom);
+  const [localProjectsOpen, setLocalProjectsOpen] = useAtom(localProjectsOpenAtom);
+  const [localSaveState, setLocalSaveState] = useAtom(localSaveStateAtom);
+  const [localSaveMessage, setLocalSaveMessage] = useAtom(localSaveMessageAtom);
+  const [pendingNewProject, setPendingNewProject] = useAtom(pendingNewProjectAtom);
+  const fileInputRef = useRef(null);
+  const projectInputRef = useRef(null);
+  const gridScrollRef = useRef(null);
+  const autoSaveTimerRef = useRef(null);
+  const lastSavedSignatureRef = useRef('');
+  const appliedSourceDragRef = useRef(null);
+
+  const activePalette = useMemo(
+    () => palette.find((item) => item.id === activePaletteId) ?? palette[0],
+    [activePaletteId, palette]
+  );
+
+  const activeCounts = useMemo(() => {
+    const counts = new Map();
+    grid.forEach((row) => {
+      row.forEach((cell) => {
+        if (cell.active) {
+          counts.set(cell.paletteId || cell.symbol, (counts.get(cell.paletteId || cell.symbol) || 0) + 1);
+        }
+      });
+    });
+    return counts;
+  }, [grid]);
+
+  const imageWarnings = useMemo(() => {
+    if (!imageDraft) return [];
+    const warnings = [];
+    const imageRatio = imageDraft.width / imageDraft.height;
+    const gridRatio = cols / rows;
+    const ratioDelta = Math.abs(imageRatio - gridRatio) / gridRatio;
+    const placement = getImagePlacement({
+      imageWidth: imageDraft.width,
+      imageHeight: imageDraft.height,
+      targetWidth: cols,
+      targetHeight: rows,
+      ...imageOptions
+    });
+    const croppedX = Math.max(0, placement.width - cols);
+    const croppedY = Math.max(0, placement.height - rows);
+
+    if (imageDraft.width > cols * 4 || imageDraft.height > rows * 4) {
+      warnings.push(`원본 ${imageDraft.width} x ${imageDraft.height}px을 ${cols} x ${rows}칸으로 줄입니다. 세부 묘사가 많이 뭉개질 수 있습니다.`);
+    }
+
+    if (ratioDelta > 0.12 && imageOptions.fit === 'cover') {
+      warnings.push('이미지 비율과 격자 비율 차이가 커서 일부 영역이 잘립니다. 상단/중앙/하단 정렬을 확인하세요.');
+    }
+
+    if ((croppedX > 0.5 || croppedY > 0.5) && imageOptions.fit === 'cover') {
+      const vertical = croppedY > 0.5 ? `${Math.round(croppedY)}칸 높이` : '';
+      const horizontal = croppedX > 0.5 ? `${Math.round(croppedX)}칸 너비` : '';
+      warnings.push(`현재 채우기 설정에서는 ${[horizontal, vertical].filter(Boolean).join(', ')} 정도가 격자 밖으로 넘어갑니다.`);
+    }
+
+    if (imageOptions.fit === 'stretch' && ratioDelta > 0.08) {
+      warnings.push('늘려 맞춤은 잘림은 없지만 원본 형태가 가로/세로로 왜곡될 수 있습니다.');
+    }
+
+    if (imageOptions.fit === 'contain') {
+      warnings.push('맞춰 넣기는 원본 전체를 보존하지만 남는 칸은 빈 배경으로 변환됩니다.');
+    }
+
+    return warnings;
+  }, [cols, imageDraft, imageOptions, rows]);
+
+  const imagePreviewCounts = useMemo(() => {
+    const counts = new Map();
+    const selectedCandidate = imageCandidates.find((candidate) => candidate.id === selectedImageCandidateId) ?? imageCandidates[0];
+    selectedCandidate?.grid.forEach((row) => {
+      row.forEach((cell) => {
+        if (cell.active) counts.set(cell.paletteId, (counts.get(cell.paletteId) || 0) + 1);
+      });
+    });
+    return counts;
+  }, [imageCandidates, selectedImageCandidateId]);
+
+  const selectedImageCandidate = useMemo(
+    () => imageCandidates.find((candidate) => candidate.id === selectedImageCandidateId) ?? imageCandidates[0] ?? null,
+    [imageCandidates, selectedImageCandidateId]
+  );
+
+  const updateCropDraftSelection = useCallback((percentCrop) => {
+    setCropDraft((previous) => {
+      if (!previous) return previous;
+      const cropSelection = normalizePercentCrop(percentCrop);
+      return {
+        ...previous,
+        cropSelection,
+        cropArea: convertPercentCropToImageCrop(cropSelection)
+      };
+    });
+  }, []);
+
+  const completeCropDraftSelection = useCallback((percentCrop) => {
+    setCropDraft((previous) => {
+      if (!previous) return previous;
+      const cropSelection = normalizePercentCrop(percentCrop);
+      return {
+        ...previous,
+        cropSelection,
+        cropArea: convertPercentCropToImageCrop(cropSelection)
+      };
+    });
+  }, []);
+
+  const resetCropDraft = useCallback(() => {
+    setCropDraft((previous) => {
+      if (!previous) return previous;
+      return {
+        ...previous,
+        cropSelection: INITIAL_CROP_SELECTION,
+        cropArea: convertPercentCropToImageCrop(INITIAL_CROP_SELECTION)
+      };
+    });
+  }, []);
+
+  const appliedSourceSizeChanged = Boolean(
+    appliedSourceImage && (appliedSourceImage.rows !== rows || appliedSourceImage.cols !== cols)
+  );
+  const appliedSourceTransformCss = appliedSourceOverlayTransform.scaleMode === 'free'
+    ? `translate(calc(${appliedSourceOverlayTransform.offsetX} * var(--cell)), calc(${appliedSourceOverlayTransform.offsetY} * var(--cell))) scale(${appliedSourceOverlayTransform.scaleX / 100}, ${appliedSourceOverlayTransform.scaleY / 100})`
+    : `translate(calc(${appliedSourceOverlayTransform.offsetX} * var(--cell)), calc(${appliedSourceOverlayTransform.offsetY} * var(--cell))) scale(${appliedSourceOverlayTransform.scale / 100})`;
+  const guideLineColor = guideColorMode === 'white'
+    ? '#ffffff'
+    : guideColorMode === 'custom'
+      ? normalizeHex(guideCustomColor) ?? '#111827'
+      : '#111827';
+
+  useEffect(() => {
+    const scrollNode = gridScrollRef.current;
+    if (!scrollNode) return undefined;
+
+    const frame = requestAnimationFrame(() => {
+      scrollNode.scrollLeft = Math.max(0, (scrollNode.scrollWidth - scrollNode.clientWidth) / 2);
+      scrollNode.scrollTop = Math.max(0, (scrollNode.scrollHeight - scrollNode.clientHeight) / 2);
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [rows, cols, zoom, showOppositeHeaders, isInspectorCollapsed]);
+
+  const resetAppliedSourceOverlayTransform = useCallback(() => {
+    setAppliedSourceOverlayTransform(DEFAULT_APPLIED_SOURCE_OVERLAY_TRANSFORM);
+    setAppliedSourceOverlayMoveStep(1);
+  }, []);
+
+  const updateAppliedSourceOverlayTransform = useCallback((patch) => {
+    setAppliedSourceOverlayTransform((previous) => {
+      const next = { ...previous, ...patch };
+      return {
+        offsetX: clampFiniteNumber(next.offsetX, -200, 200),
+        offsetY: clampFiniteNumber(next.offsetY, -200, 200),
+        scaleMode: next.scaleMode === 'free' ? 'free' : 'uniform',
+        scale: clampFiniteNumber(next.scale, 50, 250),
+        scaleX: clampFiniteNumber(next.scaleX, 50, 250),
+        scaleY: clampFiniteNumber(next.scaleY, 50, 250)
+      };
+    });
+  }, []);
+
+  const moveAppliedSourceOverlay = useCallback((colDelta, rowDelta) => {
+    const step = clampFiniteNumber(appliedSourceOverlayMoveStep, 0.1, 200);
+    setAppliedSourceOverlayMoveStep(step);
+    setAppliedSourceOverlayTransform((previous) => ({
+      ...previous,
+      offsetX: clampFiniteNumber(previous.offsetX + colDelta * step, -200, 200),
+      offsetY: clampFiniteNumber(previous.offsetY + rowDelta * step, -200, 200)
+    }));
+  }, [appliedSourceOverlayMoveStep]);
+
+  const handleAppliedSourceOverlayPointerDown = (event) => {
+    if (!isAdjustingAppliedSourceOverlay) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const cellSize = parseFloat(getComputedStyle(event.currentTarget).getPropertyValue('--cell')) || 24;
+    appliedSourceDragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      offsetX: appliedSourceOverlayTransform.offsetX,
+      offsetY: appliedSourceOverlayTransform.offsetY,
+      cellSize
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handleAppliedSourceOverlayPointerMove = (event) => {
+    const drag = appliedSourceDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    event.preventDefault();
+    event.stopPropagation();
+    setAppliedSourceOverlayTransform((previous) => ({
+      ...previous,
+      offsetX: clampFiniteNumber(drag.offsetX + (event.clientX - drag.startX) / drag.cellSize, -200, 200),
+      offsetY: clampFiniteNumber(drag.offsetY + (event.clientY - drag.startY) / drag.cellSize, -200, 200)
+    }));
+  };
+
+  const handleAppliedSourceOverlayPointerUp = (event) => {
+    const drag = appliedSourceDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    event.preventDefault();
+    event.stopPropagation();
+    appliedSourceDragRef.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  };
+
+  const clearAppliedSourceImage = useCallback(() => {
+    setAppliedSourceImage((previous) => {
+      if (previous?.src) URL.revokeObjectURL(previous.src);
+      return null;
+    });
+    setShowAppliedSourceOverlay(false);
+    setAppliedSourceOverlayOpacity(45);
+    setIsAdjustingAppliedSourceOverlay(false);
+    resetAppliedSourceOverlayTransform();
+  }, [resetAppliedSourceOverlayTransform]);
+
+  const replaceAppliedSourceImageFromDraft = useCallback((draft, options, nextRows, nextCols) => {
+    if (!draft?.src) return;
+    setAppliedSourceImage((previous) => {
+      if (previous?.src && previous.src !== draft.src) URL.revokeObjectURL(previous.src);
+      return {
+        src: draft.src,
+        name: draft.name,
+        width: draft.width,
+        height: draft.height,
+        imageOptions: { ...options },
+        rows: nextRows,
+        cols: nextCols
+      };
+    });
+    setShowAppliedSourceOverlay(false);
+    setAppliedSourceOverlayOpacity(45);
+    setIsAdjustingAppliedSourceOverlay(false);
+    resetAppliedSourceOverlayTransform();
+  }, [resetAppliedSourceOverlayTransform]);
+
+  const serializeCurrentProject = useCallback(() => ({
+    version: 2,
+    projectName,
+    rows,
+    cols,
+    palette,
+    grid,
+    activePaletteId,
+    displayMode,
+    guideColorMode,
+    guideCustomColor,
+    rowDirection,
+    numberStart
+  }), [activePaletteId, cols, displayMode, grid, guideColorMode, guideCustomColor, numberStart, palette, projectName, rowDirection, rows]);
+
+  const applyProjectData = useCallback((data, options = {}) => {
+    const loadedPalette = normalizePaletteItems(data.palette);
+    const nextRows = data.rows || 64;
+    const nextCols = data.cols || 48;
+    const loadedGrid = data.grid || createGrid(nextRows, nextCols);
+    const loadedActivePaletteId = data.activePaletteId && getPaletteItem(loadedPalette, data.activePaletteId)
+      ? data.activePaletteId
+      : loadedPalette[0]?.id;
+
+    setProjectName(data.projectName || '불러온 도안');
+    setRows(nextRows);
+    setCols(nextCols);
+    setDraftRows(nextRows);
+    setDraftCols(nextCols);
+    setPalette(loadedPalette);
+    setGrid(loadedGrid.map((row) => row.map((cell) => {
+      const display = resolveCellDisplay(cell, loadedPalette);
+      return cell.paletteId && getPaletteItem(loadedPalette, cell.paletteId)
+        ? { ...cell, color: display.color, symbol: display.symbol, label: display.label }
+        : cell;
+    })));
+    setActivePaletteId(loadedActivePaletteId);
+    setExpandedPaletteId('');
+    setDisplayMode(data.displayMode || 'color-code');
+    setGuideColorMode(data.guideColorMode || 'black');
+    setGuideCustomColor(normalizeHex(data.guideCustomColor) || '#111827');
+    setRowDirection(data.rowDirection || 'bottom-up');
+    setNumberStart(data.numberStart || 1);
+    setCurrentCell((cell) => clampCellToGrid(cell, nextRows, nextCols));
+    setInsertAnchorCell((cell) => clampCellToGrid(cell, nextRows, nextCols));
+    setProgressRow(data.numberStart || 1);
+    setCompletedRows(new Set());
+    setHistory([]);
+    setFuture([]);
+    setPaletteNotice('');
+    clearAppliedSourceImage();
+    setCurrentLocalProjectId(options.localId || '');
+    setLocalSaveState(options.localId ? 'saved' : 'unsaved');
+    setLocalSaveMessage(options.localId ? '저장됨' : '로컬에 저장되지 않음');
+    lastSavedSignatureRef.current = options.localId ? JSON.stringify({ version: 2, ...data }) : '';
+  }, [clearAppliedSourceImage]);
+
+  const refreshLocalProjects = useCallback(async () => {
+    try {
+      setLocalProjects(await listLocalProjects());
+    } catch (error) {
+      setLocalSaveState('error');
+      setLocalSaveMessage(error.message || '로컬 작업 목록을 불러오지 못했습니다.');
+    }
+  }, []);
+
+  const saveCurrentLocalProject = useCallback(async () => {
+    try {
+      setLocalSaveState('saving');
+      setLocalSaveMessage('저장 중');
+      const data = serializeCurrentProject();
+      const id = currentLocalProjectId || `kg-${Date.now()}`;
+      const existing = currentLocalProjectId ? await loadLocalProject(currentLocalProjectId) : null;
+      const record = createProjectRecord(id, data, existing);
+      await saveLocalProject(record);
+      lastSavedSignatureRef.current = JSON.stringify(record.projectData);
+      setCurrentLocalProjectId(id);
+      setLocalSaveState('saved');
+      setLocalSaveMessage('저장됨');
+      await refreshLocalProjects();
+      return record;
+    } catch (error) {
+      setLocalSaveState('error');
+      setLocalSaveMessage(error.message || '저장 실패');
+      return null;
+    }
+  }, [currentLocalProjectId, refreshLocalProjects, serializeCurrentProject]);
+
+  const resetToNewProject = useCallback(() => {
+    const nextRows = 64;
+    const nextCols = 48;
+    setProjectName('새 도안');
+    setRows(nextRows);
+    setCols(nextCols);
+    setDraftRows(nextRows);
+    setDraftCols(nextCols);
+    setPalette(normalizePaletteItems(INITIAL_PALETTE));
+    setGrid(createGrid(nextRows, nextCols));
+    setActivePaletteId('h7');
+    setExpandedPaletteId('');
+    setDisplayMode('color-code');
+    setRowDirection('bottom-up');
+    setNumberStart(1);
+    setCurrentCell({ row: 23, col: 17 });
+    setInsertAnchorCell({ row: 23, col: 17 });
+    setProgressRow(17);
+    setCompletedRows(new Set());
+    setHistory([]);
+    setFuture([]);
+    setPaletteNotice('');
+    setCurrentLocalProjectId('');
+    setLocalSaveState('unsaved');
+    setLocalSaveMessage('새 작업');
+    lastSavedSignatureRef.current = '';
+    clearAppliedSourceImage();
+    setPendingNewProject(false);
+  }, [clearAppliedSourceImage]);
+
+  useEffect(() => {
+    refreshLocalProjects();
+  }, [refreshLocalProjects]);
+
+  useEffect(() => {
+    if (!currentLocalProjectId || imageDraft || imageCandidateLoading) return undefined;
+    const currentSignature = JSON.stringify(serializeCurrentProject());
+    if (lastSavedSignatureRef.current === currentSignature) {
+      setLocalSaveState('saved');
+      setLocalSaveMessage('저장됨');
+      return undefined;
+    }
+    setLocalSaveState('dirty');
+    setLocalSaveMessage('미저장 변경사항');
+    window.clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = window.setTimeout(() => {
+      saveCurrentLocalProject();
+    }, 900);
+    return () => window.clearTimeout(autoSaveTimerRef.current);
+  }, [currentLocalProjectId, imageCandidateLoading, imageDraft, saveCurrentLocalProject, serializeCurrentProject]);
+
+  useEffect(() => () => {
+    window.clearTimeout(autoSaveTimerRef.current);
+  }, []);
+
+  useEffect(() => {
+    if (!imageDraft) {
+      setImageCandidates([]);
+      setSelectedImageCandidateId('');
+      setImageCandidateLoading(false);
+      return undefined;
+    }
+
+    let cancelled = false;
+    setImageCandidateLoading(true);
+    const image = new Image();
+    image.onload = async () => {
+      const candidates = await buildImageConversionCandidates({
+        image,
+        rows,
+        cols,
+        basePalette: palette,
+        paletteMode: imagePaletteMode,
+        imageOptions,
+        seed: imageCandidateSeed
+      });
+      if (!cancelled) {
+        setImageCandidates(candidates);
+        setSelectedImageCandidateId(candidates[0]?.id ?? '');
+        setImageCandidateLoading(false);
+      }
+    };
+    image.onerror = () => {
+      if (!cancelled) {
+        setImageCandidates([]);
+        setSelectedImageCandidateId('');
+        setImageCandidateLoading(false);
+      }
+    };
+    image.src = imageDraft.src;
+
+    return () => {
+      cancelled = true;
+    };
+  }, [cols, imageCandidateSeed, imageDraft, imageOptions, imagePaletteMode, palette, rows]);
+
+  const paintedCellCount = useMemo(
+    () => grid.reduce((sum, row) => sum + row.filter((cell) => cell.active).length, 0),
+    [grid]
+  );
+
+  const hasCurrentWork = Boolean(paintedCellCount || history.length || currentLocalProjectId || localSaveState === 'dirty');
+  const localSaveStatusLabel = localSaveState === 'saving'
+    ? '저장 중'
+    : localSaveState === 'saved'
+      ? '저장됨'
+      : localSaveState === 'dirty'
+        ? '미저장'
+        : localSaveState === 'error'
+          ? '저장 오류'
+          : '로컬 미저장';
+
+  const openLocalProjectsModal = () => {
+    refreshLocalProjects();
+    setLocalProjectsOpen(true);
+  };
+
+  const requestNewProject = () => {
+    if (hasCurrentWork) setPendingNewProject(true);
+    else resetToNewProject();
+  };
+
+  const saveAndStartNewProject = async () => {
+    const record = await saveCurrentLocalProject();
+    if (record) resetToNewProject();
+  };
+
+  const openLocalProject = async (id) => {
+    const record = await loadLocalProject(id);
+    if (!record?.projectData) return;
+    applyProjectData(record.projectData, { localId: record.id });
+    setLocalProjectsOpen(false);
+  };
+
+  const duplicateProject = async (id) => {
+    await duplicateLocalProject(id);
+    await refreshLocalProjects();
+  };
+
+  const removeLocalProject = async (id) => {
+    await deleteLocalProject(id);
+    if (currentLocalProjectId === id) {
+      setCurrentLocalProjectId('');
+      setLocalSaveState('unsaved');
+      setLocalSaveMessage('로컬에서 삭제됨');
+    }
+    await refreshLocalProjects();
+  };
+
+  const renameLocalProject = async (project) => {
+    const nextName = window.prompt('작업 이름', project.name || project.projectData?.projectName || '');
+    if (!nextName?.trim()) return;
+    const nextProject = {
+      ...project,
+      name: nextName.trim(),
+      updatedAt: new Date().toISOString(),
+      projectData: {
+        ...project.projectData,
+        projectName: nextName.trim()
+      }
+    };
+    await saveLocalProject(nextProject);
+    if (currentLocalProjectId === project.id) setProjectName(nextName.trim());
+    await refreshLocalProjects();
+  };
+
+  const pushHistory = useCallback(() => {
+    setHistory((items) => [
+      ...items.slice(-24),
+      makeSnapshot(grid, palette, activePaletteId, {
+        rows,
+        cols,
+        currentCell,
+        insertAnchorCell,
+        progressRow,
+        completedRows
+      })
+    ]);
+    setFuture([]);
+  }, [activePaletteId, cols, completedRows, currentCell, grid, insertAnchorCell, palette, progressRow, rows]);
+
+  const clampProgressRow = useCallback(
+    (value, nextRows) => clampNumber(value, numberStart, numberStart + nextRows - 1),
+    [numberStart]
+  );
+
+  const clampCompletedRows = useCallback(
+    (value, nextRows) => {
+      const minRow = numberStart;
+      const maxRow = numberStart + nextRows - 1;
+      return new Set([...value].filter((row) => row >= minRow && row <= maxRow));
+    },
+    [numberStart]
+  );
+
+  const applySnapshot = useCallback((snapshot) => {
+    const snapshotRows = snapshot.rows ?? snapshot.grid.length;
+    const snapshotCols = snapshot.cols ?? snapshot.grid[0]?.length ?? 0;
+    setGrid(snapshot.grid);
+    setRows(snapshotRows);
+    setCols(snapshotCols);
+    setDraftRows(snapshotRows);
+    setDraftCols(snapshotCols);
+    setPalette(snapshot.palette);
+    setActivePaletteId(snapshot.activePaletteId);
+    setCurrentCell(clampCellToGrid(snapshot.currentCell ?? currentCell, snapshotRows, snapshotCols));
+    setInsertAnchorCell(clampCellToGrid(snapshot.insertAnchorCell ?? insertAnchorCell, snapshotRows, snapshotCols));
+    setProgressRow(snapshot.progressRow ?? clampProgressRow(progressRow, snapshotRows));
+    setCompletedRows(snapshot.completedRows ? new Set(snapshot.completedRows) : new Set());
+    setExpandedPaletteId('');
+    setPaletteNotice('');
+    setPendingResize(null);
+  }, [clampProgressRow, currentCell, insertAnchorCell, progressRow]);
+
+  const applyGridStructure = useCallback(
+    (nextGrid, nextRows, nextCols, nextCurrentCell = currentCell, nextInsertAnchorCell = insertAnchorCell) => {
+      setRows(nextRows);
+      setCols(nextCols);
+      setDraftRows(nextRows);
+      setDraftCols(nextCols);
+      setGrid(nextGrid);
+      setCurrentCell(clampCellToGrid(nextCurrentCell, nextRows, nextCols));
+      setInsertAnchorCell(clampCellToGrid(nextInsertAnchorCell, nextRows, nextCols));
+      setProgressRow((value) => clampProgressRow(value, nextRows));
+      setCompletedRows((value) => clampCompletedRows(value, nextRows));
+    },
+    [clampCompletedRows, clampProgressRow, currentCell, insertAnchorCell]
+  );
+
+  const paintCell = useCallback(
+    (row, col, selectedTool = tool, shouldRecord = true) => {
+      if (row < 0 || row >= rows || col < 0 || col >= cols) return;
+      setCurrentCell({ row, col });
+
+      if (selectedTool === 'select' || selectedTool === 'pan') return;
+
+      if (selectedTool === 'picker') {
+        const cell = grid[row][col];
+        if (cell.paletteId) setActivePaletteId(cell.paletteId);
+        return;
+      }
+
+      if (shouldRecord) pushHistory();
+
+      setGrid((previous) => {
+        const next = cloneGrid(previous);
+        if (selectedTool === 'eraser') {
+          next[row][col] = makeCell();
+        } else if (selectedTool === 'fill') {
+          const source = previous[row][col];
+          const sourceKey = `${source.active}-${source.paletteId}-${source.symbol}`;
+          const replacement = {
+            active: true,
+            color: activePalette.color,
+            symbol: activePalette.code,
+            label: activePalette.name,
+            note: '',
+            paletteId: activePalette.id
+          };
+          const queue = [[row, col]];
+          const seen = new Set();
+          while (queue.length) {
+            const [r, c] = queue.shift();
+            const key = `${r}:${c}`;
+            if (seen.has(key) || r < 0 || r >= rows || c < 0 || c >= cols) continue;
+            seen.add(key);
+            const target = previous[r][c];
+            const targetKey = `${target.active}-${target.paletteId}-${target.symbol}`;
+            if (targetKey !== sourceKey) continue;
+            next[r][c] = replacement;
+            queue.push([r + 1, c], [r - 1, c], [r, c + 1], [r, c - 1]);
+          }
+        } else {
+          const existing = previous[row][col];
+          const same = existing.active && existing.paletteId === activePalette.id;
+          next[row][col] = same && shouldRecord
+            ? makeCell()
+            : {
+                active: true,
+                color: activePalette.color,
+                symbol: activePalette.code,
+                label: activePalette.name,
+                note: '',
+                paletteId: activePalette.id
+              };
+        }
+        return next;
+      });
+    },
+    [activePalette, cols, grid, pushHistory, rows, tool]
+  );
+
+  const handlePointerDown = (row, col) => {
+    setIsDragging(true);
+    setInsertAnchorCell({ row, col });
+    paintCell(row, col, tool, true);
+  };
+
+  const handlePointerEnter = (row, col) => {
+    setCurrentCell({ row, col });
+    if (!isDragging || !['pen', 'eraser'].includes(tool)) return;
+    paintCell(row, col, tool, false);
+  };
+
+  const handlePointerUp = () => setIsDragging(false);
+
+  const undo = () => {
+    setHistory((items) => {
+      if (!items.length) return items;
+      const previous = items[items.length - 1];
+      setFuture((futureItems) => [
+        makeSnapshot(grid, palette, activePaletteId, {
+          rows,
+          cols,
+          currentCell,
+          insertAnchorCell,
+          progressRow,
+          completedRows
+        }),
+        ...futureItems.slice(0, 24)
+      ]);
+      applySnapshot(previous);
+      return items.slice(0, -1);
+    });
+  };
+
+  const redo = () => {
+    setFuture((items) => {
+      if (!items.length) return items;
+      const next = items[0];
+      setHistory((historyItems) => [
+        ...historyItems.slice(-24),
+        makeSnapshot(grid, palette, activePaletteId, {
+          rows,
+          cols,
+          currentCell,
+          insertAnchorCell,
+          progressRow,
+          completedRows
+        })
+      ]);
+      applySnapshot(next);
+      return items.slice(1);
+    });
+  };
+
+  const commitGridResize = (nextRows, nextCols, mode) => {
+    const safeRows = Math.min(200, Math.max(1, Number(nextRows) || rows));
+    const safeCols = Math.min(200, Math.max(1, Number(nextCols) || cols));
+    pushHistory();
+    const nextGrid = mode === 'keep'
+      ? resizeGridKeepingContent(grid, safeRows, safeCols)
+      : createGrid(safeRows, safeCols);
+    applyGridStructure(nextGrid, safeRows, safeCols);
+    setPendingResize(null);
+    setProgressRow(numberStart);
+    setCompletedRows(new Set());
+  };
+
+  const requestGridResize = (nextRows, nextCols) => {
+    const safeRows = Math.min(200, Math.max(1, Number(nextRows) || rows));
+    const safeCols = Math.min(200, Math.max(1, Number(nextCols) || cols));
+    if (safeRows === rows && safeCols === cols) return;
+    if (hasPaintedCells(grid)) {
+      setPendingResize({ rows: safeRows, cols: safeCols });
+      return;
+    }
+    commitGridResize(safeRows, safeCols, 'reset');
+  };
+
+  const movePattern = (rowDelta, colDelta) => {
+    if (!paintedCellCount) return;
+    const steps = clampNumber(moveSteps, 1, 200);
+    pushHistory();
+    setMoveSteps(steps);
+    setGrid((previous) => moveGridContent(previous, rowDelta * steps, colDelta * steps));
+  };
+
+  const insertRow = (placement) => {
+    if (rows >= 200) return;
+    const insertIndex = placement === 'above' ? insertAnchorCell.row : insertAnchorCell.row + 1;
+    const nextRows = rows + 1;
+    const nextAnchorCell = placement === 'above'
+      ? { ...insertAnchorCell, row: insertAnchorCell.row + 1 }
+      : insertAnchorCell;
+    pushHistory();
+    applyGridStructure(insertGridRow(grid, insertIndex), nextRows, cols, currentCell, nextAnchorCell);
+  };
+
+  const insertCol = (placement) => {
+    if (cols >= 200) return;
+    const insertIndex = placement === 'left' ? insertAnchorCell.col : insertAnchorCell.col + 1;
+    const nextCols = cols + 1;
+    const nextAnchorCell = placement === 'left'
+      ? { ...insertAnchorCell, col: insertAnchorCell.col + 1 }
+      : insertAnchorCell;
+    pushHistory();
+    applyGridStructure(insertGridCol(grid, insertIndex), rows, nextCols, currentCell, nextAnchorCell);
+  };
+
+  const removeRow = (placement) => {
+    const targetRow = placement === 'above' ? insertAnchorCell.row - 1 : insertAnchorCell.row + 1;
+    if (rows <= 1 || targetRow < 0 || targetRow >= rows) return;
+    const nextRows = rows - 1;
+    pushHistory();
+    applyGridStructure(
+      removeGridRow(grid, targetRow),
+      nextRows,
+      cols,
+      adjustCellAfterRowRemoval(currentCell, targetRow, nextRows),
+      adjustCellAfterRowRemoval(insertAnchorCell, targetRow, nextRows)
+    );
+  };
+
+  const removeCol = (placement) => {
+    const targetCol = placement === 'left' ? insertAnchorCell.col - 1 : insertAnchorCell.col + 1;
+    if (cols <= 1 || targetCol < 0 || targetCol >= cols) return;
+    const nextCols = cols - 1;
+    pushHistory();
+    applyGridStructure(
+      removeGridCol(grid, targetCol),
+      rows,
+      nextCols,
+      adjustCellAfterColRemoval(currentCell, targetCol, nextCols),
+      adjustCellAfterColRemoval(insertAnchorCell, targetCol, nextCols)
+    );
+  };
+
+  const mirrorGrid = () => {
+    pushHistory();
+    setGrid((previous) => previous.map((row) => [...row].reverse()));
+    setCurrentCell((cell) => ({ ...cell, col: cols - 1 - cell.col }));
+    setInsertAnchorCell((cell) => ({ ...cell, col: cols - 1 - cell.col }));
+  };
+
+  const rotateGrid = () => {
+    pushHistory();
+    setGrid((previous) => {
+      const next = Array.from({ length: cols }, (_, r) =>
+        Array.from({ length: rows }, (_, c) => ({ ...previous[rows - 1 - c][r] }))
+      );
+      setRows(cols);
+      setCols(rows);
+      setDraftRows(cols);
+      setDraftCols(rows);
+      setCurrentCell((cell) => ({ row: cell.col, col: rows - 1 - cell.row }));
+      setInsertAnchorCell((cell) => ({ row: cell.col, col: rows - 1 - cell.row }));
+      return next;
+    });
+  };
+
+  const copyRepeat = () => {
+    pushHistory();
+    setGrid((previous) => {
+      const next = cloneGrid(previous);
+      const blockRows = Math.min(12, rows);
+      const blockCols = Math.min(12, cols);
+      for (let r = 0; r < rows; r += blockRows) {
+        for (let c = 0; c < cols; c += blockCols) {
+          for (let br = 0; br < blockRows && r + br < rows; br += 1) {
+            for (let bc = 0; bc < blockCols && c + bc < cols; bc += 1) {
+              next[r + br][c + bc] = { ...previous[br][bc] };
+            }
+          }
+        }
+      }
+      return next;
+    });
+  };
+
+  const toggleCompletedRow = (rowNumber) => {
+    setCompletedRows((previous) => {
+      const next = new Set(previous);
+      if (next.has(rowNumber)) next.delete(rowNumber);
+      else next.add(rowNumber);
+      return next;
+    });
+  };
+
+  const rowNumber = (rowIndex) =>
+    rowDirection === 'bottom-up' ? rows - rowIndex - 1 + numberStart : rowIndex + numberStart;
+
+  const colNumber = (colIndex) => colIndex + numberStart;
+
+  const buildExportCanvas = ({ includeLegend = true, includeSymbols = true, includeHeaders = true } = {}) => {
+    const cell = 18;
+    const header = includeHeaders ? 34 : 0;
+    const margin = 18;
+    const legendWidth = includeLegend ? 260 : 0;
+    const canvas = document.createElement('canvas');
+    canvas.width = margin * 2 + header * 2 + cols * cell + legendWidth;
+    canvas.height = margin * 2 + header * 2 + rows * cell;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.font = '12px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    const chartX = margin;
+    const chartY = margin;
+    const ox = chartX + header;
+    const oy = chartY + header;
+    const gridRight = ox + cols * cell;
+    const gridBottom = oy + rows * cell;
+
+    if (includeHeaders) {
+      ctx.font = 'bold 12px Arial';
+      ctx.fillStyle = '#e9f1f8';
+      ctx.strokeStyle = '#b6c4d2';
+      ctx.lineWidth = 1;
+      ctx.fillRect(chartX, chartY, header, header);
+      ctx.strokeRect(chartX, chartY, header, header);
+      ctx.fillRect(gridRight, chartY, header, header);
+      ctx.strokeRect(gridRight, chartY, header, header);
+      ctx.fillRect(chartX, gridBottom, header, header);
+      ctx.strokeRect(chartX, gridBottom, header, header);
+      ctx.fillRect(gridRight, gridBottom, header, header);
+      ctx.strokeRect(gridRight, gridBottom, header, header);
+
+      for (let c = 0; c < cols; c += 1) {
+        const x = ox + c * cell;
+        ctx.fillStyle = '#e9f1f8';
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 1;
+        ctx.fillRect(x, chartY, cell, header);
+        ctx.strokeRect(x, chartY, cell, header);
+        ctx.fillRect(x, gridBottom, cell, header);
+        ctx.strokeRect(x, gridBottom, cell, header);
+        ctx.fillStyle = '#344054';
+        ctx.fillText(colNumber(c), x + cell / 2, chartY + header / 2);
+        ctx.fillText(colNumber(c), x + cell / 2, gridBottom + header / 2);
+      }
+      for (let r = 0; r < rows; r += 1) {
+        const y = oy + r * cell;
+        ctx.fillStyle = '#e9f1f8';
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 1;
+        ctx.fillRect(chartX, y, header, cell);
+        ctx.strokeRect(chartX, y, header, cell);
+        ctx.fillRect(gridRight, y, header, cell);
+        ctx.strokeRect(gridRight, y, header, cell);
+        ctx.fillStyle = '#344054';
+        ctx.fillText(rowNumber(r), chartX + header / 2, y + cell / 2);
+        ctx.fillText(rowNumber(r), gridRight + header / 2, y + cell / 2);
+      }
+    }
+
+    grid.forEach((row, r) => {
+      row.forEach((cellData, c) => {
+        const x = ox + c * cell;
+        const y = oy + r * cell;
+        const display = resolveCellDisplay(cellData, palette);
+        const shouldShowCell = cellData.active && display.visible;
+        ctx.fillStyle = shouldShowCell ? display.color : '#ffffff';
+        ctx.fillRect(x, y, cell, cell);
+        if (includeSymbols && shouldShowCell && display.symbol) {
+          ctx.fillStyle = luminance(display.color) < 0.55 ? '#ffffff' : '#111827';
+          ctx.font = '8px Arial';
+          ctx.fillText(display.symbol, x + cell / 2, y + cell / 2);
+        }
+      });
+    });
+
+    ctx.lineCap = 'square';
+    for (let c = 0; c <= cols; c += 1) {
+      const isGuideLine = c > 0 && c < cols && c % guideEvery === 0;
+      const x = ox + c * cell;
+      ctx.beginPath();
+      ctx.strokeStyle = isGuideLine ? guideLineColor : '#aeb8c4';
+      ctx.lineWidth = isGuideLine ? 2.2 : 0.9;
+      ctx.moveTo(x, oy);
+      ctx.lineTo(x, gridBottom);
+      ctx.stroke();
+    }
+
+    for (let r = 0; r <= rows; r += 1) {
+      const isGuideLine = r > 0 && r < rows && r % guideEvery === 0;
+      const y = oy + r * cell;
+      ctx.beginPath();
+      ctx.strokeStyle = isGuideLine ? guideLineColor : '#aeb8c4';
+      ctx.lineWidth = isGuideLine ? 2.2 : 0.9;
+      ctx.moveTo(ox, y);
+      ctx.lineTo(gridRight, y);
+      ctx.stroke();
+    }
+
+    if (includeLegend) {
+      const lx = gridRight + header + 22;
+      ctx.textAlign = 'left';
+      ctx.font = 'bold 15px Arial';
+      ctx.fillStyle = '#111827';
+      ctx.fillText(projectName, lx, oy);
+      ctx.font = '12px Arial';
+      ctx.fillText(`${cols} x ${rows} cells`, lx, oy + 24);
+      ctx.font = 'bold 13px Arial';
+      ctx.fillText('Color key', lx, oy + 58);
+      palette.filter(isPaletteVisible).forEach((item, index) => {
+        const y = oy + 86 + index * 34;
+        ctx.fillStyle = item.color;
+        ctx.fillRect(lx, y - 10, 20, 20);
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.strokeRect(lx, y - 10, 20, 20);
+        ctx.fillStyle = '#111827';
+        ctx.font = '12px Arial';
+        ctx.fillText(`${item.code} ${item.name} · ${activeCounts.get(item.id) || 0}칸`, lx + 30, y);
+      });
+    }
+
+    return canvas;
+  };
+
+  const exportPng = () => {
+    const canvas = buildExportCanvas({ includeLegend: false, includeSymbols: false, includeHeaders: true });
+    const link = document.createElement('a');
+    link.download = `${projectName || 'knitgrid'}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  };
+
+  const exportPdf = async () => {
+    const canvas = buildExportCanvas();
+    const { jsPDF } = await import('jspdf');
+    const pdf = new jsPDF({
+      orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
+      unit: 'px',
+      format: [canvas.width, canvas.height]
+    });
+    pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.width, canvas.height);
+    pdf.save(`${projectName || 'knitgrid'}.pdf`);
+  };
+
+  const saveProject = () => {
+    const blob = new Blob(
+      [
+        JSON.stringify(serializeCurrentProject(), null, 2)
+      ],
+      { type: 'application/json' }
+    );
+    const link = document.createElement('a');
+    link.download = `${projectName || 'knitgrid'}.knitgrid.json`;
+    link.href = URL.createObjectURL(blob);
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
+  const loadProject = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(String(reader.result));
+        applyProjectData(data, { localId: '' });
+        setLocalSaveMessage('JSON에서 열린 임시 작업');
+      } catch (error) {
+        setLocalSaveState('error');
+        setLocalSaveMessage(error.message || '프로젝트 파일을 열지 못했습니다.');
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+  };
+
+  const prepareImageDraft = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const src = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      setImageOptions(INITIAL_IMAGE_OPTIONS);
+      setImagePaletteMode('extract');
+      setImageCandidates([]);
+      setSelectedImageCandidateId('');
+      setImageCandidateSeed(0);
+      setShowOriginalOverlay(false);
+      setOriginalOverlayOpacity(46);
+      setCropDraft({
+        src,
+        name: file.name,
+        width: image.naturalWidth,
+        height: image.naturalHeight,
+        cropSelection: INITIAL_CROP_SELECTION,
+        cropArea: convertPercentCropToImageCrop(INITIAL_CROP_SELECTION)
+      });
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(src);
+      event.target.value = '';
+    };
+    image.src = src;
+    event.target.value = '';
+  };
+
+  const closeCropDraft = () => {
+    if (cropDraft?.src) URL.revokeObjectURL(cropDraft.src);
+    setCropDraft(null);
+  };
+
+  const completeCropDraft = () => {
+    if (!cropDraft?.cropArea) return;
+    const crop = normalizeCrop(cropDraft.cropArea);
+    setImageOptions({
+      ...INITIAL_IMAGE_OPTIONS,
+      fit: 'stretch',
+      crop: {
+        ...crop,
+        enabled: true
+      }
+    });
+    setImageDraft({
+      src: cropDraft.src,
+      name: cropDraft.name,
+      width: cropDraft.width,
+      height: cropDraft.height
+    });
+    setCropDraft(null);
+  };
+
+  const closeImageDraft = () => {
+    if (imageDraft?.src) URL.revokeObjectURL(imageDraft.src);
+    setImageDraft(null);
+    setImageCandidates([]);
+    setSelectedImageCandidateId('');
+    setImageCandidateLoading(false);
+    setShowOriginalOverlay(false);
+  };
+
+  const applyImageDraft = () => {
+    if (!imageDraft || !selectedImageCandidate) return;
+    pushHistory();
+    setGrid(cloneGrid(selectedImageCandidate.grid));
+    replaceAppliedSourceImageFromDraft(imageDraft, imageOptions, rows, cols);
+    if (imagePaletteMode === 'extract') {
+      const nextPalette = clonePalette(selectedImageCandidate.palette);
+      setPalette(nextPalette);
+      setActivePaletteId(nextPalette[0]?.id ?? activePaletteId);
+      setExpandedPaletteId('');
+      setPaletteNotice(`이미지에서 ${nextPalette.length}개 색상을 추출했습니다.`);
+    }
+    setMode('edit');
+    setImageDraft(null);
+    setImageCandidates([]);
+    setSelectedImageCandidateId('');
+    setImageCandidateLoading(false);
+    setShowOriginalOverlay(false);
+  };
+
+  const mergePaletteItems = ({ sourceId, targetId }) => {
+    if (!sourceId || !targetId || sourceId === targetId) return;
+    const sourceItem = getPaletteItem(palette, sourceId);
+    const targetItem = getPaletteItem(palette, targetId);
+    if (!sourceItem || !targetItem) return;
+
+    pushHistory();
+    setPalette((items) => items.filter((item) => item.id !== sourceId));
+    setGrid((previous) => syncCellsForPaletteMerge(previous, sourceItem, targetItem));
+    if (activePaletteId === sourceId) setActivePaletteId(targetId);
+    if (expandedPaletteId === sourceId) setExpandedPaletteId(targetId);
+    setPaletteNotice(`${sourceItem.code}가 ${targetItem.code}로 병합되었습니다.`);
+  };
+
+  const deletePaletteItem = (sourceId, replacementId = '') => {
+    const sourceItem = getPaletteItem(palette, sourceId);
+    if (!sourceItem || palette.length <= 1) return;
+
+    const usage = activeCounts.get(sourceId) || 0;
+    const replacementItem = replacementId ? getPaletteItem(palette, replacementId) : null;
+    if (usage > 0 && !replacementItem) {
+      setPaletteNotice(`${sourceItem.code}는 ${usage}칸에서 사용 중입니다. 대체 색상을 선택한 뒤 삭제하세요.`);
+      return;
+    }
+
+    const nextActiveId = activePaletteId === sourceId
+      ? replacementItem?.id ?? palette.find((item) => item.id !== sourceId)?.id
+      : activePaletteId;
+
+    pushHistory();
+    setPalette((items) => items.filter((item) => item.id !== sourceId));
+    setGrid((previous) =>
+      replacementItem
+        ? syncCellsForPaletteMerge(previous, sourceItem, replacementItem)
+        : clearCellsForPalette(previous, sourceItem)
+    );
+    setActivePaletteId(nextActiveId);
+    setExpandedPaletteId('');
+    setPaletteNotice(
+      replacementItem
+        ? `${sourceItem.code}를 삭제하고 ${replacementItem.code}로 ${usage}칸을 옮겼습니다.`
+        : `${sourceItem.code}를 삭제했습니다.`
+    );
+  };
+
+  const togglePaletteVisibility = (id) => {
+    const currentItem = getPaletteItem(palette, id);
+    if (!currentItem) return;
+
+    pushHistory();
+    setPalette((items) =>
+      items.map((item) =>
+        item.id === id
+          ? { ...item, visible: !isPaletteVisible(item) }
+          : item
+      )
+    );
+    setPaletteNotice(
+      isPaletteVisible(currentItem)
+        ? `${currentItem.code}를 도안에서 숨겼습니다.`
+        : `${currentItem.code}를 도안에 다시 표시했습니다.`
+    );
+  };
+
+  const updatePaletteItem = (id, patch, options = { autoMerge: true }) => {
+    const currentItem = getPaletteItem(palette, id);
+    if (!currentItem) return;
+
+    const normalizedPatch = { ...patch };
+    if (Object.prototype.hasOwnProperty.call(normalizedPatch, 'color')) {
+      const normalizedColor = normalizeHex(normalizedPatch.color);
+      if (!normalizedColor) return;
+      normalizedPatch.color = normalizedColor;
+    }
+
+    const nextItem = { ...currentItem, ...normalizedPatch };
+    const duplicate = normalizedPatch.color && options.autoMerge
+      ? palette.find((item) => item.id !== id && normalizeHex(item.color) === nextItem.color)
+      : null;
+
+    pushHistory();
+
+    if (duplicate) {
+      setPalette((items) => items.filter((item) => item.id !== id));
+      setGrid((previous) => syncCellsForPaletteMerge(previous, currentItem, duplicate));
+      if (activePaletteId === id) setActivePaletteId(duplicate.id);
+      if (expandedPaletteId === id) setExpandedPaletteId(duplicate.id);
+      setPaletteNotice(`${currentItem.code}가 ${duplicate.code}로 병합되었습니다.`);
+      return;
+    }
+
+    setPalette((items) => items.map((item) => (item.id === id ? nextItem : item)));
+    setGrid((previous) => syncCellsForPaletteChange(previous, nextItem));
+    setPaletteNotice('');
+  };
+
+  const addPaletteColor = () => {
+    const id = `c${Date.now()}`;
+    pushHistory();
+    setPalette((items) => [
+      ...items,
+      {
+        id,
+        code: `C${items.length + 1}`,
+        name: '새 색상',
+        color: '#f5b84b',
+        visible: true
+      }
+    ]);
+    setActivePaletteId(id);
+    setExpandedPaletteId(id);
+    setPaletteNotice('');
+  };
+
+
+  return {
+    rows,
+    setRows,
+    cols,
+    setCols,
+    draftRows,
+    setDraftRows,
+    draftCols,
+    setDraftCols,
+    grid,
+    setGrid,
+    palette,
+    setPalette,
+    activePaletteId,
+    setActivePaletteId,
+    tool,
+    setTool,
+    mode,
+    setMode,
+    displayMode,
+    setDisplayMode,
+    zoom,
+    setZoom,
+    guideEvery,
+    setGuideEvery,
+    guideColorMode,
+    setGuideColorMode,
+    guideCustomColor,
+    setGuideCustomColor,
+    numberStart,
+    setNumberStart,
+    rowDirection,
+    setRowDirection,
+    showOppositeHeaders,
+    setShowOppositeHeaders,
+    currentCell,
+    setCurrentCell,
+    insertAnchorCell,
+    setInsertAnchorCell,
+    progressRow,
+    setProgressRow,
+    completedRows,
+    setCompletedRows,
+    history,
+    setHistory,
+    future,
+    setFuture,
+    isDragging,
+    setIsDragging,
+    projectName,
+    setProjectName,
+    cropDraft,
+    setCropDraft,
+    imageDraft,
+    setImageDraft,
+    imageOptions,
+    setImageOptions,
+    imagePaletteMode,
+    setImagePaletteMode,
+    imageCandidates,
+    setImageCandidates,
+    selectedImageCandidateId,
+    setSelectedImageCandidateId,
+    imageCandidateSeed,
+    setImageCandidateSeed,
+    imageCandidateLoading,
+    setImageCandidateLoading,
+    showOriginalOverlay,
+    setShowOriginalOverlay,
+    originalOverlayOpacity,
+    setOriginalOverlayOpacity,
+    appliedSourceImage,
+    setAppliedSourceImage,
+    showAppliedSourceOverlay,
+    setShowAppliedSourceOverlay,
+    appliedSourceOverlayOpacity,
+    setAppliedSourceOverlayOpacity,
+    isAdjustingAppliedSourceOverlay,
+    setIsAdjustingAppliedSourceOverlay,
+    appliedSourceOverlayMoveStep,
+    setAppliedSourceOverlayMoveStep,
+    appliedSourceOverlayTransform,
+    setAppliedSourceOverlayTransform,
+    expandedPaletteId,
+    setExpandedPaletteId,
+    paletteNotice,
+    setPaletteNotice,
+    pendingResize,
+    setPendingResize,
+    moveSteps,
+    setMoveSteps,
+    isInspectorCollapsed,
+    setIsInspectorCollapsed,
+    currentLocalProjectId,
+    setCurrentLocalProjectId,
+    localProjects,
+    setLocalProjects,
+    localProjectsOpen,
+    setLocalProjectsOpen,
+    localSaveState,
+    setLocalSaveState,
+    localSaveMessage,
+    setLocalSaveMessage,
+    pendingNewProject,
+    setPendingNewProject,
+    fileInputRef,
+    projectInputRef,
+    gridScrollRef,
+    activePalette,
+    activeCounts,
+    imageWarnings,
+    imagePreviewCounts,
+    selectedImageCandidate,
+    updateCropDraftSelection,
+    completeCropDraftSelection,
+    resetCropDraft,
+    appliedSourceSizeChanged,
+    appliedSourceTransformCss,
+    guideLineColor,
+    resetAppliedSourceOverlayTransform,
+    updateAppliedSourceOverlayTransform,
+    moveAppliedSourceOverlay,
+    handleAppliedSourceOverlayPointerDown,
+    handleAppliedSourceOverlayPointerMove,
+    handleAppliedSourceOverlayPointerUp,
+    clearAppliedSourceImage,
+    replaceAppliedSourceImageFromDraft,
+    serializeCurrentProject,
+    applyProjectData,
+    refreshLocalProjects,
+    saveCurrentLocalProject,
+    resetToNewProject,
+    openLocalProjectsModal,
+    requestNewProject,
+    saveAndStartNewProject,
+    openLocalProject,
+    duplicateProject,
+    removeLocalProject,
+    renameLocalProject,
+    pushHistory,
+    clampProgressRow,
+    clampCompletedRows,
+    applySnapshot,
+    applyGridStructure,
+    paintCell,
+    handlePointerDown,
+    handlePointerEnter,
+    handlePointerUp,
+    undo,
+    redo,
+    commitGridResize,
+    requestGridResize,
+    movePattern,
+    insertRow,
+    insertCol,
+    removeRow,
+    removeCol,
+    mirrorGrid,
+    rotateGrid,
+    copyRepeat,
+    toggleCompletedRow,
+    rowNumber,
+    colNumber,
+    buildExportCanvas,
+    exportPng,
+    exportPdf,
+    saveProject,
+    loadProject,
+    prepareImageDraft,
+    closeCropDraft,
+    completeCropDraft,
+    closeImageDraft,
+    applyImageDraft,
+    mergePaletteItems,
+    deletePaletteItem,
+    togglePaletteVisibility,
+    updatePaletteItem,
+    addPaletteColor,
+    paintedCellCount,
+    hasCurrentWork,
+    localSaveStatusLabel
+  };
+}
