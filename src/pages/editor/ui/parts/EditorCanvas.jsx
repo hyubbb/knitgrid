@@ -28,6 +28,7 @@ export function EditorCanvas({ editor }) {
     zoom,
     setZoom,
     guideEvery,
+    rowDirection,
     gridScrollRef,
     appliedSourceImage,
     appliedSourceSizeChanged,
@@ -65,7 +66,7 @@ export function EditorCanvas({ editor }) {
         <Toolbar className="canvas-toolbar">
           <div>
             <strong>{cols} x {rows}</strong>
-            <span>{guideEvery}칸 보조선 · 최대 200 x 200</span>
+            <span>{guideEvery > 0 ? `${guideEvery}칸 보조선` : '보조선 없음'} · 최대 200 x 200</span>
           </div>
           <Slider min={46} max={132} value={zoom} onChange={setZoom} leftIcon={ZoomOut} rightIcon={ZoomIn} valueLabel={`${zoom}%`} />
           <div className="source-overlay-control">
@@ -260,8 +261,10 @@ export function EditorCanvas({ editor }) {
               {grid.map((row, r) =>
                 row.map((cell, c) => {
                   const actualRowNumber = rowNumber(r);
-                  const guideRow = (r + 1) % guideEvery === 0;
-                  const guideCol = (c + 1) % guideEvery === 0;
+                  const guideRow = guideEvery > 0 && (rowDirection === 'bottom-up'
+                    ? r < rows - 1 && (rows - 1 - r) % guideEvery === 0
+                    : (r + 1) % guideEvery === 0);
+                  const guideCol = guideEvery > 0 && (c + 1) % guideEvery === 0;
                   const progress = mode === 'progress' && actualRowNumber === progressRow;
                   const completed = mode === 'progress' && completedRows.has(actualRowNumber);
                   const display = resolveCellDisplay(cell, palette);

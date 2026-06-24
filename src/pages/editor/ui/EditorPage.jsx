@@ -6,9 +6,14 @@ import { EditorModals } from './parts/EditorModals.jsx';
 import { EditorStatus } from './parts/EditorStatus.jsx';
 import { EditorToolRail } from './parts/EditorToolRail.jsx';
 import { EditorTopbar } from './parts/EditorTopbar.jsx';
+import { ProjectStartPage } from './ProjectStartPage.jsx';
 
 export function EditorPage() {
   const editor = useKnitGridEditor();
+
+  if (editor.showProjectStartScreen) {
+    return <ProjectStartPage editor={editor} />;
+  }
 
   return (
     <div

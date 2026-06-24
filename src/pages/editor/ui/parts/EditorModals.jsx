@@ -1,6 +1,6 @@
 import ReactCrop from 'react-image-crop';
 import { Button, Modal } from '../../../../components/index.js';
-import { AlertTriangle, Eye, FileText, RotateCcw } from 'lucide-react';
+import { AlertTriangle, Download, Eye, FileText, RotateCcw, Upload } from 'lucide-react';
 import {
   FIT_OPTIONS,
   HORIZONTAL_ALIGNMENTS,
@@ -22,6 +22,9 @@ export function EditorModals({ editor }) {
     removeLocalProject,
     saveCurrentLocalProject,
     localSaveState,
+    backupInputRef,
+    backupAllLocalProjects,
+    restoreAllLocalProjects,
     pendingNewProject,
     setPendingNewProject,
     resetToNewProject,
@@ -74,10 +77,13 @@ export function EditorModals({ editor }) {
           actions={
             <>
               <Button onClick={() => setLocalProjectsOpen(false)}>닫기</Button>
+              <Button icon={Upload} onClick={() => backupInputRef.current?.click()}>전체 불러오기</Button>
+              <Button icon={Download} onClick={backupAllLocalProjects} disabled={!localProjects.length}>전체 저장</Button>
               <Button variant="primary" onClick={saveCurrentLocalProject} disabled={localSaveState === 'saving'}>현재 작업 로컬 저장</Button>
             </>
           }
         >
+          <input ref={backupInputRef} type="file" accept="application/json,.json" onChange={restoreAllLocalProjects} hidden />
           {localProjects.length ? (
             <div className="local-project-list">
               {localProjects.map((project) => (

@@ -125,6 +125,145 @@
       "keyFiles": []
     }
   },
-  "hotPaths": [],
+  "hotPaths": [
+    {
+      "path": "src/app/model/useKnitGridEditor.js",
+      "accessCount": 20,
+      "lastAccessed": 1782291248737,
+      "type": "file"
+    },
+    {
+      "path": "src/styles.css",
+      "accessCount": 17,
+      "lastAccessed": 1782292534264,
+      "type": "file"
+    },
+    {
+      "path": "src/pages/editor/ui/ProjectStartPage.jsx",
+      "accessCount": 6,
+      "lastAccessed": 1782292456635,
+      "type": "file"
+    },
+    {
+      "path": "src/pages/editor/ui/parts/EditorInspector.jsx",
+      "accessCount": 5,
+      "lastAccessed": 1782285134292,
+      "type": "file"
+    },
+    {
+      "path": "src/pages/editor/ui/parts/EditorCanvas.jsx",
+      "accessCount": 5,
+      "lastAccessed": 1782285224786,
+      "type": "file"
+    },
+    {
+      "path": "src/pages/editor/ui/parts/EditorModals.jsx",
+      "accessCount": 4,
+      "lastAccessed": 1782285200226,
+      "type": "file"
+    },
+    {
+      "path": "src/pages/editor/ui/parts/EditorTopbar.jsx",
+      "accessCount": 4,
+      "lastAccessed": 1782290913813,
+      "type": "file"
+    },
+    {
+      "path": "src/features/local-projects/model/localProjectModel.js",
+      "accessCount": 3,
+      "lastAccessed": 1782292422296,
+      "type": "file"
+    },
+    {
+      "path": "src/components/Panel.jsx",
+      "accessCount": 2,
+      "lastAccessed": 1782285062564,
+      "type": "file"
+    },
+    {
+      "path": "src/pages/editor/ui/EditorPage.jsx",
+      "accessCount": 2,
+      "lastAccessed": 1782290546544,
+      "type": "file"
+    },
+    {
+      "path": "src/App.jsx",
+      "accessCount": 2,
+      "lastAccessed": 1782290546607,
+      "type": "file"
+    },
+    {
+      "path": "src/app/state/editorAtoms.js",
+      "accessCount": 2,
+      "lastAccessed": 1782290832135,
+      "type": "file"
+    },
+    {
+      "path": "src/pages/editor/ui/parts/EditorToolRail.jsx",
+      "accessCount": 1,
+      "lastAccessed": 1782284186581,
+      "type": "file"
+    },
+    {
+      "path": "src/pages/editor/ui/parts/EditorStatus.jsx",
+      "accessCount": 1,
+      "lastAccessed": 1782284201648,
+      "type": "file"
+    },
+    {
+      "path": "src/app/model/knitgridModel.js",
+      "accessCount": 1,
+      "lastAccessed": 1782284424687,
+      "type": "file"
+    },
+    {
+      "path": "src/components/Select.jsx",
+      "accessCount": 1,
+      "lastAccessed": 1782284425093,
+      "type": "file"
+    },
+    {
+      "path": "src/entities/grid/model/gridModel.js",
+      "accessCount": 1,
+      "lastAccessed": 1782284453782,
+      "type": "file"
+    },
+    {
+      "path": "src/app/model/editorConfig.js",
+      "accessCount": 1,
+      "lastAccessed": 1782284864833,
+      "type": "file"
+    },
+    {
+      "path": "src/components/Button.jsx",
+      "accessCount": 1,
+      "lastAccessed": 1782284873855,
+      "type": "file"
+    },
+    {
+      "path": "src/components/Modal.jsx",
+      "accessCount": 1,
+      "lastAccessed": 1782284874362,
+      "type": "file"
+    },
+    {
+      "path": "src/components/Toolbar.jsx",
+      "accessCount": 1,
+      "lastAccessed": 1782284875263,
+      "type": "file"
+    },
+    {
+      "path": "src/components/index.js",
+      "accessCount": 1,
+      "lastAccessed": 1782284875356,
+      "type": "file"
+    },
+    {
+      "path": "src/components/SegmentedControl.jsx",
+      "accessCount": 1,
+      "lastAccessed": 1782285452324,
+      "type": "file"
+    }
+  ],
   "userDirectives": []
 }

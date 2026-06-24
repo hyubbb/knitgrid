@@ -58,3 +58,8 @@ export const localProjectsOpenAtom = atom(false);
 export const localSaveStateAtom = atom('unsaved');
 export const localSaveMessageAtom = atom('');
 export const pendingNewProjectAtom = atom(false);
+export const startScreenDismissedAtom = atom(false);
+// URL ?project= 값을 라우팅 원천으로 사용: null=시작화면, 'new'=새 도안, 그 외=로컬 도안 id
+export const routeProjectAtom = atom(
+  typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('project') : null
+);

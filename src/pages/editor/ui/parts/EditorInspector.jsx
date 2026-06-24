@@ -16,10 +16,11 @@ import {
   ArrowRight,
   CheckSquare,
   Download,
+  FileImage,
   FileText,
+  FolderOpen,
+  ImagePlus,
   Palette,
-  Plus,
-  Save,
   Settings2,
   Sparkles,
   Upload
@@ -163,7 +164,7 @@ export function EditorInspector({ editor }) {
             </div>
             <div className="two-cols">
               <NumberField label="번호 시작" value={numberStart} onChange={(v) => setNumberStart(v)} />
-              <Select label="보조선" value={String(guideEvery)} onChange={(v) => setGuideEvery(Number(v))} options={[{ value: '5', label: '5칸' }, { value: '10', label: '10칸' }]} />
+              <Select label="보조선" value={String(guideEvery)} onChange={(v) => setGuideEvery(Number(v))} options={[{ value: '0', label: '없음' }, { value: '5', label: '5칸' }, { value: '10', label: '10칸' }]} />
             </div>
             <div className="two-cols guide-color-fields">
               <Select label="보조선 색상" value={guideColorMode} onChange={setGuideColorMode} options={[{ value: 'black', label: '검은색' }, { value: 'white', label: '흰색' }, { value: 'custom', label: '커스텀' }]} />
@@ -186,7 +187,7 @@ export function EditorInspector({ editor }) {
               <input type="checkbox" checked={showOppositeHeaders} onChange={(event) => setShowOppositeHeaders(event.target.checked)} />
               우측/하단 번호 표시
             </label>
-            <Select label="행 번호 방향" value={rowDirection} onChange={setRowDirection} options={[{ value: 'bottom-up', label: '아래에서 위' }, { value: 'top-down', label: '위에서 아래' }]} />
+            <Select className="px-3 pb-2.5" label="행 번호 방향" value={rowDirection} onChange={setRowDirection} options={[{ value: 'bottom-up', label: '아래에서 위' }, { value: 'top-down', label: '위에서 아래' }]} />
           </Panel>
 
           <Panel icon={Palette} title="팔레트 / 코드" action={<Button onClick={addPaletteColor}>추가</Button>}>
@@ -244,21 +245,21 @@ export function EditorInspector({ editor }) {
             </div>
           </Panel>
 
-          <Panel className="export-panel" icon={ArrowDownToLine} title="가져오기 / 내보내기">
-            <div className="local-project-actions">
-              <Button icon={Plus} iconSize={15} onClick={requestNewProject}>새 작업</Button>
-              <Button icon={FileText} iconSize={15} onClick={openLocalProjectsModal}>내 작업</Button>
-              <Button icon={Save} iconSize={15} onClick={saveCurrentLocalProject} disabled={localSaveState === 'saving'}>로컬 저장</Button>
-            </div>
-            <Button wide icon={Upload} onClick={() => fileInputRef.current?.click()}>이미지로 초안 생성</Button>
-            <Button wide icon={Download} onClick={() => projectInputRef.current?.click()}>프로젝트 열기</Button>
-            <div className="export-grid">
-              <Button onClick={exportPng}>PNG</Button>
-              <Button onClick={exportPdf}>PDF</Button>
-              <Button onClick={saveProject}>JSON</Button>
+          <Panel className="import-panel" icon={Upload} title="가져오기">
+            <div className="import-grid">
+              <Button icon={ImagePlus} onClick={() => fileInputRef.current?.click()}>이미지로 초안 생성</Button>
+              <Button icon={FolderOpen} onClick={() => projectInputRef.current?.click()}>프로젝트 파일 열기 (JSON)</Button>
             </div>
             <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp" onChange={prepareImageDraft} hidden />
             <input ref={projectInputRef} type="file" accept="application/json,.json" onChange={loadProject} hidden />
+          </Panel>
+
+          <Panel className="export-panel" icon={ArrowDownToLine} title="내보내기">
+            <div className="export-grid">
+              <Button icon={FileImage} iconSize={15} onClick={exportPng}>PNG</Button>
+              <Button icon={FileText} iconSize={15} onClick={exportPdf}>PDF</Button>
+              <Button icon={Download} iconSize={15} onClick={saveProject}>JSON</Button>
+            </div>
           </Panel>
         </>
       )}

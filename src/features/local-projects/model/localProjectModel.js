@@ -74,28 +74,54 @@ export const duplicateLocalProject = async (id) => {
   return copy;
 };
 
+export const exportAllLocalProjects = async () => ({
+  app: 'knitgrid',
+  kind: 'local-backup',
+  version: 1,
+  exportedAt: new Date().toISOString(),
+  projects: await listLocalProjects()
+});
+
+export const importLocalProjects = async (backup) => {
+  const projects = Array.isArray(backup) ? backup : backup?.projects;
+  if (!Array.isArray(projects)) throw new Error('백업 형식이 올바르지 않습니다.');
+  let count = 0;
+  for (const project of projects) {
+    if (!project?.id) continue;
+    await saveLocalProject(project);
+    count += 1;
+  }
+  return count;
+};
+
 export const countPaintedCells = (projectGrid) =>
   projectGrid.reduce((sum, row) => sum + row.filter((cell) => cell.active).length, 0);
 
 export const createProjectThumbnail = (projectGrid, projectPalette) => {
   const rows = projectGrid.length;
   const cols = projectGrid[0]?.length ?? 0;
-  const sampleRows = Math.min(rows, 24);
-  const sampleCols = Math.min(cols, 24);
+  if (!rows || !cols) {
+    const blank = '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1" viewBox="0 0 1 1"><rect width="1" height="1" fill="#ffffff"/></svg>';
+    return `data:image/svg+xml,${encodeURIComponent(blank)}`;
+  }
+
+  // 종횡비를 보존한다: 긴 변을 최대 64셀로 다운샘플(가로로 긴 도안이 정사각으로 찌그러지지 않도록)
+  const MAX_SIDE = 64;
+  const step = Math.max(1, Math.ceil(Math.max(rows, cols) / MAX_SIDE));
+  const sampleRows = Math.ceil(rows / step);
+  const sampleCols = Math.ceil(cols / step);
   const cells = [];
 
   for (let r = 0; r < sampleRows; r += 1) {
     for (let c = 0; c < sampleCols; c += 1) {
-      const sourceRow = Math.floor((r / sampleRows) * rows);
-      const sourceCol = Math.floor((c / sampleCols) * cols);
-      const cell = projectGrid[sourceRow]?.[sourceCol];
+      const cell = projectGrid[Math.min(rows - 1, r * step)]?.[Math.min(cols - 1, c * step)];
       const display = cell ? resolveCellDisplay(cell, projectPalette) : null;
       const color = cell?.active && display?.visible ? display.color : '#ffffff';
       cells.push(`<rect x="${c}" y="${r}" width="1" height="1" fill="${color}" />`);
     }
   }
 
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${sampleCols} ${sampleRows}" shape-rendering="crispEdges">${cells.join('')}</svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${sampleCols}" height="${sampleRows}" viewBox="0 0 ${sampleCols} ${sampleRows}" shape-rendering="crispEdges">${cells.join('')}</svg>`;
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 };
 

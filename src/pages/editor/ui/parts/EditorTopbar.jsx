@@ -1,11 +1,8 @@
-import { Button, FileButton, IconButton, SegmentedControl, TextField, Toolbar, Badge } from '../../../../components/index.js';
+import { Button, IconButton, SegmentedControl, TextField, Toolbar, Badge } from '../../../../components/index.js';
 import {
-  Download,
   Eye,
-  FileImage,
   FileText,
   Grid3X3,
-  ImagePlus,
   PenLine,
   Plus,
   Redo2,
@@ -30,18 +27,21 @@ export function EditorTopbar({ editor }) {
     future,
     undo,
     redo,
-    prepareImageDraft,
-    exportPng,
-    exportPdf,
-    saveProject
+    goToStartScreen
   } = editor;
 
   return (
     <header className="topbar">
       <div className="brand">
-        <div className="brand-mark">
+        <button
+          type="button"
+          className="brand-mark"
+          onClick={goToStartScreen}
+          title="내 도안 목록"
+          aria-label="내 도안 목록으로 이동"
+        >
           <Grid3X3 size={18} />
-        </div>
+        </button>
         <div>
           <strong>KnitGrid</strong>
           <TextField value={projectName} onChange={setProjectName} ariaLabel="프로젝트 이름" />
@@ -64,24 +64,15 @@ export function EditorTopbar({ editor }) {
         <Badge state={localSaveState} title={localSaveMessage || localSaveStatusLabel}>
           {localSaveStatusLabel}
         </Badge>
+        <div className="command-history">
+          <IconButton icon={Undo2} label="되돌리기" size={16} onClick={undo} disabled={!history.length} title="되돌리기" />
+          <IconButton icon={Redo2} label="다시 실행" size={16} onClick={redo} disabled={!future.length} title="다시 실행" />
+        </div>
         <Button icon={Plus} onClick={requestNewProject}>새 작업</Button>
         <Button icon={FileText} onClick={openLocalProjectsModal}>내 작업</Button>
         <Button variant="primary" icon={Save} onClick={saveCurrentLocalProject} disabled={localSaveState === 'saving'}>
           로컬 저장
         </Button>
-        <IconButton icon={Undo2} label="되돌리기" size={16} onClick={undo} disabled={!history.length} title="되돌리기" />
-        <IconButton icon={Redo2} label="다시 실행" size={16} onClick={redo} disabled={!future.length} title="다시 실행" />
-        <FileButton
-          icon={ImagePlus}
-          accept="image/png,image/jpeg,image/webp"
-          title="이미지 업로드"
-          onFiles={(files) => prepareImageDraft({ target: { files } })}
-        >
-          업로드
-        </FileButton>
-        <Button icon={FileImage} onClick={exportPng}>PNG</Button>
-        <Button icon={FileText} onClick={exportPdf}>PDF</Button>
-        <Button icon={Download} onClick={saveProject}>JSON</Button>
       </Toolbar>
     </header>
   );

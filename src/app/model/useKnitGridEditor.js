@@ -52,7 +52,9 @@ import {
   localProjectsOpenAtom,
   localSaveStateAtom,
   localSaveMessageAtom,
-  pendingNewProjectAtom
+  pendingNewProjectAtom,
+  startScreenDismissedAtom,
+  routeProjectAtom
 } from '../state/editorAtoms.js';
 import {
   PRESETS,
@@ -76,6 +78,8 @@ import {
   loadLocalProject,
   deleteLocalProject,
   duplicateLocalProject,
+  exportAllLocalProjects,
+  importLocalProjects,
   countPaintedCells,
   createProjectThumbnail,
   createProjectRecord,
@@ -195,9 +199,27 @@ export function useKnitGridEditor() {
   const [localSaveState, setLocalSaveState] = useAtom(localSaveStateAtom);
   const [localSaveMessage, setLocalSaveMessage] = useAtom(localSaveMessageAtom);
   const [pendingNewProject, setPendingNewProject] = useAtom(pendingNewProjectAtom);
+  const [startScreenDismissed, setStartScreenDismissed] = useAtom(startScreenDismissedAtom);
+  const [routeProject, setRouteProject] = useAtom(routeProjectAtom);
   const fileInputRef = useRef(null);
   const projectInputRef = useRef(null);
+  const backupInputRef = useRef(null);
   const gridScrollRef = useRef(null);
+
+  // URL ?project= 동기화 (네이티브 History API). project: null=시작화면, 'new'=새 도안, id=로컬 도안
+  const navigateToProject = useCallback((project, { replace = false } = {}) => {
+    setRouteProject(project);
+    const params = new URLSearchParams(window.location.search);
+    if (project) params.set('project', project);
+    else params.delete('project');
+    const query = params.toString();
+    const url = `${window.location.pathname}${query ? `?${query}` : ''}`;
+    const state = { project: project ?? null };
+    if (replace) window.history.replaceState(state, '', url);
+    else window.history.pushState(state, '', url);
+  }, [setRouteProject]);
+
+  const goToStartScreen = useCallback(() => navigateToProject(null), [navigateToProject]);
   const autoSaveTimerRef = useRef(null);
   const lastSavedSignatureRef = useRef('');
   const appliedSourceDragRef = useRef(null);
@@ -513,6 +535,7 @@ export function useKnitGridEditor() {
       setCurrentLocalProjectId(id);
       setLocalSaveState('saved');
       setLocalSaveMessage('저장됨');
+      if (routeProject !== id) navigateToProject(id, { replace: true });
       await refreshLocalProjects();
       return record;
     } catch (error) {
@@ -520,7 +543,7 @@ export function useKnitGridEditor() {
       setLocalSaveMessage(error.message || '저장 실패');
       return null;
     }
-  }, [currentLocalProjectId, refreshLocalProjects, serializeCurrentProject]);
+  }, [currentLocalProjectId, navigateToProject, refreshLocalProjects, routeProject, serializeCurrentProject]);
 
   const resetToNewProject = useCallback(() => {
     const nextRows = 64;
@@ -550,11 +573,33 @@ export function useKnitGridEditor() {
     lastSavedSignatureRef.current = '';
     clearAppliedSourceImage();
     setPendingNewProject(false);
-  }, [clearAppliedSourceImage]);
+    navigateToProject('new');
+  }, [clearAppliedSourceImage, navigateToProject]);
 
   useEffect(() => {
     refreshLocalProjects();
   }, [refreshLocalProjects]);
+
+  // 첫 로드 시 URL의 ?project=<id>가 있으면 해당 도안을 불러온다(딥링크/새로고침 대응)
+  useEffect(() => {
+    const initial = new URLSearchParams(window.location.search).get('project');
+    if (initial && initial !== 'new') openLocalProject(initial, { fromHistory: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 뒤로/앞으로 가기(popstate) 시 URL에 맞춰 화면을 복원한다
+  useEffect(() => {
+    const handlePopState = () => {
+      const next = new URLSearchParams(window.location.search).get('project');
+      setRouteProject(next);
+      if (next && next !== 'new' && next !== currentLocalProjectId) {
+        openLocalProject(next, { fromHistory: true });
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentLocalProjectId]);
 
   useEffect(() => {
     if (!currentLocalProjectId || imageDraft || imageCandidateLoading) return undefined;
@@ -649,11 +694,17 @@ export function useKnitGridEditor() {
     if (record) resetToNewProject();
   };
 
-  const openLocalProject = async (id) => {
+  const openLocalProject = async (id, { fromHistory = false } = {}) => {
     const record = await loadLocalProject(id);
-    if (!record?.projectData) return;
+    if (!record?.projectData) {
+      // 존재하지 않는 id(오래된 URL) → 시작화면으로 정리
+      if (!fromHistory) navigateToProject(null, { replace: true });
+      return;
+    }
     applyProjectData(record.projectData, { localId: record.id });
+    setStartScreenDismissed(true);
     setLocalProjectsOpen(false);
+    if (!fromHistory) navigateToProject(id);
   };
 
   const duplicateProject = async (id) => {
@@ -756,6 +807,9 @@ export function useKnitGridEditor() {
       if (row < 0 || row >= rows || col < 0 || col >= cols) return;
       setCurrentCell({ row, col });
 
+      // 편집 모드에서만 페인팅 허용 (미리보기/진행 모드는 보기 전용)
+      if (mode !== 'edit') return;
+
       if (selectedTool === 'select' || selectedTool === 'pan') return;
 
       if (selectedTool === 'picker') {
@@ -811,7 +865,7 @@ export function useKnitGridEditor() {
         return next;
       });
     },
-    [activePalette, cols, grid, pushHistory, rows, tool]
+    [activePalette, cols, grid, mode, pushHistory, rows, tool]
   );
 
   const handlePointerDown = (row, col) => {
@@ -1099,7 +1153,7 @@ export function useKnitGridEditor() {
     }
 
     for (let r = 0; r <= rows; r += 1) {
-      const isGuideLine = r > 0 && r < rows && r % guideEvery === 0;
+      const isGuideLine = r > 0 && r < rows && (rowDirection === 'bottom-up' ? (rows - r) % guideEvery === 0 : r % guideEvery === 0);
       const y = oy + r * cell;
       ctx.beginPath();
       ctx.strokeStyle = isGuideLine ? guideLineColor : '#aeb8c4';
@@ -1185,6 +1239,41 @@ export function useKnitGridEditor() {
     reader.readAsText(file);
     event.target.value = '';
   };
+
+  const backupAllLocalProjects = useCallback(async () => {
+    try {
+      const backup = await exportAllLocalProjects();
+      if (!backup.projects.length) {
+        setLocalSaveState('error');
+        setLocalSaveMessage('백업할 로컬 작업이 없습니다.');
+        return;
+      }
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+      const link = document.createElement('a');
+      link.download = `knitgrid-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      link.href = URL.createObjectURL(blob);
+      link.click();
+      URL.revokeObjectURL(link.href);
+      setLocalSaveMessage(`${backup.projects.length}개 작업을 백업 파일로 저장했습니다.`);
+    } catch (error) {
+      setLocalSaveState('error');
+      setLocalSaveMessage(error.message || '전체 저장에 실패했습니다.');
+    }
+  }, []);
+
+  const restoreAllLocalProjects = useCallback(async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    try {
+      const count = await importLocalProjects(JSON.parse(await file.text()));
+      await refreshLocalProjects();
+      setLocalSaveMessage(`${count}개 작업을 불러왔습니다.`);
+    } catch (error) {
+      setLocalSaveState('error');
+      setLocalSaveMessage(error.message || '전체 불러오기에 실패했습니다.');
+    }
+  }, [refreshLocalProjects]);
 
   const prepareImageDraft = (event) => {
     const file = event.target.files?.[0];
@@ -1384,6 +1473,9 @@ export function useKnitGridEditor() {
     setPaletteNotice('');
   };
 
+  // URL이 진실의 원천: '/'(project 파라미터 없음)는 항상 인덱스(홈), ?project=...는 에디터
+  const showProjectStartScreen = routeProject === null;
+
 
   return {
     rows,
@@ -1490,8 +1582,14 @@ export function useKnitGridEditor() {
     setLocalSaveMessage,
     pendingNewProject,
     setPendingNewProject,
+    startScreenDismissed,
+    setStartScreenDismissed,
+    routeProject,
+    goToStartScreen,
+    showProjectStartScreen,
     fileInputRef,
     projectInputRef,
+    backupInputRef,
     gridScrollRef,
     activePalette,
     activeCounts,
@@ -1553,6 +1651,8 @@ export function useKnitGridEditor() {
     exportPdf,
     saveProject,
     loadProject,
+    backupAllLocalProjects,
+    restoreAllLocalProjects,
     prepareImageDraft,
     closeCropDraft,
     completeCropDraft,
