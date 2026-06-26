@@ -1,0 +1,168 @@
+{
+  "slug": "medium",
+  "total_vars": 20,
+  "resolved_count": 20,
+  "unresolved_count": 0,
+  "samples": {
+    "--color-bg-neutral-secondary": {
+      "raw": "#f2f2f2",
+      "resolved": "#f2f2f2",
+      "chain": [
+        "--color-bg-neutral-secondary",
+        "#f2f2f2"
+      ]
+    },
+    "--color-bg-neutral-tertiary": {
+      "raw": "#f9f9f9",
+      "resolved": "#f9f9f9",
+      "chain": [
+        "--color-bg-neutral-tertiary",
+        "#f9f9f9"
+      ]
+    },
+    "--color-bg-neutral-quaternary": {
+      "raw": "#242424",
+      "resolved": "#242424",
+      "chain": [
+        "--color-bg-neutral-quaternary",
+        "#242424"
+      ]
+    },
+    "--color-bg-accent-secondary": {
+      "raw": "#bbdbba",
+      "resolved": "#bbdbba",
+      "chain": [
+        "--color-bg-accent-secondary",
+        "#bbdbba"
+      ]
+    },
+    "--color-bg-accent-tertiary": {
+      "raw": "#d2e7d1",
+      "resolved": "#d2e7d1",
+      "chain": [
+        "--color-bg-accent-tertiary",
+        "#d2e7d1"
+      ]
+    },
+    "--color-bg-accent-quaternary": {
+      "raw": "#e8f3e8",
+      "resolved": "#e8f3e8",
+      "chain": [
+        "--color-bg-accent-quaternary",
+        "#e8f3e8"
+      ]
+    },
+    "--color-bg-error-primary": {
+      "raw": "#c94a4a",
+      "resolved": "#c94a4a",
+      "chain": [
+        "--color-bg-error-primary",
+        "#c94a4a"
+      ]
+    },
+    "--color-bg-utility-yellow-primary": {
+      "raw": "#fffae1",
+      "resolved": "#fffae1",
+      "chain": [
+        "--color-bg-utility-yellow-primary",
+        "#fffae1"
+      ]
+    },
+    "--color-bg-utility-blue-primary": {
+      "raw": "#e5f2ff",
+      "resolved": "#e5f2ff",
+      "chain": [
+        "--color-bg-utility-blue-primary",
+        "#e5f2ff"
+      ]
+    },
+    "--color-fg-neutral-primary": {
+      "raw": "#242424",
+      "resolved": "#242424",
+      "chain": [
+        "--color-fg-neutral-primary",
+        "#242424"
+      ]
+    },
+    "--color-fg-neutral-secondary": {
+      "raw": "#6b6b6b",
+      "resolved": "#6b6b6b",
+      "chain": [
+        "--color-fg-neutral-secondary",
+        "#6b6b6b"
+      ]
+    },
+    "--color-fg-neutral-tertiary": {
+      "raw": "#ffffff",
+      "resolved": "#ffffff",
+      "chain": [
+        "--color-fg-neutral-tertiary",
+        "#ffffff"
+      ]
+    },
+    "--color-fg-accent-primary": {
+      "raw": "#1a8917",
+      "resolved": "#1a8917",
+      "chain": [
+        "--color-fg-accent-primary",
+        "#1a8917"
+      ]
+    },
+    "--color-fg-error-primary": {
+      "raw": "#c94a4a",
+      "resolved": "#c94a4a",
+      "chain": [
+        "--color-fg-error-primary",
+        "#c94a4a"
+      ]
+    },
+    "--color-border-neutral-primary": {
+      "raw": "#f2f2f2",
+      "resolved": "#f2f2f2",
+      "chain": [
+        "--color-border-neutral-primary",
+        "#f2f2f2"
+      ]
+    },
+    "--color-border-neutral-secondary": {
+      "raw": "#242424",
+      "resolved": "#242424",
+      "chain": [
+        "--color-border-neutral-secondary",
+        "#242424"
+      ]
+    },
+    "--color-border-neutral-tertiary": {
+      "raw": "#e5e5e5",
+      "resolved": "#e5e5e5",
+      "chain": [
+        "--color-border-neutral-tertiary",
+        "#e5e5e5"
+      ]
+    },
+    "--color-border-error-primary": {
+      "raw": "#c94a4a",
+      "resolved": "#c94a4a",
+      "chain": [
+        "--color-border-error-primary",
+        "#c94a4a"
+      ]
+    },
+    "--reach-tabs": {
+      "raw": "1",
+      "resolved": "1",
+      "chain": [
+        "--reach-tabs",
+        "1"
+      ]
+    },
+    "--reach-menu-button": {
+      "raw": "1",
+      "resolved": "1",
+      "chain": [
+        "--reach-menu-button",
+        "1"
+      ]
+    }
+  }
+}

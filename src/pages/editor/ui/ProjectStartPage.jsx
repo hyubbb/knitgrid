@@ -1,4 +1,4 @@
-import { Plus } from 'lucide-react';
+import { FolderOpen, Grid3X3, Palette, Plus, Sparkles } from 'lucide-react';
 import {
   countPaintedCells,
   createProjectThumbnail,
@@ -60,19 +60,45 @@ export function ProjectStartPage({ editor }) {
   return (
     <main className="project-start-page">
       <header className="project-start-header">
-        <div>
-          <strong>KnitGrid</strong>
-          <span>저장된 도안 히스토리</span>
+        <div className="project-start-brand">
+          <span className="project-start-mark" aria-hidden="true"><Grid3X3 size={18} /></span>
+          <div>
+            <strong>KnitGrid</strong>
+            <span>뜨개 도안을 정리하고 이어 그리는 작업대</span>
+          </div>
         </div>
-        <button onClick={startNewProject}>
+        <button className="project-start-primary" onClick={startNewProject}>
           <Plus size={18} />
-          새 도안
+          새 도안 만들기
         </button>
       </header>
 
+      <section className="project-start-hero" aria-label="KnitGrid 소개">
+        <div>
+          <p className="project-eyebrow"><Sparkles size={14} /> Pattern workspace</p>
+          <h1>색과 격자를 한눈에 관리하는<br />차분한 니팅 차트 에디터</h1>
+          <p className="project-hero-copy">
+            저장된 도안을 바로 이어 열고, 새 도안은 추천 격자에서 빠르게 시작하세요.
+            편집 화면은 캔버스가 중심이 되도록 더 밝고 정돈된 밀도로 다듬었습니다.
+          </p>
+        </div>
+        <div className="project-hero-stats" aria-hidden="true">
+          <span><Palette size={16} /> 팔레트 기반</span>
+          <span><Grid3X3 size={16} /> 10칸 가이드</span>
+          <span><FolderOpen size={16} /> 로컬 저장</span>
+        </div>
+      </section>
+
       <section className="project-color-stack" aria-label="저장된 도안 선택">
         {localProjects.length === 0 ? (
-          <p className="project-start-empty">아직 저장된 도안이 없습니다. “새 도안”으로 시작해 보세요.</p>
+          <div className="project-start-empty">
+            <span className="project-empty-icon"><FolderOpen size={22} /></span>
+            <strong>아직 저장된 도안이 없습니다</strong>
+            <p>새 도안을 만들면 이곳에 대표색과 크기, 최근 수정일이 카드로 쌓입니다.</p>
+            <button onClick={startNewProject}>
+              <Plus size={16} /> 첫 도안 시작하기
+            </button>
+          </div>
         ) : null}
         {localProjects.map((project) => {
           const color = getDominantProjectColor(project);

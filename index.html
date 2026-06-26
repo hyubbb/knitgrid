@@ -4,6 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>KnitGrid</title>
+    <script>
+      // 페인트 전 테마 적용 — 다크/라이트 플래시 방지
+      (function () {
+        try {
+          document.documentElement.dataset.theme =
+            localStorage.getItem('knitgrid-theme') === 'dark' ? 'dark' : 'light';
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

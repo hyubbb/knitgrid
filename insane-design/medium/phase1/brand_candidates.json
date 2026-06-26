@@ -1,0 +1,235 @@
+{
+  "slug": "medium",
+  "semantic_vars": [
+    {
+      "name": "--color-bg-neutral-primary",
+      "value_hex": "#FFFFFF",
+      "role": "primary"
+    },
+    {
+      "name": "--color-bg-accent-secondary",
+      "value_hex": "#BBDBBA",
+      "role": "accent"
+    },
+    {
+      "name": "--color-bg-accent-tertiary",
+      "value_hex": "#D2E7D1",
+      "role": "accent"
+    },
+    {
+      "name": "--color-bg-accent-quaternary",
+      "value_hex": "#E8F3E8",
+      "role": "accent"
+    },
+    {
+      "name": "--color-bg-error-primary",
+      "value_hex": "#C94A4A",
+      "role": "primary"
+    },
+    {
+      "name": "--color-bg-utility-yellow-primary",
+      "value_hex": "#FFFAE1",
+      "role": "primary"
+    },
+    {
+      "name": "--color-bg-utility-blue-primary",
+      "value_hex": "#E5F2FF",
+      "role": "primary"
+    },
+    {
+      "name": "--color-fg-neutral-primary",
+      "value_hex": "#242424",
+      "role": "primary"
+    },
+    {
+      "name": "--color-fg-accent-primary",
+      "value_hex": "#1A8917",
+      "role": "accent"
+    },
+    {
+      "name": "--color-fg-error-primary",
+      "value_hex": "#C94A4A",
+      "role": "primary"
+    },
+    {
+      "name": "--color-border-neutral-primary",
+      "value_hex": "#F2F2F2",
+      "role": "primary"
+    },
+    {
+      "name": "--color-border-error-primary",
+      "value_hex": "#C94A4A",
+      "role": "primary"
+    }
+  ],
+  "selector_role": [
+    {
+      "selector": ".hljs-regexp, .hljs-link",
+      "property": "color",
+      "hex": "#0E0EFF",
+      "rule_snippet": ".hljs-regexp, .hljs-link {color: #0E0EFF; }"
+    }
+  ],
+  "frequency_candidates": [
+    {
+      "hex": "#1A8917",
+      "count": 10,
+      "kind": "chromatic"
+    },
+    {
+      "hex": "#242424",
+      "count": 9,
+      "kind": "neutral"
+    },
+    {
+      "hex": "#000000",
+      "count": 7,
+      "kind": "neutral"
+    },
+    {
+      "hex": "#C94A4A",
+      "count": 6,
+      "kind": "chromatic"
+    },
+    {
+      "hex": "#FFFFFF",
+      "count": 6,
+      "kind": "neutral"
+    },
+    {
+      "hex": "#156D12",
+      "count": 4,
+      "kind": "chromatic"
+    },
+    {
+      "hex": "#F2F2F2",
+      "count": 4,
+      "kind": "neutral"
+    },
+    {
+      "hex": "#F7F4ED",
+      "count": 4,
+      "kind": "chromatic"
+    },
+    {
+      "hex": "#007400",
+      "count": 2,
+      "kind": "chromatic"
+    },
+    {
+      "hex": "#0E0EFF",
+      "count": 2,
+      "kind": "chromatic"
+    },
+    {
+      "hex": "#1C00CF",
+      "count": 2,
+      "kind": "chromatic"
+    },
+    {
+      "hex": "#3F6E74",
+      "count": 2,
+      "kind": "chromatic"
+    },
+    {
+      "hex": "#5C2699",
+      "count": 2,
+      "kind": "chromatic"
+    },
+    {
+      "hex": "#643820",
+      "count": 2,
+      "kind": "chromatic"
+    },
+    {
+      "hex": "#6B6B6B",
+      "count": 2,
+      "kind": "neutral"
+    },
+    {
+      "hex": "#836C28",
+      "count": 2,
+      "kind": "chromatic"
+    },
+    {
+      "hex": "#9B703F",
+      "count": 2,
+      "kind": "chromatic"
+    },
+    {
+      "hex": "#AA0D91",
+      "count": 2,
+      "kind": "chromatic"
+    },
+    {
+      "hex": "#BAEEBA",
+      "count": 2,
+      "kind": "chromatic"
+    },
+    {
+      "hex": "#BBDBBA",
+      "count": 2,
+      "kind": "chromatic"
+    },
+    {
+      "hex": "#C0C0C0",
+      "count": 2,
+      "kind": "neutral"
+    },
+    {
+      "hex": "#C41A16",
+      "count": 2,
+      "kind": "chromatic"
+    },
+    {
+      "hex": "#D2E7D1",
+      "count": 2,
+      "kind": "chromatic"
+    },
+    {
+      "hex": "#E5E5E5",
+      "count": 2,
+      "kind": "neutral"
+    },
+    {
+      "hex": "#E5F2FF",
+      "count": 2,
+      "kind": "chromatic"
+    },
+    {
+      "hex": "#E8F3E8",
+      "count": 2,
+      "kind": "chromatic"
+    },
+    {
+      "hex": "#EEEEEE",
+      "count": 2,
+      "kind": "neutral"
+    },
+    {
+      "hex": "#F9F9F9",
+      "count": 2,
+      "kind": "neutral"
+    },
+    {
+      "hex": "#FFC8BD",
+      "count": 2,
+      "kind": "chromatic"
+    },
+    {
+      "hex": "#FFFAE1",
+      "count": 2,
+      "kind": "chromatic"
+    }
+  ],
+  "summary": {
+    "total_candidates": 43,
+    "by_role": {
+      "accent": 4,
+      "chromatic": 21,
+      "neutral": 9,
+      "primary": 8,
+      "selector": 1
+    }
+  }
+}

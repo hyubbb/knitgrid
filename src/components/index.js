@@ -21,3 +21,4 @@ export { PresetGrid } from './PresetGrid.jsx';
 export { MovePad } from './MovePad.jsx';
 export { StepperControl } from './StepperControl.jsx';
 export { Badge } from './Badge.jsx';
+export { ThemeToggle } from './ThemeToggle.jsx';

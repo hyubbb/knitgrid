@@ -1,0 +1,89 @@
+/**
+ * Inlined when the `enable_dark_mode_v0` Edgy gate is OFF.
+ *
+ * Light-only: the document does not advertise dark support, the browser keeps OS dark
+ * preference from affecting UA chrome, and dark token overrides are not emitted. CSS
+ * variables declare literal light values here — the `light-dark` CSS function is never
+ * invoked, since this file is unreachable on the gate-ON path.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Hex values mirror `src/styles/colors/global.ts`: grey0, grey5, grey2, grey58, grey86, green69, green21, green14, green7, red46. */
+  --color-bg-neutral-primary: #ffffff;
+  --color-bg-neutral-secondary: #f2f2f2;
+  --color-bg-neutral-tertiary: #f9f9f9;
+  --color-bg-neutral-quaternary: #242424;
+  --color-bg-accent-secondary: #bbdbba;
+  --color-bg-accent-tertiary: #d2e7d1;
+  --color-bg-accent-quaternary: #e8f3e8;
+  --color-bg-error-primary: #c94a4a;
+  --color-bg-utility-yellow-primary: #fffae1;
+  --color-bg-utility-blue-primary: #e5f2ff;
+  --color-fg-neutral-primary: #242424;
+  --color-fg-neutral-secondary: #6b6b6b;
+  --color-fg-neutral-tertiary: #ffffff;
+  --color-fg-accent-primary: #1a8917;
+  --color-fg-error-primary: #c94a4a;
+  --color-border-neutral-primary: #f2f2f2;
+  --color-border-neutral-secondary: #242424;
+  --color-border-neutral-tertiary: #e5e5e5;
+  --color-border-error-primary: #c94a4a;
+}
+
+html{box-sizing:border-box;-webkit-text-size-adjust:100%}*, *:before, *:after{box-sizing:inherit}body{margin:0;padding:0;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;color:rgba(0,0,0,0.8);position:relative;min-height:100vh}h1, h2, h3, h4, h5, h6, dl, dd, ol, ul, menu, figure, blockquote, p, pre, form{margin:0}menu, ol, ul{padding:0;list-style:none;list-style-image:none}main{display:block}a{color:inherit;text-decoration:none}a, button, input{-webkit-tap-highlight-color:transparent}img, svg{vertical-align:middle}button{background:transparent;overflow:visible}button, input, optgroup, select, textarea{margin:0}:root{--reach-tabs:1;--reach-menu-button:1}#speechify-root{font-family:Sohne, sans-serif}div[data-popper-reference-hidden="true"]{visibility:hidden;pointer-events:none}.grecaptcha-badge{visibility:hidden}
+/*XCode style (c) Angel Garcia <angelgarcia.mail@gmail.com>*/.hljs {background: #fff;color: black;
+}/* Gray DOCTYPE selectors like WebKit */
+.xml .hljs-meta {color: #c0c0c0;
+}.hljs-comment,
+.hljs-quote {color: #007400;
+}.hljs-tag,
+.hljs-attribute,
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-name {color: #aa0d91;
+}.hljs-variable,
+.hljs-template-variable {color: #3F6E74;
+}.hljs-code,
+.hljs-string,
+.hljs-meta .hljs-string {color: #c41a16;
+}.hljs-regexp,
+.hljs-link {color: #0E0EFF;
+}.hljs-title,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-number {color: #1c00cf;
+}.hljs-section,
+.hljs-meta {color: #643820;
+}.hljs-title.class_,
+.hljs-class .hljs-title,
+.hljs-type,
+.hljs-built_in,
+.hljs-params {color: #5c2699;
+}.hljs-attr {color: #836C28;
+}.hljs-subst {color: #000;
+}.hljs-formula {background-color: #eee;font-style: italic;
+}.hljs-addition {background-color: #baeeba;
+}.hljs-deletion {background-color: #ffc8bd;
+}.hljs-selector-id,
+.hljs-selector-class {color: #9b703f;
+}.hljs-doctag,
+.hljs-strong {font-weight: bold;
+}.hljs-emphasis {font-style: italic;
+}
+
+@-webkit-keyframes k1{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}@-moz-keyframes k1{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}@keyframes k1{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.a{font-family:medium-content-sans-serif-font, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif}.b{font-weight:400}.c{background-color:var(--color-bg-neutral-primary)}.d{display:none}.e{height:100vh}.f{width:100%}.g{display:flex}.h{align-items:center}.i{justify-content:center}.j{width:40px}.k{height:40px}.l{border-radius:50%}.m{border-width:2px}.n{border-style:solid}.o{border-color:var(--color-border-neutral-secondary) transparent var(--color-border-neutral-secondary) var(--color-border-neutral-secondary)}.p{animation:k1 2s infinite linear;}.q{flex-direction:column}.r{position:absolute}.s{top:54%}.t{transform:translateY(-50%)}.u{left:782px}.x h2{color:#242424}.am button{font-size:20px}.an button{line-height:28px}.ao{background-color:#F7F4ED}.ap{min-height:560px}.aq{overflow:hidden}.ar{flex:1 0 auto}.as{position:relative}.at{background:#F7F4ED}.au{z-index:10}.av{border-bottom:solid 1px var(--color-border-neutral-secondary)}.aw{position:fixed}.ax{top:0}.ay{left:0}.az{right:0}.bh{max-width:1192px}.bi{min-width:0}.bj{padding:25px 0}.bk{height:75px}.bl{flex-direction:row}.bm{display:block}.bn{color:inherit}.bo{fill:inherit}.bp{font-size:inherit}.bq{border:inherit}.br{font-family:inherit}.bs{letter-spacing:inherit}.bt{font-weight:inherit}.bu{padding:0}.bv{margin:0}.bw{cursor:pointer}.bx:disabled{cursor:not-allowed}.by:disabled{color:var(--color-fg-neutral-secondary)}.bz:disabled{fill:var(--color-fg-neutral-secondary)}.cc{width:auto}.cd path{fill:var(--color-fg-neutral-primary)}.ce{height:25px}.ck{margin-right:25px}.cl{font-family:sohne, "Helvetica Neue", Helvetica, Arial, sans-serif}.cm{font-size:14px}.cn{line-height:20px}.co{color:var(--color-fg-neutral-primary)}.cq{color:rgba(255, 255, 255, 1)}.cr{padding:8px 16px}.cs{fill:rgba(255, 255, 255, 1)}.ct{background:rgba(25, 25, 25, 1)}.cu{border-color:rgba(25, 25, 25, 1)}.cy:disabled{cursor:inherit !important}.cz:disabled{opacity:0.1}.da:disabled:hover{background:rgba(25, 25, 25, 1)}.db:disabled:hover{border-color:rgba(25, 25, 25, 1)}.dc{border-radius:99em}.dd{border-width:1px}.de{box-sizing:border-box}.df{display:inline-block}.dg{text-decoration:none}.dh{text-align:center}.di{min-height:75px}.dj{height:100%}.dv{max-width:720px}.dw{font-family:gt-super, Georgia, Cambria, "Times New Roman", Times, serif}.dx{font-size:70px}.dy{line-height:74px}.dz{letter-spacing:-0.05em}.ea{font-feature-settings:'pnum' on, 'lnum' on;}.eb{color:#000000}.ec{margin-bottom:48px}.ed{font-size:22px}.ee{line-height:28px}.eh{font-size:16px}.ei{line-height:24px}.ej{color:var(--color-bg-neutral-primary)}.ek{padding:8px 20px}.el{fill:var(--color-bg-neutral-primary)}.em{background:#1A8917}.eo{border-color:#1A8917}.er:disabled{opacity:0.3}.es:disabled:hover{background:#1A8917}.et:disabled:hover{border-color:#1A8917}.eu{width:196px}.ev{border-top:1px solid var(--color-border-neutral-secondary)}.ew{height:72px}.ex{min-width:100vw}.ey{position:static}.ez{bottom:0}.fa{font-size:13px}.fb{color:var(--color-fg-neutral-secondary)}.fd{margin-right:20px}.fe{height:0px}.ff{margin:0 24px}.fj{padding:24px 0}.fk{flex-wrap:wrap}.fl{margin-bottom:0px}.fm{margin-right:16px}.ca:hover:not(:disabled){color:var(--color-fg-neutral-primary)}.cb:hover:not(:disabled){fill:var(--color-fg-neutral-primary)}.cv:hover{background:#000000}.cw:hover{border-color:var(--color-border-neutral-secondary)}.cx:hover{cursor:pointer}.ep:hover{background:#156D12}.eq:hover{border-color:#156D12}.fc:hover{text-decoration:underline}
+.bg{margin:0 64px}.cj{display:inline-block}.do{margin:75px 64px 0}.du{margin-bottom:48px}.eg{display:none}.fi{max-width:680px}
+.bc{margin:0 24px}.cf{display:none}.dk{margin:75px 24px 0}.dq{margin-bottom:32px}
+.bf{margin:0 64px}.ci{display:inline-block}.dn{margin:75px 64px 0}.dt{margin-bottom:48px}.ef{display:none}.fh{max-width:680px}
+.be{margin:0 48px}.ch{display:inline-block}.dm{margin:75px 48px 0}.dp{display:none}.ds{margin-bottom:48px}.fg{max-width:680px}
+.bd{margin:0 24px}.cg{display:none}.cp{display:inline-block}.dl{margin:75px 24px 0}.dr{margin-bottom:32px}
+.v{left:unset}.w{right:0}
+.y{display:flex}.z{width:253px}.ab{word-break:break-word}
+.ac h2{font-size:80px}.ae h2{line-height:72px}.af h2{letter-spacing:-0.055em}
+.ag h2{font-size:106px}.ah h2{line-height:95px}.ai h2{letter-spacing:-0.055em}
+.aj h2{font-size:120px}.ak h2{line-height:100px}.al h2{letter-spacing:-0.055em}
+.ba{transition:background-color 300ms linear}.bb button{transition:background-color 300ms linear, color 300ms linear}

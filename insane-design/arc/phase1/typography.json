@@ -1,0 +1,100 @@
+{
+  "slug": "arc",
+  "scale": {},
+  "families": [
+    {
+      "declaration": "Marlin Soft SQ",
+      "first_name": "Marlin Soft SQ",
+      "count": 9
+    },
+    {
+      "declaration": "ABC Favorit Mono",
+      "first_name": "ABC Favorit Mono",
+      "count": 6
+    },
+    {
+      "declaration": "'Space Mono'",
+      "first_name": "Space Mono",
+      "count": 4
+    },
+    {
+      "declaration": "Inter",
+      "first_name": "Inter",
+      "count": 4
+    },
+    {
+      "declaration": "Exposure VAR",
+      "first_name": "Exposure VAR",
+      "count": 3
+    },
+    {
+      "declaration": "ABC Oracle",
+      "first_name": "ABC Oracle",
+      "count": 2
+    },
+    {
+      "declaration": "Marlin Soft Basic",
+      "first_name": "Marlin Soft Basic",
+      "count": 2
+    },
+    {
+      "declaration": "Sohne Breit",
+      "first_name": "Sohne Breit",
+      "count": 2
+    },
+    {
+      "declaration": "Space Mono",
+      "first_name": "Space Mono",
+      "count": 2
+    },
+    {
+      "declaration": "-apple-system, BlinkMacSystemFont, sans-serif",
+      "first_name": "-apple-system",
+      "count": 1
+    },
+    {
+      "declaration": "EB Garamond",
+      "first_name": "EB Garamond",
+      "count": 1
+    },
+    {
+      "declaration": "InterVariable",
+      "first_name": "InterVariable",
+      "count": 1
+    },
+    {
+      "declaration": "Marlin",
+      "first_name": "Marlin",
+      "count": 1
+    },
+    {
+      "declaration": "Monaco",
+      "first_name": "Monaco",
+      "count": 1
+    },
+    {
+      "declaration": "Sohne Breit Extrafett",
+      "first_name": "Sohne Breit Extrafett",
+      "count": 1
+    }
+  ],
+  "weights_used": {
+    "100": 1,
+    "350": 1,
+    "400": 17,
+    "500": 10,
+    "510": 1,
+    "600": 12,
+    "650": 1,
+    "700": 24,
+    "750": 1,
+    "800": 2,
+    "900": 3,
+    "bold": 4
+  },
+  "stats": {
+    "scale_entries": 0,
+    "unique_families": 15,
+    "unique_weights": 12
+  }
+}

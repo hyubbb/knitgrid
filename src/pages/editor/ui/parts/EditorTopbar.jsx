@@ -1,4 +1,4 @@
-import { Button, IconButton, SegmentedControl, TextField, Toolbar, Badge } from '../../../../components/index.js';
+import { Button, IconButton, SegmentedControl, TextField, Toolbar, Badge, ThemeToggle } from '../../../../components/index.js';
 import {
   Eye,
   FileText,
@@ -67,6 +67,7 @@ export function EditorTopbar({ editor }) {
         <div className="command-history">
           <IconButton icon={Undo2} label="되돌리기" size={16} onClick={undo} disabled={!history.length} title="되돌리기" />
           <IconButton icon={Redo2} label="다시 실행" size={16} onClick={redo} disabled={!future.length} title="다시 실행" />
+          <ThemeToggle />
         </div>
         <Button icon={Plus} onClick={requestNewProject}>새 작업</Button>
         <Button icon={FileText} onClick={openLocalProjectsModal}>내 작업</Button>
