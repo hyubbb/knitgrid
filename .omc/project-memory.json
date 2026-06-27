@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1782284073734,
+  "lastScanned": 1782453059261,
   "projectRoot": "/Users/benji/Desktop/questi/dev/knitgrid",
   "techStack": {
     "languages": [
@@ -65,7 +65,7 @@
       "path": "dist",
       "purpose": "Distribution/build output",
       "fileCount": 1,
-      "lastAccessed": 1782284073708,
+      "lastAccessed": 1782453059239,
       "keyFiles": [
         "index.html"
       ]
@@ -74,14 +74,14 @@
       "path": "docs",
       "purpose": "Documentation",
       "fileCount": 0,
-      "lastAccessed": 1782284073709,
+      "lastAccessed": 1782453059239,
       "keyFiles": []
     },
     "src": {
       "path": "src",
       "purpose": "Source code",
       "fileCount": 3,
-      "lastAccessed": 1782284073717,
+      "lastAccessed": 1782453059244,
       "keyFiles": [
         "App.jsx",
         "main.jsx",
@@ -92,25 +92,25 @@
       "path": "dist/assets",
       "purpose": "Static assets",
       "fileCount": 7,
-      "lastAccessed": 1782284073717,
+      "lastAccessed": 1782453059244,
       "keyFiles": [
-        "html2canvas-DlJoE3mc.js",
-        "index-Dwk5oUhx.css",
-        "index-lDl8u84w.js"
+        "html2canvas-CbGeB_m1.js",
+        "index-CR6Gi3F2.css",
+        "index-CxMph4ei.js"
       ]
     },
     "src/app": {
       "path": "src/app",
       "purpose": "Application code",
       "fileCount": 0,
-      "lastAccessed": 1782284073718,
+      "lastAccessed": 1782453059245,
       "keyFiles": []
     },
     "src/components": {
       "path": "src/components",
       "purpose": "UI components",
       "fileCount": 21,
-      "lastAccessed": 1782284073718,
+      "lastAccessed": 1782453059245,
       "keyFiles": [
         "Badge.jsx",
         "Button.jsx",
@@ -121,21 +121,39 @@
       "path": "src/pages",
       "purpose": "Page components",
       "fileCount": 0,
-      "lastAccessed": 1782284073718,
+      "lastAccessed": 1782453059245,
       "keyFiles": []
     }
   },
   "hotPaths": [
     {
-      "path": "src/app/model/useKnitGridEditor.js",
-      "accessCount": 20,
-      "lastAccessed": 1782291248737,
+      "path": "src/styles.css",
+      "accessCount": 53,
+      "lastAccessed": 1782462330849,
       "type": "file"
     },
     {
-      "path": "src/styles.css",
-      "accessCount": 17,
-      "lastAccessed": 1782292534264,
+      "path": "src/app/model/useKnitGridEditor.js",
+      "accessCount": 32,
+      "lastAccessed": 1782462316970,
+      "type": "file"
+    },
+    {
+      "path": "src/pages/editor/ui/parts/EditorCanvas.jsx",
+      "accessCount": 8,
+      "lastAccessed": 1782462329366,
+      "type": "file"
+    },
+    {
+      "path": "src/pages/editor/ui/parts/EditorInspector.jsx",
+      "accessCount": 8,
+      "lastAccessed": 1782462359790,
+      "type": "file"
+    },
+    {
+      "path": "src/pages/editor/ui/parts/EditorTopbar.jsx",
+      "accessCount": 7,
+      "lastAccessed": 1782459454228,
       "type": "file"
     },
     {
@@ -145,27 +163,15 @@
       "type": "file"
     },
     {
-      "path": "src/pages/editor/ui/parts/EditorInspector.jsx",
-      "accessCount": 5,
-      "lastAccessed": 1782285134292,
-      "type": "file"
-    },
-    {
-      "path": "src/pages/editor/ui/parts/EditorCanvas.jsx",
-      "accessCount": 5,
-      "lastAccessed": 1782285224786,
-      "type": "file"
-    },
-    {
       "path": "src/pages/editor/ui/parts/EditorModals.jsx",
       "accessCount": 4,
       "lastAccessed": 1782285200226,
       "type": "file"
     },
     {
-      "path": "src/pages/editor/ui/parts/EditorTopbar.jsx",
+      "path": "src/app/state/editorAtoms.js",
       "accessCount": 4,
-      "lastAccessed": 1782290913813,
+      "lastAccessed": 1782462285116,
       "type": "file"
     },
     {
@@ -175,15 +181,15 @@
       "type": "file"
     },
     {
-      "path": "src/components/Panel.jsx",
-      "accessCount": 2,
-      "lastAccessed": 1782285062564,
+      "path": "src/pages/editor/ui/EditorPage.jsx",
+      "accessCount": 3,
+      "lastAccessed": 1782455981663,
       "type": "file"
     },
     {
-      "path": "src/pages/editor/ui/EditorPage.jsx",
+      "path": "src/components/Panel.jsx",
       "accessCount": 2,
-      "lastAccessed": 1782290546544,
+      "lastAccessed": 1782285062564,
       "type": "file"
     },
     {
@@ -193,9 +199,15 @@
       "type": "file"
     },
     {
-      "path": "src/app/state/editorAtoms.js",
+      "path": "insane-design/medium/design.md",
       "accessCount": 2,
-      "lastAccessed": 1782290832135,
+      "lastAccessed": 1782454061618,
+      "type": "file"
+    },
+    {
+      "path": "src/components/index.js",
+      "accessCount": 2,
+      "lastAccessed": 1782459443764,
       "type": "file"
     },
     {
@@ -253,15 +265,93 @@
       "type": "file"
     },
     {
-      "path": "src/components/index.js",
-      "accessCount": 1,
-      "lastAccessed": 1782284875356,
-      "type": "file"
-    },
-    {
       "path": "src/components/SegmentedControl.jsx",
       "accessCount": 1,
       "lastAccessed": 1782285452324,
+      "type": "file"
+    },
+    {
+      "path": "insane-design/medium/screenshots/hero-cropped.png",
+      "accessCount": 1,
+      "lastAccessed": 1782453501530,
+      "type": "file"
+    },
+    {
+      "path": "insane-design/medium/phase1/brand_candidates.json",
+      "accessCount": 1,
+      "lastAccessed": 1782453502014,
+      "type": "file"
+    },
+    {
+      "path": "insane-design/medium/phase1/typography.json",
+      "accessCount": 1,
+      "lastAccessed": 1782453502954,
+      "type": "file"
+    },
+    {
+      "path": "insane-design/medium/phase1/alias_layer.json",
+      "accessCount": 1,
+      "lastAccessed": 1782453503141,
+      "type": "file"
+    },
+    {
+      "path": "insane-design/medium/css/_inline.css",
+      "accessCount": 1,
+      "lastAccessed": 1782453559308,
+      "type": "file"
+    },
+    {
+      "path": "insane-design/arc/screenshots/hero-cropped.png",
+      "accessCount": 1,
+      "lastAccessed": 1782458603260,
+      "type": "file"
+    },
+    {
+      "path": "insane-design/arc/phase1/brand_candidates.json",
+      "accessCount": 1,
+      "lastAccessed": 1782458603605,
+      "type": "file"
+    },
+    {
+      "path": "insane-design/arc/phase1/typography.json",
+      "accessCount": 1,
+      "lastAccessed": 1782458604060,
+      "type": "file"
+    },
+    {
+      "path": "insane-design/arc/design.md",
+      "accessCount": 1,
+      "lastAccessed": 1782458830220,
+      "type": "file"
+    },
+    {
+      "path": "src/main.jsx",
+      "accessCount": 1,
+      "lastAccessed": 1782459152201,
+      "type": "file"
+    },
+    {
+      "path": "index.html",
+      "accessCount": 1,
+      "lastAccessed": 1782459428367,
+      "type": "file"
+    },
+    {
+      "path": "src/components/ThemeToggle.jsx",
+      "accessCount": 1,
+      "lastAccessed": 1782459437375,
+      "type": "file"
+    },
+    {
+      "path": "insane-design/linear/screenshots/jina-hero.png",
+      "accessCount": 1,
+      "lastAccessed": 1782459902693,
+      "type": "file"
+    },
+    {
+      "path": "insane-design/linear/design.md",
+      "accessCount": 1,
+      "lastAccessed": 1782460025120,
       "type": "file"
     }
   ],

@@ -43,6 +43,7 @@ export function EditorCanvas({ editor }) {
     appliedSourceOverlayTransform,
     appliedSourceTransformCss,
     guideLineColor,
+    gridLineColor,
     updateAppliedSourceOverlayTransform,
     moveAppliedSourceOverlay,
     resetAppliedSourceOverlayTransform,
@@ -227,7 +228,8 @@ export function EditorCanvas({ editor }) {
               '--rows': rows,
               '--cols': cols,
               '--cell': `${Math.round((zoom / 100) * 24)}px`,
-              '--guide-color': guideLineColor
+              '--guide-color': guideLineColor,
+              '--grid-line': gridLineColor || undefined
             }}
           >
             {appliedSourceImage && showAppliedSourceOverlay ? (

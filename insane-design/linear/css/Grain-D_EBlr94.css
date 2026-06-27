@@ -1,0 +1,3 @@
+@charset "UTF-8";
+@layer reset, base, app.base;
+.SPbJba_grain{pointer-events:none;border-radius:inherit;opacity:.9;mix-blend-mode:overlay;background-size:256px 256px;position:absolute;inset:0}.SPbJba_grain:after{content:"";pointer-events:none;border-radius:inherit;background:#ffffff0f;position:absolute;inset:0}@supports ((-webkit-hyphens:none)){.SPbJba_grain:after{background:0 0}}.SPbJba_grainSubtle{opacity:.6;background-size:256px 256px}.SPbJba_grainSubtle:after{content:none}

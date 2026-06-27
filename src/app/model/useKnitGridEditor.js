@@ -15,6 +15,8 @@ import {
   guideEveryAtom,
   guideColorModeAtom,
   guideCustomColorAtom,
+  gridLineColorModeAtom,
+  gridLineCustomColorAtom,
   numberStartAtom,
   rowDirectionAtom,
   showOppositeHeadersAtom,
@@ -161,6 +163,8 @@ export function useKnitGridEditor() {
   const [guideEvery, setGuideEvery] = useAtom(guideEveryAtom);
   const [guideColorMode, setGuideColorMode] = useAtom(guideColorModeAtom);
   const [guideCustomColor, setGuideCustomColor] = useAtom(guideCustomColorAtom);
+  const [gridLineColorMode, setGridLineColorMode] = useAtom(gridLineColorModeAtom);
+  const [gridLineCustomColor, setGridLineCustomColor] = useAtom(gridLineCustomColorAtom);
   const [numberStart, setNumberStart] = useAtom(numberStartAtom);
   const [rowDirection, setRowDirection] = useAtom(rowDirectionAtom);
   const [showOppositeHeaders, setShowOppositeHeaders] = useAtom(showOppositeHeadersAtom);
@@ -344,6 +348,16 @@ export function useKnitGridEditor() {
     : guideColorMode === 'custom'
       ? normalizeHex(guideCustomColor) ?? '#111827'
       : '#111827';
+  // 기본 격자 선 색상. ''(default)=테마 토큰(var(--kg-line)) 사용, 'transparent'=없음.
+  const gridLineColor = gridLineColorMode === 'none'
+    ? 'transparent'
+    : gridLineColorMode === 'black'
+      ? '#111827'
+      : gridLineColorMode === 'white'
+        ? '#ffffff'
+        : gridLineColorMode === 'custom'
+          ? normalizeHex(gridLineCustomColor) ?? '#c9ced6'
+          : '';
 
   useEffect(() => {
     const scrollNode = gridScrollRef.current;
@@ -467,9 +481,11 @@ export function useKnitGridEditor() {
     displayMode,
     guideColorMode,
     guideCustomColor,
+    gridLineColorMode,
+    gridLineCustomColor,
     rowDirection,
     numberStart
-  }), [activePaletteId, cols, displayMode, grid, guideColorMode, guideCustomColor, numberStart, palette, projectName, rowDirection, rows]);
+  }), [activePaletteId, cols, displayMode, grid, guideColorMode, guideCustomColor, gridLineColorMode, gridLineCustomColor, numberStart, palette, projectName, rowDirection, rows]);
 
   const applyProjectData = useCallback((data, options = {}) => {
     const loadedPalette = normalizePaletteItems(data.palette);
@@ -497,6 +513,8 @@ export function useKnitGridEditor() {
     setDisplayMode(data.displayMode || 'color-code');
     setGuideColorMode(data.guideColorMode || 'black');
     setGuideCustomColor(normalizeHex(data.guideCustomColor) || '#111827');
+    setGridLineColorMode(data.gridLineColorMode || 'default');
+    setGridLineCustomColor(normalizeHex(data.gridLineCustomColor) || '#c9ced6');
     setRowDirection(data.rowDirection || 'bottom-up');
     setNumberStart(data.numberStart || 1);
     setCurrentCell((cell) => clampCellToGrid(cell, nextRows, nextCols));
@@ -1143,9 +1161,10 @@ export function useKnitGridEditor() {
     ctx.lineCap = 'square';
     for (let c = 0; c <= cols; c += 1) {
       const isGuideLine = c > 0 && c < cols && c % guideEvery === 0;
+      if (!isGuideLine && gridLineColorMode === 'none') continue;
       const x = ox + c * cell;
       ctx.beginPath();
-      ctx.strokeStyle = isGuideLine ? guideLineColor : '#aeb8c4';
+      ctx.strokeStyle = isGuideLine ? guideLineColor : (gridLineColor || '#aeb8c4');
       ctx.lineWidth = isGuideLine ? 2.2 : 0.9;
       ctx.moveTo(x, oy);
       ctx.lineTo(x, gridBottom);
@@ -1154,9 +1173,10 @@ export function useKnitGridEditor() {
 
     for (let r = 0; r <= rows; r += 1) {
       const isGuideLine = r > 0 && r < rows && (rowDirection === 'bottom-up' ? (rows - r) % guideEvery === 0 : r % guideEvery === 0);
+      if (!isGuideLine && gridLineColorMode === 'none') continue;
       const y = oy + r * cell;
       ctx.beginPath();
-      ctx.strokeStyle = isGuideLine ? guideLineColor : '#aeb8c4';
+      ctx.strokeStyle = isGuideLine ? guideLineColor : (gridLineColor || '#aeb8c4');
       ctx.lineWidth = isGuideLine ? 2.2 : 0.9;
       ctx.moveTo(ox, y);
       ctx.lineTo(gridRight, y);
@@ -1506,6 +1526,11 @@ export function useKnitGridEditor() {
     setGuideColorMode,
     guideCustomColor,
     setGuideCustomColor,
+    gridLineColorMode,
+    setGridLineColorMode,
+    gridLineCustomColor,
+    setGridLineCustomColor,
+    gridLineColor,
     numberStart,
     setNumberStart,
     rowDirection,

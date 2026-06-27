@@ -64,6 +64,11 @@ export function EditorInspector({ editor }) {
     guideCustomColor,
     setGuideCustomColor,
     guideLineColor,
+    gridLineColorMode,
+    setGridLineColorMode,
+    gridLineCustomColor,
+    setGridLineCustomColor,
+    gridLineColor,
     showOppositeHeaders,
     setShowOppositeHeaders,
     rowDirection,
@@ -181,6 +186,38 @@ export function EditorInspector({ editor }) {
                 </label>
               ) : (
                 <div className="guide-color-preview" style={{ '--guide-color': guideLineColor }} aria-hidden="true" />
+              )}
+            </div>
+            <div className="two-cols guide-color-fields">
+              <Select
+                label="격자선 색상"
+                value={gridLineColorMode}
+                onChange={setGridLineColorMode}
+                options={[
+                  { value: 'default', label: '기본' },
+                  { value: 'black', label: '검은색' },
+                  { value: 'white', label: '흰색' },
+                  { value: 'custom', label: '커스텀' },
+                  { value: 'none', label: '없음' }
+                ]}
+              />
+              {gridLineColorMode === 'custom' ? (
+                <label>
+                  커스텀
+                  <input
+                    type="color"
+                    value={gridLineCustomColor}
+                    onInput={(event) => setGridLineCustomColor(event.target.value)}
+                    onChange={(event) => setGridLineCustomColor(event.target.value)}
+                    aria-label="커스텀 격자선 색상"
+                  />
+                </label>
+              ) : (
+                <div
+                  className="guide-color-preview"
+                  style={{ '--guide-color': gridLineColor || 'var(--kg-line)' }}
+                  aria-hidden="true"
+                />
               )}
             </div>
             <label className="check-row">

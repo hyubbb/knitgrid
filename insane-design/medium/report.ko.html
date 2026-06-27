@@ -1,0 +1,1337 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Medium — Design System Report</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+<!-- BEGIN:CANONICAL_STYLE -->
+/* ===== BEGIN:CANONICAL_STYLE ===== */
+/*
+ * insane-design — Canonical Report CSS
+ * Version: 1.0 (2026-04-14)
+ *
+ * 서비스별로 변경 허용하는 변수는 딱 2개:
+ *   --brand-color: {frontmatter의 brand_color}
+ *   --font-display: {서비스 display font}, -apple-system, sans-serif
+ *
+ * 나머지는 모든 리포트에서 동일하게 유지.
+ */
+
+:root {
+  --brand-color:#1A8917;
+  --font-display:"gt-super",Georgia,Cambria,"Times New Roman",Times,serif;
+
+  /* ---- 아래는 서비스별 변경 금지 ---- */
+  --font-sans: "Pretendard Variable", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --bg:#fafafa; --fg:#09090b; --card:#fff;
+  --muted:#f4f4f5; --muted-fg:#71717a; --subtle:#52525b;
+  --border:#e4e4e7; --border-str:#d4d4d8;
+  --accent:#18181b;
+  --radius:.5rem; --radius-lg:.75rem;
+}
+
+/* === Reset === */
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;scroll-padding-top:32px;}
+body{
+  font-family:var(--font-sans);
+  font-feature-settings:"ss01" 1,"ss02" 1;
+  font-size:14px;font-weight:400;line-height:1.6;
+  color:var(--fg);background:var(--bg);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  word-break:keep-all;overflow-wrap:break-word;
+}
+::selection{background:var(--accent);color:#fafafa;}
+a{color:inherit;text-decoration:none;}
+code,kbd,samp{font-family:var(--font-mono);font-size:.85em;}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit;}
+
+/* === Layout === */
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);max-width:1440px;margin:0 auto;}
+
+/* === TOC Sidebar === */
+.toc{
+  position:sticky;top:0;align-self:start;height:100vh;
+  padding:28px 24px 28px 40px;
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;gap:22px;
+  overflow-y:auto;
+}
+.toc__brand{padding-bottom:18px;border-bottom:1px solid var(--border);}
+.toc__brand-name{font-size:14px;font-weight:600;letter-spacing:-.01em;}
+.toc__brand-sub{font-family:var(--font-mono);font-size:11px;color:var(--muted-fg);margin-top:4px;}
+.toc__group{display:flex;flex-direction:column;gap:2px;}
+.toc__group-label{
+  font-family:var(--font-mono);font-size:10px;
+  color:var(--border-str);text-transform:uppercase;
+  letter-spacing:.1em;padding:0 10px;margin-bottom:4px;
+}
+.toc__list{list-style:none;display:flex;flex-direction:column;gap:1px;}
+.toc__list a{
+  display:grid;grid-template-columns:26px 1fr;align-items:center;
+  padding:6px 10px;font-size:13px;color:var(--muted-fg);
+  border-radius:var(--radius);transition:background 140ms,color 140ms;
+}
+.toc__list a:hover{background:var(--muted);color:var(--fg);}
+.toc__num{font-family:var(--font-mono);font-size:10px;color:var(--border-str);}
+.toc__foot{margin-top:auto;font-family:var(--font-mono);font-size:10px;color:var(--muted-fg);line-height:1.6;}
+
+/* === Main Area === */
+.main{min-width:0;}
+section{padding:72px 64px;max-width:1040px;border-bottom:1px solid var(--border);}
+section:last-of-type{border-bottom:none;}
+.section__num{font-family:var(--font-mono);font-size:11px;color:var(--muted-fg);margin-bottom:10px;}
+.section__title{font-size:28px;font-weight:600;letter-spacing:-.02em;line-height:1.35;margin-bottom:12px;}
+.section__lede{font-size:15px;color:var(--subtle);max-width:720px;line-height:1.7;margin-bottom:40px;}
+
+/* === Hero === */
+.hero{padding:80px 64px 64px;border-bottom:1px solid var(--border);}
+.hero__eye{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:5px 12px;background:var(--muted);border:1px solid var(--border);
+  border-radius:999px;font-family:var(--font-mono);font-size:11px;
+  color:var(--subtle);margin-bottom:24px;
+}
+.hero__eye .dot{width:6px;height:6px;border-radius:99px;background:var(--brand-color);}
+.hero__title{font-size:44px;font-weight:600;letter-spacing:-.03em;line-height:1.15;margin-bottom:14px;max-width:780px;}
+.hero__title .sub{color:var(--muted-fg);font-weight:400;}
+.hero__sub{font-size:16px;color:var(--subtle);line-height:1.7;max-width:680px;margin-bottom:32px;}
+.hero__screenshot{
+  margin-bottom:32px;max-width:880px;
+  border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--border);
+}
+.hero__screenshot img{width:100%;height:auto;display:block;}
+
+/* === Quick Start (hero card) === */
+.qs{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:28px 32px;
+  max-width:880px;margin-top:8px;
+}
+.qs__head{
+  display:flex;align-items:center;gap:12px;
+  padding-bottom:16px;margin-bottom:20px;
+  border-bottom:1px solid var(--border);
+}
+.qs__head-label{
+  font-family:var(--font-mono);font-size:11px;
+  color:var(--muted-fg);text-transform:uppercase;letter-spacing:.06em;
+}
+.qs__head-title{font-size:15px;font-weight:600;}
+.qs__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.qs__step{
+  background:#08090a;color:#f7f8f8;
+  border-radius:var(--radius);padding:14px 16px;
+  display:flex;flex-direction:column;gap:6px;
+  font-family:var(--font-mono);font-size:11px;line-height:1.55;
+  border:1px solid #1f2023;
+}
+.qs__step-label{
+  color:#7d8ba4;font-size:10px;letter-spacing:.06em;
+  text-transform:uppercase;
+}
+.qs__step code{color:#f7f8f8;font-size:11px;}
+.qs__step b{color:#c3d3ff;font-weight:500;}
+.qs__warn{
+  margin-top:16px;padding:14px 18px;
+  background:#fef2f2;border:1px solid #fecaca;
+  border-left:3px solid #dc2626;
+  border-radius:var(--radius);
+  font-size:13px;color:#991b1b;line-height:1.6;
+}
+.qs__warn b{color:#7f1d1d;font-weight:600;}
+.qs__warn code{background:#fee2e2;padding:1px 6px;border-radius:3px;font-size:12px;}
+
+/* === Hero Stats === */
+.hero__stats{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  max-width:880px;margin-top:32px;
+  border:1px solid var(--border);border-radius:var(--radius-lg);
+  background:var(--card);overflow:hidden;
+}
+.stat{padding:20px 24px;border-right:1px solid var(--border);}
+.stat:last-child{border-right:none;}
+.stat__label{
+  font-family:var(--font-mono);font-size:10px;
+  color:var(--muted-fg);text-transform:uppercase;
+  letter-spacing:.04em;margin-bottom:8px;
+}
+.stat__val{font-size:18px;font-weight:600;letter-spacing:-.01em;}
+.stat__val--mono{font-family:var(--font-mono);font-size:15px;}
+.stat__hint{font-size:11px;color:var(--muted-fg);margin-top:4px;line-height:1.4;}
+
+/* === Provenance === */
+.prov{
+  border:1px solid var(--border);border-radius:var(--radius-lg);
+  background:var(--card);overflow:hidden;max-width:820px;
+}
+.prov__row{
+  display:grid;grid-template-columns:180px 1fr;
+  padding:14px 24px;border-bottom:1px solid var(--border);
+  font-size:13px;align-items:center;
+}
+.prov__row:last-child{border-bottom:none;}
+.prov__k{font-family:var(--font-mono);font-size:11px;color:var(--muted-fg);}
+.prov__v code{font-size:12px;padding:2px 6px;background:var(--muted);border-radius:4px;}
+
+/* === Tech Stack === */
+.ts{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;max-width:940px;}
+.ts__item{
+  padding:20px 22px;background:var(--card);
+  border:1px solid var(--border);border-radius:var(--radius-lg);
+}
+.ts__head{
+  font-family:var(--font-mono);font-size:10px;
+  color:var(--muted-fg);text-transform:uppercase;
+  letter-spacing:.06em;margin-bottom:10px;
+}
+.ts__body{font-size:14px;line-height:1.7;}
+.ts__body code{background:var(--muted);padding:1px 6px;border-radius:4px;font-size:12px;}
+.ts__body b{font-weight:600;color:var(--fg);}
+
+/* === Font Stack Card === */
+.fs-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:24px 28px;
+  max-width:820px;margin-bottom:24px;
+}
+.fs-card__row{display:grid;grid-template-columns:100px 1fr;gap:20px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.fs-card__row:last-child{border-bottom:none;padding-bottom:0;}
+.fs-card__row:first-child{padding-top:0;}
+.fs-card__k{font-family:var(--font-mono);font-size:11px;color:var(--muted-fg);}
+.fs-card__v code{background:var(--muted);padding:1px 6px;border-radius:4px;font-size:12px;}
+.fs-card__v b{font-weight:600;}
+
+/* === Typography Table === */
+.type-table{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:24px;}
+.type-row{
+  display:grid;grid-template-columns:minmax(0,1fr) 260px;
+  gap:32px;align-items:baseline;
+  padding:20px 24px;border-bottom:1px solid var(--border);
+}
+.type-row:last-child{border-bottom:none;}
+.type-row__s{
+  font-family:"SF Pro Display",-apple-system,BlinkMacSystemFont,sans-serif;
+  color:var(--fg);
+}
+.type-row__spec{font-family:var(--font-mono);font-size:11px;color:var(--muted-fg);line-height:1.6;}
+.type-row__spec .tk{color:var(--fg);display:block;margin-bottom:2px;}
+.type-row__spec b{color:var(--fg);font-weight:600;}
+
+.type-sub{
+  font-family:var(--font-mono);font-size:10px;
+  color:var(--muted-fg);text-transform:uppercase;letter-spacing:.08em;
+  margin-bottom:12px;
+}
+
+/* === Callout === */
+.callout{
+  margin-top:16px;padding:16px 20px;
+  background:var(--muted);border:1px solid var(--border);
+  border-left:2px solid var(--accent);
+  border-radius:var(--radius);
+  font-size:13px;color:var(--subtle);line-height:1.75;max-width:820px;
+}
+.callout b{color:var(--fg);font-weight:600;}
+.callout code{background:var(--card);padding:1px 6px;border-radius:4px;font-size:12px;border:1px solid var(--border);}
+.callout ul{margin:0;padding:0;list-style:none;}
+.callout ul li{margin:4px 0;}
+
+/* === Color Ramp === */
+.ramp-group{margin-bottom:28px;}
+.ramp-label{
+  font-family:var(--font-mono);font-size:11px;margin-bottom:10px;
+  display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;
+}
+.ramp-label b{color:var(--fg);font-weight:600;}
+.ramp-label .muted{color:var(--muted-fg);font-family:var(--font-sans);}
+.ramp{
+  display:grid;gap:1px;background:var(--border);
+  border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;
+}
+.ramp--1{grid-template-columns:repeat(1,minmax(0,1fr));}
+.ramp--2{grid-template-columns:repeat(2,minmax(0,1fr));}
+.ramp--3{grid-template-columns:repeat(3,minmax(0,1fr));}
+.ramp--4{grid-template-columns:repeat(4,minmax(0,1fr));}
+.ramp--5{grid-template-columns:repeat(5,minmax(0,1fr));}
+.ramp--6{grid-template-columns:repeat(6,minmax(0,1fr));}
+.ramp--7{grid-template-columns:repeat(7,minmax(0,1fr));}
+.ramp--8{grid-template-columns:repeat(8,minmax(0,1fr));}
+.ramp--9{grid-template-columns:repeat(9,minmax(0,1fr));}
+.ramp--10{grid-template-columns:repeat(10,minmax(0,1fr));}
+.ramp--11{grid-template-columns:repeat(11,minmax(0,1fr));}
+.ramp--12{grid-template-columns:repeat(12,minmax(0,1fr));}
+.ramp--13{grid-template-columns:repeat(13,minmax(0,1fr));}
+.ramp--14{grid-template-columns:repeat(14,minmax(0,1fr));}
+.ramp--15{grid-template-columns:repeat(15,minmax(0,1fr));}
+.ramp--16{grid-template-columns:repeat(16,minmax(0,1fr));}
+.ramp--17{grid-template-columns:repeat(17,minmax(0,1fr));}
+.ramp--18{grid-template-columns:repeat(18,minmax(0,1fr));}
+.ramp--19{grid-template-columns:repeat(19,minmax(0,1fr));}
+.ramp--20{grid-template-columns:repeat(20,minmax(0,1fr));}
+.sw{
+  aspect-ratio:1/2.2;display:flex;flex-direction:column;
+  justify-content:flex-end;padding:8px 6px;
+  font-family:var(--font-mono);font-size:9px;line-height:1.3;
+  transition:transform 160ms;position:relative;cursor:default;
+}
+.sw:hover{transform:scale(1.06);z-index:2;box-shadow:0 6px 18px rgba(0,0,0,.12);}
+.sw--l{color:#09090b;}
+.sw--d{color:#fff;}
+.sw .n{opacity:.7;margin-bottom:2px;}
+.sw.is-anchor::after{content:"★";position:absolute;top:6px;right:6px;font-size:9px;}
+
+.paired{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+
+/* === Accent Colors === */
+.accent-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.accent-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;}
+.accent-card__sw{display:grid;aspect-ratio:5/1.2;}
+.accent-card__body{padding:12px 16px;display:flex;align-items:baseline;justify-content:space-between;}
+.accent-card__n{font-size:13px;font-weight:500;}
+.accent-card__h{font-family:var(--font-mono);font-size:10px;color:var(--muted-fg);}
+
+/* === Semantic Colors === */
+.sem-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;}
+.sem-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px;display:flex;align-items:center;gap:16px;}
+.sem-card__chip{width:44px;height:44px;border-radius:var(--radius);flex-shrink:0;border:1px solid rgba(0,0,0,.08);}
+.sem-card__n{font-size:14px;font-weight:500;margin-bottom:2px;}
+.sem-card__h{font-family:var(--font-mono);font-size:11px;color:var(--muted-fg);margin-bottom:2px;}
+.sem-card__u{font-size:12px;color:var(--muted-fg);}
+
+/* === Alias Table === */
+.alias-table{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:16px 20px;
+  font-family:var(--font-mono);font-size:11px;line-height:1.9;
+}
+.alias-table .row{
+  display:grid;grid-template-columns:minmax(200px,auto) 20px minmax(0,1fr);
+  gap:12px;padding:2px 0;border-bottom:1px solid var(--border);
+}
+.alias-table .row:last-child{border-bottom:none;}
+.alias-table .k{color:var(--fg);}
+.alias-table .arrow{color:var(--muted-fg);}
+.alias-table .v{color:var(--muted-fg);}
+.alias-table .v .val{color:var(--fg);}
+.alias-table .v .kr{font-family:var(--font-sans);color:var(--muted-fg);}
+
+/* === Dominant Colors Chart === */
+.dom-chart{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:20px 24px;
+}
+.dom-bar{display:flex;height:36px;border-radius:var(--radius);overflow:hidden;margin-bottom:16px;border:1px solid var(--border);}
+.dom-bar__seg{position:relative;transition:flex 200ms;}
+.dom-bar__seg:hover{flex-grow:1.08;}
+.dom-list{display:grid;grid-template-columns:repeat(3,1fr);gap:4px 20px;font-family:var(--font-mono);font-size:11px;}
+.dom-list .item{display:flex;align-items:center;gap:8px;padding:3px 0;}
+.dom-list .chip{width:10px;height:10px;border-radius:2px;border:1px solid rgba(0,0,0,.08);flex-shrink:0;}
+.dom-list .hex{color:var(--fg);}
+.dom-list .cnt{color:var(--muted-fg);margin-left:auto;}
+
+/* === Spacing === */
+.space-note{
+  font-size:13px;color:var(--subtle);max-width:720px;
+  margin-bottom:24px;padding:14px 20px;
+  background:var(--muted);border:1px solid var(--border);
+  border-left:2px solid var(--accent);border-radius:var(--radius);line-height:1.7;
+}
+.space-note b{color:var(--fg);}
+.space-note code{background:var(--card);padding:1px 5px;border-radius:3px;font-size:11px;border:1px solid var(--border);}
+
+.space-table{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;}
+.space-row{
+  display:grid;grid-template-columns:180px 70px 1fr;
+  gap:16px;padding:8px 20px;
+  border-bottom:1px solid var(--border);align-items:center;
+  font-family:var(--font-mono);font-size:11px;
+}
+.space-row:last-child{border-bottom:none;}
+.space-row .tk{color:var(--fg);}
+.space-row .val{color:var(--muted-fg);text-align:right;}
+.space-row .bar{height:8px;background:var(--accent);border-radius:1px;}
+
+/* === Radius === */
+.rad-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:12px;}
+.rad-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:16px 12px;
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+}
+.rad-box{width:100%;aspect-ratio:1;background:var(--muted);border:1px solid var(--border-str);}
+.rad-card__n{font-family:var(--font-mono);font-size:11px;font-weight:500;}
+.rad-card__v{font-size:10px;color:var(--muted-fg);text-align:center;line-height:1.4;}
+.rad-card__v .px{font-family:var(--font-mono);}
+
+/* === Shadows === */
+.sh-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:16px;}
+.sh-card{
+  background:var(--card);padding:24px 24px 20px;
+  border-radius:var(--radius-lg);border:1px solid var(--border);
+  min-height:150px;display:flex;flex-direction:column;justify-content:space-between;
+}
+.sh-card__n{font-family:var(--font-mono);font-size:11px;font-weight:500;}
+.sh-card__d{font-size:13px;color:var(--muted-fg);margin-top:4px;margin-bottom:10px;line-height:1.6;}
+.sh-card__v{font-family:var(--font-mono);font-size:10px;color:var(--muted-fg);}
+
+/* === Motion === */
+.motion-table{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;max-width:820px;}
+.motion-row{display:grid;grid-template-columns:220px 120px 1fr;gap:20px;padding:14px 20px;border-bottom:1px solid var(--border);font-size:13px;align-items:center;}
+.motion-row:last-child{border-bottom:none;}
+.motion-row .pt{font-family:var(--font-mono);font-size:11px;color:var(--fg);}
+.motion-row .val{font-family:var(--font-mono);font-size:11px;color:var(--muted-fg);}
+.motion-row .use{color:var(--subtle);line-height:1.55;}
+
+/* === Layout Patterns === */
+.lp-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+.lp-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 24px;}
+.lp-card h3{font-size:13px;font-weight:600;margin-bottom:12px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted-fg);}
+.lp-card ul{list-style:none;display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--subtle);line-height:1.6;}
+.lp-card ul li{padding-left:14px;position:relative;}
+.lp-card ul li::before{content:"·";position:absolute;left:2px;color:var(--muted-fg);font-weight:700;}
+.lp-card ul li b{color:var(--fg);font-weight:600;}
+.lp-card ul li code{background:var(--muted);padding:1px 5px;border-radius:3px;font-size:11px;}
+.lp-card pre{background:#08090a;color:#f7f8f8;padding:14px 16px;border-radius:var(--radius);font-family:var(--font-mono);font-size:11px;line-height:1.65;overflow-x:auto;margin-top:12px;}
+
+/* === Components === */
+.cmp-block{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:20px 24px;margin-bottom:12px;
+}
+.cmp-block__head{
+  display:flex;align-items:baseline;gap:12px;
+  padding-bottom:14px;margin-bottom:18px;
+  border-bottom:1px solid var(--border);flex-wrap:wrap;
+}
+.cmp-block__name{font-family:var(--font-mono);font-size:12px;font-weight:500;color:var(--fg);}
+.cmp-block__desc{font-size:12px;color:var(--muted-fg);}
+.cmp-block__body{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:32px;align-items:start;}
+.cmp-demo{
+  padding:24px;background:var(--muted);border-radius:var(--radius);
+  display:flex;flex-wrap:wrap;gap:12px;align-items:center;min-height:88px;
+}
+.cmp-spec{font-family:var(--font-mono);font-size:11px;color:var(--muted-fg);line-height:1.8;}
+.cmp-spec code{color:var(--fg);font-size:11px;}
+.cmp-spec .kr{font-family:var(--font-sans);display:block;margin-top:8px;color:var(--subtle);font-size:12px;line-height:1.55;}
+
+.cmp-code{
+  margin-top:14px;background:#08090a;color:#f7f8f8;
+  border-radius:var(--radius);padding:14px 18px;
+  font-family:var(--font-mono);font-size:11px;line-height:1.65;
+  overflow-x:auto;border:1px solid #1f2023;position:relative;
+}
+.cmp-code .copy{
+  position:absolute;top:10px;right:10px;
+  font-family:var(--font-mono);font-size:10px;
+  color:#7d8ba4;background:#1f2023;
+  padding:3px 8px;border-radius:4px;
+  border:1px solid #2f3135;
+}
+.cmp-code .copy:hover{color:#f7f8f8;background:#2f3135;}
+
+/* === Content / Voice === */
+.voice-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+.voice-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 24px;}
+.voice-card__label{font-family:var(--font-mono);font-size:10px;color:var(--muted-fg);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
+.voice-card__rule{font-size:13px;color:var(--subtle);line-height:1.6;margin-bottom:12px;}
+.voice-card__ex{
+  padding:14px 16px;background:var(--muted);border-radius:var(--radius);
+  font-family:"SF Pro Display",-apple-system,sans-serif;
+  font-weight:300;color:var(--fg);font-size:15px;line-height:1.5;
+  border-left:2px solid var(--brand-color);
+}
+
+/* === Code Export (Drop-in CSS / Tailwind) === */
+.code-export{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;max-width:900px;}
+.code-tabs{
+  display:flex;gap:0;
+  border-bottom:1px solid var(--border);
+  background:var(--muted);
+}
+.code-tabs button{
+  padding:12px 18px;font-family:var(--font-mono);font-size:11px;
+  color:var(--muted-fg);text-transform:uppercase;letter-spacing:.06em;
+  border-bottom:2px solid transparent;
+}
+.code-tabs button.is-active{
+  color:var(--fg);background:var(--card);
+  border-bottom-color:var(--accent);
+}
+.code-copy{
+  margin-left:auto;padding:12px 18px;
+  font-family:var(--font-mono);font-size:10px;
+  color:var(--muted-fg);
+}
+.code-copy:hover{color:var(--fg);}
+.code-pane{display:none;padding:0;}
+.code-pane.is-active{display:block;}
+.code-pane pre{
+  background:#08090a;color:#f7f8f8;
+  padding:24px 28px;
+  font-family:var(--font-mono);font-size:12px;line-height:1.65;
+  overflow-x:auto;max-height:560px;margin:0;
+}
+.code-pane .k{color:#92adff;}
+.code-pane .v{color:#f7f8f8;}
+.code-pane .c{color:#64748d;font-style:italic;}
+
+/* === DO / DON'T === */
+.dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+.dd-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px 28px;}
+.dd-card h3{
+  font-family:var(--font-mono);font-size:11px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.06em;margin-bottom:18px;
+  display:inline-flex;align-items:center;gap:6px;
+  padding:4px 12px;border-radius:999px;
+}
+.dd-card--do h3{background:#dcfce7;color:#166534;}
+.dd-card--dont h3{background:#fee2e2;color:#991b1b;}
+.dd-card ul{list-style:none;display:flex;flex-direction:column;gap:12px;}
+.dd-card ul li{font-size:13px;line-height:1.7;color:var(--subtle);padding-left:20px;position:relative;}
+.dd-card ul li::before{position:absolute;left:0;top:3px;font-family:var(--font-mono);font-size:11px;}
+.dd-card--do ul li::before{content:"✓";color:#16a34a;}
+.dd-card--dont ul li::before{content:"✗";color:#dc2626;}
+.dd-card ul li code{background:var(--muted);padding:1px 5px;border-radius:3px;font-size:11px;font-family:var(--font-mono);}
+.dd-card ul li b{color:var(--fg);font-weight:600;}
+
+/* === Myth Table === */
+.myth-table{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;}
+.myth-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,2fr);gap:16px;padding:14px 20px;border-bottom:1px solid var(--border);align-items:center;font-size:12px;}
+.myth-row:last-child{border-bottom:none;}
+.myth-row--head{
+  background:var(--muted);font-family:var(--font-mono);font-size:10px;
+  color:var(--muted-fg);text-transform:uppercase;letter-spacing:.06em;padding:10px 20px;
+}
+.myth-row--head .kr{font-family:var(--font-sans);text-transform:none;letter-spacing:0;font-size:11px;}
+.myth-row .wrong{font-family:var(--font-mono);color:#dc2626;text-decoration:line-through;text-decoration-color:rgba(220,38,38,.4);}
+.myth-row .right{font-family:var(--font-mono);color:#16a34a;}
+.myth-row .why{color:var(--subtle);line-height:1.65;}
+.swatch{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:0;border:1px solid rgba(0,0,0,.08);}
+
+/* === Footer === */
+.rfoot{padding:40px 64px;display:flex;justify-content:space-between;align-items:center;gap:32px;font-family:var(--font-mono);font-size:11px;color:var(--muted-fg);}
+.rfoot .kr{font-family:var(--font-sans);font-size:12px;}
+
+/* ============================================= */
+/* === NEW SECTIONS                          === */
+/* ============================================= */
+
+/* === §00 Visual Theme & Atmosphere (mood) === */
+.mood{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:32px 36px;
+  max-width:880px;margin-bottom:24px;
+}
+.mood__title{
+  font-size:18px;font-weight:600;letter-spacing:-.01em;
+  margin-bottom:20px;color:var(--fg);
+}
+.mood__body{
+  font-size:14px;color:var(--subtle);line-height:1.85;
+}
+.mood__body p{margin-bottom:16px;}
+.mood__body p:last-child{margin-bottom:0;}
+.mood__keywords{
+  display:flex;flex-wrap:wrap;gap:8px;margin-top:20px;
+  padding-top:20px;border-top:1px solid var(--border);
+}
+.mood__keyword{
+  display:inline-flex;align-items:center;
+  padding:4px 12px;
+  background:var(--muted);border:1px solid var(--border);
+  border-radius:999px;font-family:var(--font-mono);font-size:11px;
+  color:var(--subtle);
+}
+.mood__accent-bar{
+  height:4px;border-radius:2px;background:var(--brand-color);
+  margin-bottom:24px;max-width:64px;
+}
+
+/* === §12 Responsive Behavior === */
+.resp-section{max-width:880px;}
+.resp-table{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius-lg);overflow:hidden;margin-bottom:24px;
+}
+.resp-row{
+  display:grid;grid-template-columns:100px 100px 1fr;
+  gap:16px;padding:12px 20px;
+  border-bottom:1px solid var(--border);
+  font-size:13px;align-items:center;
+}
+.resp-row:last-child{border-bottom:none;}
+.resp-row--head{
+  background:var(--muted);font-family:var(--font-mono);font-size:10px;
+  color:var(--muted-fg);text-transform:uppercase;letter-spacing:.06em;
+  padding:10px 20px;
+}
+.resp-row .bp-name{font-family:var(--font-mono);font-size:12px;font-weight:500;color:var(--fg);}
+.resp-row .bp-val{font-family:var(--font-mono);font-size:11px;color:var(--muted-fg);}
+.resp-row .bp-desc{color:var(--subtle);line-height:1.55;}
+
+.resp-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:24px;}
+.resp-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:20px 24px;
+}
+.resp-card__head{
+  font-family:var(--font-mono);font-size:10px;
+  color:var(--muted-fg);text-transform:uppercase;
+  letter-spacing:.06em;margin-bottom:12px;
+}
+.resp-card__body{font-size:13px;color:var(--subtle);line-height:1.7;}
+.resp-card__body b{color:var(--fg);font-weight:600;}
+.resp-card__body code{background:var(--muted);padding:1px 5px;border-radius:3px;font-size:11px;}
+
+/* === §17 Agent Prompt Guide === */
+.agent-section{max-width:880px;}
+.agent-ref{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius-lg);overflow:hidden;margin-bottom:24px;
+}
+.agent-ref__head{
+  padding:14px 20px;background:var(--muted);
+  border-bottom:1px solid var(--border);
+  font-family:var(--font-mono);font-size:10px;
+  color:var(--muted-fg);text-transform:uppercase;letter-spacing:.06em;
+}
+.agent-ref__row{
+  display:grid;grid-template-columns:140px 180px 1fr;
+  gap:16px;padding:10px 20px;
+  border-bottom:1px solid var(--border);
+  font-size:13px;align-items:center;
+}
+.agent-ref__row:last-child{border-bottom:none;}
+.agent-ref__role{font-family:var(--font-mono);font-size:11px;font-weight:500;color:var(--fg);}
+.agent-ref__token{font-family:var(--font-mono);font-size:11px;color:var(--muted-fg);}
+.agent-ref__hex{font-family:var(--font-mono);font-size:11px;color:var(--fg);display:flex;align-items:center;gap:8px;}
+.agent-ref__chip{width:14px;height:14px;border-radius:3px;border:1px solid rgba(0,0,0,.08);flex-shrink:0;}
+
+.agent-prompts{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:24px;}
+.agent-prompt-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius-lg);overflow:hidden;
+}
+.agent-prompt-card__head{
+  padding:14px 20px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.agent-prompt-card__icon{
+  width:28px;height:28px;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--muted);border-radius:var(--radius);
+  font-size:14px;
+}
+.agent-prompt-card__name{font-size:13px;font-weight:600;}
+.agent-prompt-card__body{padding:0;}
+.agent-prompt-card__body pre{
+  background:#08090a;color:#f7f8f8;
+  padding:16px 20px;margin:0;
+  font-family:var(--font-mono);font-size:11px;line-height:1.65;
+  overflow-x:auto;
+}
+
+.agent-tips{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:20px 24px;
+}
+.agent-tips__head{
+  font-family:var(--font-mono);font-size:10px;
+  color:var(--muted-fg);text-transform:uppercase;
+  letter-spacing:.06em;margin-bottom:14px;
+}
+.agent-tips ul{list-style:none;display:flex;flex-direction:column;gap:10px;}
+.agent-tips ul li{
+  font-size:13px;color:var(--subtle);line-height:1.65;
+  padding-left:20px;position:relative;
+}
+.agent-tips ul li::before{
+  content:"→";position:absolute;left:0;top:0;
+  font-family:var(--font-mono);font-size:11px;color:var(--brand-color);
+}
+.agent-tips ul li b{color:var(--fg);font-weight:600;}
+.agent-tips ul li code{background:var(--muted);padding:1px 5px;border-radius:3px;font-size:11px;}
+
+/* === Responsive (media queries) === */
+@media (max-width:1024px){
+  .layout{grid-template-columns:1fr;}
+  .toc{position:relative;height:auto;border-right:none;border-bottom:1px solid var(--border);padding:24px 32px;}
+  .hero,section,.rfoot{padding-left:32px;padding-right:32px;}
+  .cmp-block__body,.ts,.lp-grid,.voice-grid,.paired,.qs__grid{grid-template-columns:1fr;}
+  .accent-grid{grid-template-columns:1fr 1fr;}
+  .hero__stats{grid-template-columns:1fr 1fr;}
+  .stat{border-right:none;border-bottom:1px solid var(--border);}
+  .stat:nth-child(even){border-right:none;}
+  .dd-grid,.sem-row{grid-template-columns:1fr;}
+  .rad-grid{grid-template-columns:repeat(4,1fr);}
+  .sh-grid{grid-template-columns:1fr;}
+  /* New section responsive */
+  .resp-grid,.agent-prompts{grid-template-columns:1fr;}
+  .resp-row{grid-template-columns:80px 80px 1fr;}
+  .agent-ref__row{grid-template-columns:100px 140px 1fr;}
+  .mood{padding:24px 20px;}
+}
+/* ===== END:CANONICAL_STYLE ===== */
+
+<!-- END:CANONICAL_STYLE -->
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="toc">
+  <div class="toc__brand">
+    <div class="toc__brand-name">Medium</div>
+    <div class="toc__brand-sub">Design System Report</div>
+  </div>
+  <div class="toc__group"><div class="toc__group-label">Overview</div><ul class="toc__list">
+    <li><a href="#mood"><span class="toc__num">00</span>분위기와 철학</a></li>
+    <li><a href="#hero"><span class="toc__num">01</span>한눈에 보기</a></li>
+    <li><a href="#provenance"><span class="toc__num">02</span>출처와 수집 기준</a></li>
+    <li><a href="#stack"><span class="toc__num">03</span>테크 스택</a></li>
+  </ul></div>
+  <div class="toc__group"><div class="toc__group-label">Foundations</div><ul class="toc__list">
+    <li><a href="#typography"><span class="toc__num">04</span>타이포그래피</a></li>
+    <li><a href="#colors"><span class="toc__num">05</span>컬러</a></li>
+  </ul></div>
+  <div class="toc__group"><div class="toc__group-label">Tokens</div><ul class="toc__list">
+    <li><a href="#spacing"><span class="toc__num">06</span>스페이싱</a></li>
+    <li><a href="#radius"><span class="toc__num">07</span>라디우스</a></li>
+    <li><a href="#shadows"><span class="toc__num">08</span>섀도우</a></li>
+    <li><a href="#motion"><span class="toc__num">09</span>모션</a></li>
+  </ul></div>
+  <div class="toc__group"><div class="toc__group-label">Structure</div><ul class="toc__list">
+    <li><a href="#layout"><span class="toc__num">10</span>레이아웃 패턴</a></li>
+    <li><a href="#responsive"><span class="toc__num">11</span>반응형</a></li>
+  </ul></div>
+  <div class="toc__group"><div class="toc__group-label">Patterns</div><ul class="toc__list">
+    <li><a href="#components"><span class="toc__num">12</span>컴포넌트</a></li>
+    <li><a href="#voice"><span class="toc__num">13</span>라이팅 원칙</a></li>
+  </ul></div>
+  <div class="toc__group"><div class="toc__group-label">Code</div><ul class="toc__list">
+    <li><a href="#export"><span class="toc__num">14</span>CSS / Tailwind</a></li>
+    <li><a href="#agent"><span class="toc__num">15</span>에이전트 가이드</a></li>
+  </ul></div>
+  <div class="toc__group"><div class="toc__group-label">Rules</div><ul class="toc__list">
+    <li><a href="#verdict"><span class="toc__num">16</span>Do / Don&apos;t</a></li>
+  </ul></div>
+  <div class="toc__foot">Generated by insane-design<br/>Fetched 2026-06-26</div>
+</aside>
+<main class="main">
+
+<section id="mood" class="mood">
+  <div class="mood__accent-bar"></div>
+  <div class="section__num">00</div>
+  <h2 class="section__title mood__title">크림색 종이 위의 GT Super 마스트헤드</h2>
+  <div class="mood__body">
+    <p>Medium은 <b>"소프트웨어를 배우게 된 문예지"</b>처럼 읽힌다. 로그아웃 홈페이지는 순백이 아니라 따뜻한 종이색 <code>#F7F4ED</code> 위에서 열리고, 단 하나의 세리프 헤드라인 "Human stories &amp; ideas"가 GT Super로 최대 <code>120px</code>, 순흑 <code>#000000</code>, 자간 <code>-0.055em</code>으로 모든 말을 대신한다. SaaS 랜딩의 히어로가 아니라 신문의 제호(masthead)다.</p>
+    <p>정체성은 두 개의 타입 인격 사이의 긴장이다. 고대비 세리프 <b>GT Super</b>가 브랜드 보이스(워드마크 &middot; 헤드라인)를, 클린 그로테스크 <b>Söhne</b>가 모든 기능 표면(내비 &middot; 서브타이틀 &middot; 버튼 &middot; 푸터)을 맡는다. 제3의 목소리는 없다. 읽기 경험 자체는 <b>Charter</b>라는 또 다른 세리프로 돌아간다 &mdash; 세 폰트, 세 역할, 겹침 없음.</p>
+    <p>색은 배급제다. 브랜드는 단 하나의 잔디 그린 <code>#1A8917</code>이며 크롬 위에는 거의 나타나지 않는다. 손그림 일러스트, 인라인 링크, 기본 버튼의 한 가지 변형에만 산다. 나머지는 전부 잉크 &mdash; 본문 <code>#242424</code>, 보조 <code>#6B6B6B</code>. 페이지에는 <b>box-shadow도 gradient도 0개</b>이며, 구조는 1px 규칙선으로 그려진다. 그것도 옅은 회색이 아니라 신문이 단을 가르듯 거의 검은 <code>#242424</code> 헤어라인이다.</p>
+    <p>버튼만이 유일하게 부드럽다. 모두 <code>99em</code> 풀 캡슐 pill이고, 그 외 모든 모서리는 직각(<code>0</code>)이다. pill과 사각의 이중성이 이 사이트의 조용한 시그니처다. 기본 CTA는 한 컴포넌트에서 두 스킨으로 출고된다 &mdash; 그린 pill(<code>#1A8917</code> &rarr; hover <code>#156D12</code>)과 거의 검은 pill(<code>#191919</code> &rarr; <code>#000000</code>), 둘 다 196px.</p>
+    <p>모션은 거의 없다. 트랜지션은 <code>background-color</code> / <code>color</code>에 한정되고 <code>300ms linear</code>뿐 &mdash; transform도, 애니메이션 그림자도 없다. 페이지는 연기하지 않는다. 인쇄된 표지처럼 가만히 앉아 타이포그래피를 믿는다.</p>
+  </div>
+  <div class="mood__keywords">
+    <span class="mood__keyword">Warm cream #F7F4ED</span><span class="mood__keyword">GT Super 70&ndash;120px</span><span class="mood__keyword">Söhne sans body</span><span class="mood__keyword">Single green #1A8917</span><span class="mood__keyword">Ink #242424 (not black)</span><span class="mood__keyword">1px #242424 hairline</span><span class="mood__keyword">99em pill / 0 square</span><span class="mood__keyword">Zero shadow / zero gradient</span><span class="mood__keyword">Tracking -0.05&rarr;-0.055em</span><span class="mood__keyword">Weight 600 absent</span><span class="mood__keyword">300ms linear color-only</span>
+  </div>
+</section>
+
+<section id="hero" class="hero">
+  <div class="hero__eye"><span class="dot"></span>Design System Report</div>
+  <h1 class="hero__title">Medium <span class="sub">&mdash; --color-</span></h1>
+  <p class="hero__sub">URL 하나로 추출한 실제 CSS 토큰 기반 디자인 시스템 리포트. hard-coded 색&middot;폰트&middot;여백이 아니라 라이브 사이트의 값 그대로 &mdash; 따뜻한 종이 위 GT Super 마스트헤드와 단 하나의 그린.</p>
+  <div class="hero__screenshot"><img src="screenshots/hero-cropped.png" alt="Medium &mdash; 실제 홈페이지 스크린샷"></div>
+  <div class="qs">
+    <div class="qs__head">
+      <span class="qs__head-label">Quick Start</span>
+      <span class="qs__head-title">5분 안에 Medium처럼 &mdash; 3가지만 하면 80%</span>
+    </div>
+    <div class="qs__grid">
+      <div class="qs__step">
+        <span class="qs__step-label">1 &middot; 폰트 + weight</span>
+        body &#123; font-family: <b>"sohne"</b>, "Helvetica Neue", Helvetica, Arial, sans-serif; font-weight: <b>400</b>; &#125;<br><br>
+        h1, .display &#123; font-family: <b>"gt-super"</b>, Georgia, Cambria, serif; letter-spacing: <b>-0.055em</b>; color: <b>#000000</b>; &#125;
+      </div>
+      <div class="qs__step">
+        <span class="qs__step-label">2 &middot; 배경 + 텍스트</span>
+        :root &#123; --bg: <b>#F7F4ED</b>; --fg: <b>#242424</b>; &#125;<br>
+        <span class="qs__step-label">/* warm cream, NOT white */</span><br>
+        body &#123; background: var(--bg); color: var(--fg); &#125;
+      </div>
+      <div class="qs__step">
+        <span class="qs__step-label">3 &middot; 브랜드 컬러</span>
+        :root &#123;<br>
+        &nbsp;&nbsp;--brand: <b>#1A8917</b>;<br>
+        &nbsp;&nbsp;--brand-hover: <b>#156D12</b>;<br>
+        &#125;
+      </div>
+    </div>
+    <div class="qs__warn">
+      <b>절대 하지 말 것:</b> 마케팅 배경을 <code>#FFFFFF</code> 순백으로 두지 마라. Medium의 정체성은 따뜻한 종이색 <code>#F7F4ED</code>다 &mdash; 순백으로 바꾸는 순간 "잡지"가 "앱 대시보드"가 된다.
+    </div>
+  </div>
+  <div class="hero__stats">
+    <div class="stat"><div class="stat__label">Source</div><div class="stat__val">medium.com</div></div>
+    <div class="stat"><div class="stat__label">Fetched</div><div class="stat__val">2026-06-26</div></div>
+    <div class="stat"><div class="stat__label">System</div><div class="stat__val stat__val--mono">--color-</div></div>
+    <div class="stat"><div class="stat__label">Brand green</div><div class="stat__val stat__val--mono">#1A8917</div></div>
+  </div>
+</section>
+
+<section id="provenance">
+  <div class="section__num">02</div>
+  <h2 class="section__title">출처와 수집 기준</h2>
+  <p class="section__lede">CSS 커스텀 프로퍼티 + atomic 클래스 직접 파싱으로 추출. AI 추론 없음.</p>
+  <div class="prov">
+    <div class="prov__row"><div class="prov__k">Source URL</div><div class="prov__v"><code>https://medium.com</code></div></div>
+    <div class="prov__row"><div class="prov__k">Fetched</div><div class="prov__v">2026-06-26</div></div>
+    <div class="prov__row"><div class="prov__k">Extractor</div><div class="prov__v">curl 6-tier &rarr; Cloudflare challenge &rarr; Wayback Machine snapshot <code>20260625215241id_</code></div></div>
+    <div class="prov__row"><div class="prov__k">HTML size</div><div class="prov__v">39,189 bytes (Next.js / styled-components SSR)</div></div>
+    <div class="prov__row"><div class="prov__k">CSS files</div><div class="prov__v">1개 외부 (<code>unbound.css</code>, 19KB 폰트 정의) + 15 인라인 <code>&lt;style&gt;</code> 블록, 총 ~27,000자</div></div>
+    <div class="prov__row"><div class="prov__k">Token prefix</div><div class="prov__v"><code>--color-</code></div></div>
+    <div class="prov__row"><div class="prov__k">Method</div><div class="prov__v">CSS 커스텀 프로퍼티 + atomic 클래스 직접 파싱 &middot; AI 추론 없음</div></div>
+  </div>
+</section>
+
+<section id="stack">
+  <div class="section__num">03</div>
+  <h2 class="section__title">테크 스택</h2>
+  <p class="section__lede">Next.js SSR + styled-components atomic 클래스 위의 semantic CSS-variable 시스템.</p>
+  <div class="ts">
+    <div class="ts__item"><div class="ts__head">Framework</div><div class="ts__body">Next.js (server-rendered, <code>data-rh</code> React-Helmet hydration 마커)</div></div>
+    <div class="ts__item"><div class="ts__head">Design system</div><div class="ts__body">내부 토큰 시스템 &mdash; prefix <code>--color-</code>, <code>src/styles/colors/global.ts</code>에서 미러링</div></div>
+    <div class="ts__item"><div class="ts__head">CSS architecture</div><div class="ts__body">styled-components / glamor atomic 클래스 over semantic CSS-variable root (root &rarr; atomic &rarr; composed)</div></div>
+    <div class="ts__item"><div class="ts__head">Class naming</div><div class="ts__body">2-char atomic utilities (<code>.cl</code> = sohne, <code>.em</code> = bg #1A8917) &mdash; generated, not BEM</div></div>
+    <div class="ts__item"><div class="ts__head">Default theme</div><div class="ts__body"><b>light</b> &mdash; <code>color-scheme: light</code> 강제, <code>enable_dark_mode_v0</code> gate OFF</div></div>
+    <div class="ts__item"><div class="ts__head">Font loading</div><div class="ts__body">외부 <code>glyph.medium.com/css/unbound.css</code> @font-face (sohne, charter, gt-super, source-code-pro &hellip;)</div></div>
+    <div class="ts__item"><div class="ts__head">Canonical anchor</div><div class="ts__body"><code>--color-fg-accent-primary: #1a8917</code> &mdash; 브랜드 그린</div></div>
+    <div class="ts__item"><div class="ts__head">Surfaces</div><div class="ts__body">marketing <code>#F7F4ED</code> cream / app &middot; reading <code>#FFFFFF</code></div></div>
+  </div>
+</section>
+
+<section id="typography">
+  <div class="section__num">04</div>
+  <h2 class="section__title">타이포그래피</h2>
+  <p class="section__lede">두 타입 인격을 엄격히 분리 &mdash; GT Super(serif) 브랜드 보이스 + Söhne(sans) 기능 표면. weight 600은 부재, 300/400/500/700만. 헤드라인은 커질수록 자간이 더 타이트해진다.</p>
+  <div class="fs-card">
+    <div class="fs-card__row"><div class="fs-card__k">Display</div><div class="fs-card__v"><code>gt-super</code> (GT Super, Grilli Type &mdash; 유료) &middot; hero 헤드라인 + 워드마크</div></div>
+    <div class="fs-card__row"><div class="fs-card__k">Body / UI</div><div class="fs-card__v"><code>sohne</code> (Söhne, Klim Type Foundry &mdash; 유료) &middot; 내비 / 서브타이틀 / 버튼 / 푸터</div></div>
+    <div class="fs-card__row"><div class="fs-card__k">Reading</div><div class="fs-card__v"><code>charter</code> (Charter, Matthew Carter &mdash; 자유) &middot; 아티클 본문</div></div>
+    <div class="fs-card__row"><div class="fs-card__k">Code</div><div class="fs-card__v"><code>source-code-pro</code> (Adobe &mdash; open source)</div></div>
+    <div class="fs-card__row"><div class="fs-card__k">Weights</div><div class="fs-card__v">normal <b>400</b> / bold <b>700</b> &middot; 사용 300 / 400 / 500 / 700 &middot; <b>600 부재</b></div></div>
+    <div class="fs-card__row"><div class="fs-card__k">Fallback</div><div class="fs-card__v">Georgia, Cambria (display) &middot; Helvetica Neue, Arial (body)</div></div>
+  </div>
+  <div class="type-table">
+    <div class="type-row"><div class="type-row__s" style="font-size:70px;font-weight:400;line-height:74px;letter-spacing:-0.05em;">Human stories</div><div class="type-row__spec"><div class="tk">h1-hero &middot; base</div><div><b>70px</b> &middot; weight 400 &middot; lh 74px &middot; ls -0.05em &middot; 모바일</div></div></div>
+    <div class="type-row"><div class="type-row__s" style="font-size:80px;font-weight:400;line-height:72px;letter-spacing:-0.055em;">Human stories</div><div class="type-row__spec"><div class="tk">h1-hero &middot; sm&uarr;</div><div><b>80px</b> &middot; weight 400 &middot; lh 72px &middot; ls -0.055em</div></div></div>
+    <div class="type-row"><div class="type-row__s" style="font-size:106px;font-weight:400;line-height:95px;letter-spacing:-0.055em;">Medium</div><div class="type-row__spec"><div class="tk">h1-hero &middot; md&uarr;</div><div><b>106px</b> &middot; weight 400 &middot; lh 95px &middot; ls -0.055em</div></div></div>
+    <div class="type-row"><div class="type-row__s" style="font-size:120px;font-weight:400;line-height:100px;letter-spacing:-0.055em;">Medium</div><div class="type-row__spec"><div class="tk">h1-hero &middot; lg&uarr;</div><div><b>120px</b> &middot; weight 400 &middot; lh 100px &middot; ls -0.055em &middot; 70&rarr;120px 스케일</div></div></div>
+    <div class="type-row"><div class="type-row__s" style="font-size:22px;font-weight:400;line-height:28px;">A place to read, write, and deepen your understanding</div><div class="type-row__spec"><div class="tk">subtitle</div><div><b>22px</b> &middot; weight 400 &middot; lh 28px</div></div></div>
+    <div class="type-row"><div class="type-row__s" style="font-size:16px;font-weight:500;line-height:24px;">Start reading</div><div class="type-row__spec"><div class="tk">button-hero</div><div><b>16px</b> &middot; weight 500 &middot; lh 24px</div></div></div>
+    <div class="type-row"><div class="type-row__s" style="font-size:20px;font-weight:500;line-height:28px;">Start reading</div><div class="type-row__spec"><div class="tk">button-alt</div><div><b>20px</b> &middot; weight 500 &middot; lh 28px</div></div></div>
+    <div class="type-row"><div class="type-row__s" style="font-size:14px;font-weight:400;line-height:20px;">Our story &middot; Membership &middot; Write</div><div class="type-row__spec"><div class="tk">nav-link</div><div><b>14px</b> &middot; weight 400 &middot; lh 20px</div></div></div>
+    <div class="type-row"><div class="type-row__s" style="font-size:13px;font-weight:400;">Help &middot; Status &middot; About &middot; Careers</div><div class="type-row__spec"><div class="tk">footer-link</div><div><b>13px</b> &middot; weight 400</div></div></div>
+  </div>
+  <div class="callout"><b>원칙:</b> 디스플레이 자간은 음수이며 크기 의존적(<code>-0.05em</code> @70px &rarr; <code>-0.055em</code> @80&ndash;120px) &mdash; 커질수록 더 조인다. 본문/UI는 기본 자간 <code>0</code> 유지. 헤드라인 숫자는 <code>font-feature-settings: 'pnum' on, 'lnum' on</code>으로 비례 라이닝 숫자를 사용한다. 순흑 <code>#000000</code>은 오직 hero 헤드라인 한 곳에만, 나머지 텍스트는 <code>#242424</code>.</div>
+</section>
+
+<section id="colors">
+  <div class="section__num">05</div>
+  <h2 class="section__title">컬러</h2>
+  <p class="section__lede">단 하나의 잔디 그린 <code>#1A8917</code> + 잉크 중립 램프 + 크림/화이트 이중 표면. 두 번째 브랜드 컬러는 없다.</p>
+
+  <div class="ramp-group">
+    <div class="ramp-label"><b>Brand &middot; Green family</b> &middot; 5 steps &middot; anchor #1A8917</div>
+    <div class="ramp ramp--5">
+      <div class="sw sw--d is-anchor" style="background:#1A8917"><div class="n">accent</div>#1A8917</div>
+      <div class="sw sw--d" style="background:#156D12"><div class="n">hover</div>#156D12</div>
+      <div class="sw sw--l" style="background:#BBDBBA"><div class="n">bg-2</div>#BBDBBA</div>
+      <div class="sw sw--l" style="background:#D2E7D1"><div class="n">bg-3</div>#D2E7D1</div>
+      <div class="sw sw--l" style="background:#E8F3E8"><div class="n">bg-4</div>#E8F3E8</div>
+    </div>
+  </div>
+
+  <div class="ramp-group">
+    <div class="ramp-label"><b>Neutral &middot; Ink + Surface</b> &middot; 9 steps</div>
+    <div class="ramp ramp--9">
+      <div class="sw sw--d" style="background:#242424"><div class="n">ink</div>#242424</div>
+      <div class="sw sw--d" style="background:#6B6B6B"><div class="n">ink-muted</div>#6B6B6B</div>
+      <div class="sw sw--d" style="background:#000000"><div class="n">headline</div>#000000</div>
+      <div class="sw sw--d" style="background:#191919"><div class="n">pill-dark</div>#191919</div>
+      <div class="sw sw--l" style="background:#F7F4ED"><div class="n">cream</div>#F7F4ED</div>
+      <div class="sw sw--l" style="background:#FFFFFF"><div class="n">white</div>#FFFFFF</div>
+      <div class="sw sw--l" style="background:#F2F2F2"><div class="n">surf-2</div>#F2F2F2</div>
+      <div class="sw sw--l" style="background:#F9F9F9"><div class="n">surf-3</div>#F9F9F9</div>
+      <div class="sw sw--d" style="background:#242424"><div class="n">inverse</div>#242424</div>
+    </div>
+  </div>
+
+  <div class="ramp-group">
+    <div class="ramp-label"><b>Utility backgrounds</b> &middot; 2 steps</div>
+    <div class="ramp ramp--2">
+      <div class="sw sw--l" style="background:#FFFAE1"><div class="n">yellow</div>#FFFAE1</div>
+      <div class="sw sw--l" style="background:#E5F2FF"><div class="n">blue</div>#E5F2FF</div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:32px;margin-bottom:16px;font-size:16px;font-weight:600;">Semantic (error)</h3>
+  <div class="sem-row">
+    <div class="sem-card"><div class="sem-card__chip" style="background:#C94A4A"></div><div><div class="sem-card__n">error text</div><div class="sem-card__h">--color-fg-error-primary &middot; #C94A4A</div><div class="sem-card__u">error 텍스트</div></div></div>
+    <div class="sem-card"><div class="sem-card__chip" style="background:#C94A4A"></div><div><div class="sem-card__n">error fill</div><div class="sem-card__h">--color-bg-error-primary &middot; #C94A4A</div><div class="sem-card__u">error 채움 / border</div></div></div>
+  </div>
+
+  <h3 style="margin-top:32px;margin-bottom:16px;font-size:16px;font-weight:600;">Borders / Hairlines</h3>
+  <div class="alias-table">
+    <div class="row"><div class="k">--color-border-neutral-secondary</div><div class="arrow">&rarr;</div><div class="v"><span class="val">#242424</span> <span class="kr">&mdash; strong rules: nav-bottom, footer-top, hero illustration block</span></div></div>
+    <div class="row"><div class="k">--color-border-neutral-primary</div><div class="arrow">&rarr;</div><div class="v"><span class="val">#F2F2F2</span> <span class="kr">&mdash; soft dividers</span></div></div>
+    <div class="row"><div class="k">--color-border-neutral-tertiary</div><div class="arrow">&rarr;</div><div class="v"><span class="val">#E5E5E5</span> <span class="kr">&mdash; lightest dividers</span></div></div>
+  </div>
+
+  <h3 style="margin-top:32px;margin-bottom:16px;font-size:16px;font-weight:600;">Dominant Colors (실제 CSS 빈도)</h3>
+  <div class="dom-chart">
+    <div class="dom-bar">
+      <div class="dom-bar__seg" style="flex:10;background:#1A8917;" title="#1A8917 (10)"></div>
+      <div class="dom-bar__seg" style="flex:9;background:#242424;" title="#242424 (9)"></div>
+      <div class="dom-bar__seg" style="flex:7;background:#000000;" title="#000000 (7)"></div>
+      <div class="dom-bar__seg" style="flex:6;background:#C94A4A;" title="#C94A4A (6)"></div>
+      <div class="dom-bar__seg" style="flex:6;background:#FFFFFF;" title="#FFFFFF (6)"></div>
+      <div class="dom-bar__seg" style="flex:4;background:#156D12;" title="#156D12 (4)"></div>
+      <div class="dom-bar__seg" style="flex:4;background:#F2F2F2;" title="#F2F2F2 (4)"></div>
+      <div class="dom-bar__seg" style="flex:4;background:#F7F4ED;" title="#F7F4ED (4)"></div>
+    </div>
+    <div class="dom-list">
+      <div class="item"><div class="chip" style="background:#1A8917"></div><div><div class="hex">#1A8917</div><div class="cnt">10회 &middot; accent-green (brand)</div></div></div>
+      <div class="item"><div class="chip" style="background:#242424"></div><div><div class="hex">#242424</div><div class="cnt">9회 &middot; ink / hairline</div></div></div>
+      <div class="item"><div class="chip" style="background:#000000"></div><div><div class="hex">#000000</div><div class="cnt">7회 &middot; pure-black (headline)</div></div></div>
+      <div class="item"><div class="chip" style="background:#C94A4A"></div><div><div class="hex">#C94A4A</div><div class="cnt">6회 &middot; error</div></div></div>
+      <div class="item"><div class="chip" style="background:#FFFFFF"></div><div><div class="hex">#FFFFFF</div><div class="cnt">6회 &middot; white surface</div></div></div>
+      <div class="item"><div class="chip" style="background:#156D12"></div><div><div class="hex">#156D12</div><div class="cnt">4회 &middot; green-dark (hover)</div></div></div>
+      <div class="item"><div class="chip" style="background:#F2F2F2"></div><div><div class="hex">#F2F2F2</div><div class="cnt">4회 &middot; surface-secondary</div></div></div>
+      <div class="item"><div class="chip" style="background:#F7F4ED"></div><div><div class="hex">#F7F4ED</div><div class="cnt">4회 &middot; surface-cream</div></div></div>
+    </div>
+  </div>
+  <div class="callout"><b>주의:</b> 가장 빈도 높은 <i>채도</i> hex는 <code>#1A8917</code> 단 하나다. raw CSS의 다른 채도 hex(<code>#0E0EFF</code>, <code>#AA0D91</code>, <code>#5C2699</code>, <code>#643820</code>, <code>#C41A16</code> &hellip;)는 코드블록 <code>.hljs-*</code> 신택스 하이라이팅 테마에서 온 것으로 브랜드 색이 아니며 팔레트에서 제외했다.</div>
+</section>
+
+<section id="spacing">
+  <div class="section__num">06</div>
+  <h2 class="section__title">스페이싱</h2>
+  <p class="section__lede">밀도가 아니라 공기에 공간을 쓴다. side 마진은 뷰포트에 따라 <code>24 &rarr; 48 &rarr; 64px</code>로 벌어지고, 텍스트 단은 720px로 고정.</p>
+  <div class="space-note"><b>주요 alias</b> &mdash; nav: <code>padding: 25px 0; min-height: 75px</code> &middot; hero block: <code>margin: 75px {24|48|64}px 0</code>. nav와 hero 사이 75px 간격은 페이지가 말하기 전에 들이쉬는 숨이다.</div>
+  <div class="space-table">
+    <div class="space-row"><div class="tk">space-2xs</div><div class="val">8px</div><div class="bar" style="width:8px"></div></div>
+    <div class="space-row"><div class="tk">space-xs</div><div class="val">16px</div><div class="bar" style="width:16px"></div></div>
+    <div class="space-row"><div class="tk">space-sm</div><div class="val">20px</div><div class="bar" style="width:20px"></div></div>
+    <div class="space-row"><div class="tk">space-md</div><div class="val">24px</div><div class="bar" style="width:24px"></div></div>
+    <div class="space-row"><div class="tk">space-nav</div><div class="val">25px</div><div class="bar" style="width:25px"></div></div>
+    <div class="space-row"><div class="tk">space-lg</div><div class="val">32px</div><div class="bar" style="width:32px"></div></div>
+    <div class="space-row"><div class="tk">space-xl</div><div class="val">48px</div><div class="bar" style="width:48px"></div></div>
+    <div class="space-row"><div class="tk">space-2xl</div><div class="val">64px</div><div class="bar" style="width:64px"></div></div>
+    <div class="space-row"><div class="tk">space-3xl</div><div class="val">75px</div><div class="bar" style="width:75px"></div></div>
+  </div>
+</section>
+
+<section id="radius">
+  <div class="section__num">07</div>
+  <h2 class="section__title">라디우스 (모서리 반경)</h2>
+  <p class="section__lede">중간값이 없다. 인터랙티브 요소는 pill(<code>99em</code>)과 원(<code>50%</code>), 모든 표면은 하드 <code>0</code>. pill과 사각의 이중성이 시그니처.</p>
+  <div class="rad-grid" style="grid-template-columns:repeat(3,1fr)">
+    <div class="rad-card"><div class="rad-box" style="border-radius:99em;height:64px;"></div><div class="rad-card__n">radius-pill</div><div class="rad-card__v"><span class="px">99em</span> &middot; 모든 버튼 (.dc)</div></div>
+    <div class="rad-card"><div class="rad-box" style="border-radius:50%;height:64px;"></div><div class="rad-card__n">radius-circle</div><div class="rad-card__v"><span class="px">50%</span> &middot; spinner / avatar (.l)</div></div>
+    <div class="rad-card"><div class="rad-box" style="border-radius:0;height:64px;"></div><div class="rad-card__n">radius-none</div><div class="rad-card__v"><span class="px">0</span> &middot; 카드 / 섹션 / 모든 표면</div></div>
+  </div>
+</section>
+
+<section id="shadows">
+  <div class="section__num">08</div>
+  <h2 class="section__title">섀도우 (그림자 0개)</h2>
+  <p class="section__lede">N/A &mdash; Medium 홈페이지는 <b>box-shadow를 단 한 개도 쓰지 않는다</b>. 이 부재는 누락된 데이터가 아니라 의도된 정체성이다.</p>
+  <div class="sh-grid" style="grid-template-columns:1fr">
+    <div class="sh-card" style="box-shadow:none;">
+      <div class="sh-card__n">no-shadow</div>
+      <div class="sh-card__d">모든 구조적 분리는 1px 헤어라인 보더가 담당한다 &mdash; strong <code>#242424</code> / light <code>#E5E5E5</code>. 깊이는 그림자가 아니라 잉크 선으로 그린다.</div>
+      <div class="sh-card__v">box-shadow: none &middot; border: solid 1px #242424</div>
+    </div>
+  </div>
+</section>
+
+<section id="motion">
+  <div class="section__num">09</div>
+  <h2 class="section__title">모션</h2>
+  <p class="section__lede">모션은 <code>linear</code>이며 절대 ease 없음, 그리고 color에만 한정 &mdash; transform도 애니메이션 그림자도 없다. 페이지 위 유일한 키프레임은 로딩 스피너.</p>
+  <div class="motion-table">
+    <div class="motion-row"><div class="pt">transition-color</div><div class="val">background-color 300ms linear</div><div class="use">버튼 / 표면 hover (.ba)</div></div>
+    <div class="motion-row"><div class="pt">transition-button</div><div class="val">bg 300ms linear, color 300ms linear</div><div class="use">버튼 텍스트 + 배경 (.bb button)</div></div>
+    <div class="motion-row"><div class="pt">spinner @keyframes k1</div><div class="val">rotate 0&rarr;360deg, 2s infinite linear</div><div class="use">로딩 인디케이터 (40px, 2px border)</div></div>
+  </div>
+</section>
+
+<section id="layout">
+  <div class="section__num">10</div>
+  <h2 class="section__title">레이아웃 패턴</h2>
+  <p class="section__lede">1192px 컨테이너 &middot; flexbox 기반 &middot; 2-zone hero split(좌측 텍스트 + 우측 floating 일러스트). 카드 chrome 없음.</p>
+  <div class="lp-grid">
+    <div class="lp-card"><h3>Grid System</h3><ul>
+      <li><b>Content max-width</b>: 1192px (nav / page container <code>.bh</code>)</li>
+      <li><b>Grid type</b>: Flexbox (atomic <code>.g{display:flex}</code>, hero에 CSS Grid 없음)</li>
+      <li><b>Columns</b>: hero = 2 zones (text + absolute 일러스트)</li>
+      <li><b>Gutter</b>: side margin <code>24 / 48 / 64px</code> 반응형</li>
+    </ul></div>
+    <div class="lp-card"><h3>Hero</h3><ul>
+      <li><b>Pattern</b>: min-height 560px + 단색 cream + 좌측 GT Super H1 + pill CTA + 우측 absolute 일러스트</li>
+      <li><b>Background</b>: 단색 <code>#F7F4ED</code> (gradient / noise / overlay 없음)</li>
+      <li><b>H1</b>: 70&ndash;120px / weight 400 / ls -0.05&rarr;-0.055em / <code>#000000</code></li>
+      <li><b>Max-width</b>: 720px (텍스트 단)</li>
+    </ul></div>
+    <div class="lp-card"><h3>Section Rhythm</h3><ul>
+      <li><b>Hero</b>: cream 단색 + overflow hidden</li>
+      <li><b>Margin</b>: 75px top / 64px side / 0 bottom</li>
+    </ul>
+    <pre>.hero {
+  background: #F7F4ED;   /* cream */
+  min-height: 560px;
+  margin: 75px 64px 0;   /* top, side, bottom */
+  overflow: hidden;
+}</pre></div>
+    <div class="lp-card"><h3>Card Patterns</h3><ul>
+      <li><b>홈페이지 hero에 카드 컴포넌트 없음</b> &mdash; 우측은 일러스트 1개, 카드 그리드 아님</li>
+      <li>피드(이 페이지 밖)는 리스트 항목을 헤어라인 규칙선으로 구분 &mdash; radius/shadow 없음</li>
+      <li>LOHP에는 없음 &mdash; 카드 chrome을 지어내지 말 것</li>
+    </ul></div>
+    <div class="lp-card"><h3>Navigation</h3><ul>
+      <li><b>Type</b>: 수평 바, 링크 + 다크 pill CTA</li>
+      <li><b>Position</b>: <code>fixed; top:0; left:0; right:0</code></li>
+      <li><b>Height</b>: 75px (<code>padding: 25px 0</code>)</li>
+      <li><b>Border</b>: <code>border-bottom: solid 1px #242424</code> &mdash; 시그니처 near-black 규칙선</li>
+      <li><b>Container</b>: max-width 1192px, logo 25px (<code>fill: #242424</code>)</li>
+    </ul></div>
+    <div class="lp-card"><h3>Content Width</h3><ul>
+      <li><b>Prose / reading</b>: 680&ndash;720px (Medium 리딩 measure)</li>
+      <li><b>Container</b>: 1192px</li>
+      <li><b>Footer</b>: 680px</li>
+    </ul></div>
+  </div>
+</section>
+
+<section id="responsive">
+  <div class="section__num">11</div>
+  <h2 class="section__title">반응형</h2>
+  <p class="section__lede">mobile-first atomic 클래스 &middot; 헤드라인은 120&rarr;70px로 줄고 자간은 -0.055&rarr;-0.05em으로 풀린다 &middot; 큰 타입, 더 타이트한 set의 광학 보정.</p>
+  <div class="resp-table">
+    <div class="resp-row resp-row--head"><div>Name</div><div>Approx.</div><div>Behavior</div></div>
+    <div class="resp-row"><div class="bp-name">Mobile</div><div class="bp-val">base</div><div class="bp-desc">headline 70px, side margin 24px, margin-bottom 32px</div></div>
+    <div class="resp-row"><div class="bp-name">Small</div><div class="bp-val">~728px&uarr;</div><div class="bp-desc">headline 80px, margin-bottom 48px</div></div>
+    <div class="resp-row"><div class="bp-name">Medium</div><div class="bp-val">~1080px&uarr;</div><div class="bp-desc">headline 106px, side margin 48px</div></div>
+    <div class="resp-row"><div class="bp-name">Large</div><div class="bp-val">~1304px&uarr;</div><div class="bp-desc">headline 120px, side margin 64px, illustration shown</div></div>
+  </div>
+  <div class="resp-grid">
+    <div class="resp-card"><div class="resp-card__head">Touch targets</div><div class="resp-card__body">nav height <b>75px</b> &middot; button ~40px (8px vertical padding + 24px lh) &middot; CTA width <b>196px</b> 고정</div></div>
+    <div class="resp-card"><div class="resp-card__head">Navigation collapse</div><div class="resp-card__body">좁은 폭에서 링크 collapse / 햄버거 &mdash; CTA pill은 유지</div></div>
+    <div class="resp-card"><div class="resp-card__head">Hero collapse</div><div class="resp-card__body">우측 일러스트 zone은 좁은 폭에서 숨김, 텍스트 단이 full-width로</div></div>
+    <div class="resp-card"><div class="resp-card__head">Headline scale</div><div class="resp-card__body">120 &rarr; 70px 다운스케일, 자간 <code>-0.055em &rarr; -0.05em</code></div></div>
+    <div class="resp-card"><div class="resp-card__head">Side margins</div><div class="resp-card__body"><code>64 &rarr; 48 &rarr; 24px</code></div></div>
+    <div class="resp-card"><div class="resp-card__head">Image behavior</div><div class="resp-card__body">hero 일러스트는 absolute + <code>overflow:hidden</code>으로 clip &mdash; 큰 사이즈에서 우측으로 bleed</div></div>
+  </div>
+</section>
+
+<section id="components">
+  <div class="section__num">12</div>
+  <h2 class="section__title">컴포넌트</h2>
+  <p class="section__lede">한 컴포넌트 shape에서 나온 두 pill 스킨(다크 / 그린) + nav-link. 모두 <code>border-radius: 99em</code>, 1px 보더, 흰 텍스트, <code>transition: background-color 300ms linear</code>.</p>
+
+  <div class="cmp-block">
+    <div class="cmp-block__head"><div class="cmp-block__name">.pill--dark</div><div class="cmp-block__desc">button-primary-dark &mdash; nav "Get started", desktop hero "Start reading"</div></div>
+    <div class="cmp-block__body">
+      <div class="cmp-demo"><button style="background:#191919;color:#fff;border:1px solid #191919;border-radius:99em;padding:8px 16px;font-size:14px;font-weight:500;font-family:var(--font-sans);cursor:pointer;">Get started</button></div>
+      <div class="cmp-spec"><div>background: #191919</div><div>hover: #000000</div><div>color: #FFFFFF</div><div>border-radius: 99em</div><div>padding: 8px 16px</div><div>border: 1px solid #191919</div><div class="kr">다크 CTA. hover 시 순흑으로 깊어진다.</div></div>
+    </div>
+    <div class="cmp-code"><span class="copy" data-copy>Copy</span><pre>&lt;button class="pill pill--dark"&gt;Get started&lt;/button&gt;</pre></div>
+  </div>
+
+  <div class="cmp-block">
+    <div class="cmp-block__head"><div class="cmp-block__name">.pill--green</div><div class="cmp-block__desc">button-primary-green &mdash; 그린 "Start reading" 스킨</div></div>
+    <div class="cmp-block__body">
+      <div class="cmp-demo"><button style="background:#1A8917;color:#fff;border:1px solid #1A8917;border-radius:99em;padding:8px 20px;font-size:16px;font-weight:500;font-family:var(--font-sans);cursor:pointer;">Start reading</button></div>
+      <div class="cmp-spec"><div>background: #1A8917</div><div>hover: #156D12</div><div>color: #FFFFFF</div><div>border-radius: 99em</div><div>padding: 8px 20px &middot; width 196px</div><div>border: 1px solid #1A8917</div><div class="kr">브랜드 그린을 대체 CTA 무드로 쓰는 유일한 자리.</div></div>
+    </div>
+    <div class="cmp-code"><span class="copy" data-copy>Copy</span><pre>&lt;button class="pill pill--green"&gt;Start reading&lt;/button&gt;</pre></div>
+  </div>
+
+  <div class="cmp-block">
+    <div class="cmp-block__head"><div class="cmp-block__name">.nav-link</div><div class="cmp-block__desc">nav-link &mdash; Söhne 14px, no underline on hover</div></div>
+    <div class="cmp-block__body">
+      <div class="cmp-demo" style="gap:25px;">
+        <a href="#" style="color:#242424;font-size:14px;line-height:20px;text-decoration:none;font-family:var(--font-sans);">Our story</a>
+        <a href="#" style="color:#242424;font-size:14px;line-height:20px;text-decoration:none;font-family:var(--font-sans);">Membership</a>
+        <a href="#" style="color:#242424;font-size:14px;line-height:20px;text-decoration:none;font-family:var(--font-sans);">Write</a>
+        <a href="#" style="color:#242424;font-size:14px;line-height:20px;text-decoration:none;font-family:var(--font-sans);">Sign in</a>
+        <button style="background:#191919;color:#fff;border:1px solid #191919;border-radius:99em;padding:8px 16px;font-size:14px;font-weight:500;font-family:var(--font-sans);cursor:pointer;">Get started</button>
+      </div>
+      <div class="cmp-spec"><div>color: #242424</div><div>font: Söhne 14px / 20px lh</div><div>gap: 25px (margin-right)</div><div>hover: color #242424 (밑줄 없음)</div><div class="kr">바 하단은 <code>solid 1px #242424</code> 헤어라인.</div></div>
+    </div>
+    <div class="cmp-code"><span class="copy" data-copy>Copy</span><pre>&lt;a class="nav__link"&gt;Our story&lt;/a&gt;</pre></div>
+  </div>
+</section>
+
+<section id="voice">
+  <div class="section__num">13</div>
+  <h2 class="section__title">라이팅 원칙</h2>
+  <p class="section__lede">문예적이고 따뜻하며 서두르지 않는 &mdash; SaaS 피치가 아니라 발행인의 목소리.</p>
+  <div class="voice-grid">
+    <div class="voice-card"><div class="voice-card__label">Headline</div><div class="voice-card__rule">인간적, 선언적, 두 줄 세리프 단편</div><div class="voice-card__ex">"Human stories &amp; ideas"</div></div>
+    <div class="voice-card"><div class="voice-card__label">Subheading</div><div class="voice-card__rule">소문자, 평이, 동사 주도</div><div class="voice-card__ex">"A place to read, write, and deepen your understanding"</div></div>
+    <div class="voice-card"><div class="voice-card__label">Primary CTA</div><div class="voice-card__rule">행동 동사, 2단어</div><div class="voice-card__ex">"Start reading"</div></div>
+    <div class="voice-card"><div class="voice-card__label">Nav CTA</div><div class="voice-card__rule">초대, 2단어</div><div class="voice-card__ex">"Get started"</div></div>
+  </div>
+</section>
+
+<section id="export">
+  <div class="section__num">14</div>
+  <h2 class="section__title">CSS / Tailwind 내보내기</h2>
+  <p class="section__lede">그대로 복사해 프로젝트에 붙여 넣을 수 있는 Drop-in 스니펫. (Medium 자체는 styled-components를 쓰며 Tailwind는 편의 변환.)</p>
+  <div class="code-export">
+    <div class="code-tabs">
+      <button class="is-active" data-tab="css">CSS 스니펫</button>
+      <button data-tab="tw">Tailwind 설정</button>
+      <button class="code-copy" data-copy-active>Copy</button>
+    </div>
+    <div class="code-pane is-active" data-pane="css"><pre><code>/* Medium &mdash; copy into your root stylesheet */
+:root {
+  /* Fonts */
+  --font-display: gt-super, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-body:    sohne, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-reading: charter, Georgia, serif;
+  --font-code:    source-code-pro, Menlo, Monaco, monospace;
+  --font-weight-normal: 400;
+  --font-weight-bold:   700;
+
+  /* Brand */
+  --color-brand:        #1A8917;  /* accent-green - canonical */
+  --color-brand-hover:  #156D12;  /* accent-green-hover */
+  --color-brand-bg:     #E8F3E8;  /* accent-bg-quaternary */
+
+  /* Surfaces */
+  --bg-marketing: #F7F4ED;        /* surface-cream - NOT white */
+  --bg-app:       #FFFFFF;        /* surface-white */
+  --bg-secondary: #F2F2F2;        /* surface-secondary */
+  --text:         #242424;        /* ink */
+  --text-muted:   #6B6B6B;        /* ink-muted */
+  --text-display: #000000;        /* pure-black - headline only */
+  --pill-dark:    #191919;        /* pill-dark */
+
+  /* Borders */
+  --rule-strong:  #242424;        /* 1px nav/footer rule */
+  --rule-light:   #E5E5E5;
+
+  /* Spacing */
+  --space-sm:  16px;
+  --space-md:  24px;
+  --space-lg:  48px;
+  --space-xl:  64px;
+
+  /* Radius */
+  --radius-pill:   99em;
+  --radius-circle: 50%;
+
+  /* Motion */
+  --transition: background-color 300ms linear, color 300ms linear;
+}
+
+body { background: var(--bg-marketing); color: var(--text); font-family: var(--font-body); font-weight: 400; }
+h1 { font-family: var(--font-display); color: var(--text-display); letter-spacing: -0.055em; }
+.btn { border-radius: var(--radius-pill); border: 1px solid var(--pill-dark); background: var(--pill-dark); color: #fff; padding: 8px 16px; transition: var(--transition); }
+.btn:hover { background: #000; }
+.btn--green { background: var(--color-brand); border-color: var(--color-brand); }
+.btn--green:hover { background: var(--color-brand-hover); border-color: var(--color-brand-hover); }
+nav { border-bottom: solid 1px var(--rule-strong); }</code></pre></div>
+    <div class="code-pane" data-pane="tw"><pre><code>// tailwind.config.js &mdash; Medium
+module.exports = {
+  theme: {
+    extend: {
+      colors: {
+        brand: { DEFAULT: '#1A8917', hover: '#156D12', bg: '#E8F3E8' },
+        cream: '#F7F4ED',
+        ink: { DEFAULT: '#242424', muted: '#6B6B6B', pure: '#000000' },
+        pill: '#191919',
+        rule: { strong: '#242424', light: '#E5E5E5' },
+        error: '#C94A4A',
+      },
+      fontFamily: {
+        display: ['gt-super', 'Georgia', 'serif'],
+        sans:    ['sohne', 'Helvetica Neue', 'Arial', 'sans-serif'],
+        reading: ['charter', 'Georgia', 'serif'],
+        mono:    ['source-code-pro', 'ui-monospace'],
+      },
+      fontWeight: { normal: '400', bold: '700' },
+      borderRadius: { pill: '99em', circle: '50%' },
+      transitionTimingFunction: { medium: 'linear' },
+    },
+  },
+};</code></pre></div>
+  </div>
+</section>
+
+<section id="agent">
+  <div class="section__num">15</div>
+  <h2 class="section__title">에이전트 가이드</h2>
+  <p class="section__lede">AI 에이전트가 이 디자인 시스템으로 구현할 때 참조하는 Quick reference.</p>
+  <div class="agent-ref">
+    <div class="agent-ref__head">Quick Color Reference</div>
+    <div class="agent-ref__row"><div class="agent-ref__role">Brand primary</div><div class="agent-ref__token">accent-green</div><div class="agent-ref__hex"><span class="agent-ref__chip" style="background:#1A8917"></span>#1A8917</div></div>
+    <div class="agent-ref__row"><div class="agent-ref__role">Background (mkt)</div><div class="agent-ref__token">surface-cream</div><div class="agent-ref__hex"><span class="agent-ref__chip" style="background:#F7F4ED"></span>#F7F4ED</div></div>
+    <div class="agent-ref__row"><div class="agent-ref__role">Background (app)</div><div class="agent-ref__token">surface-white</div><div class="agent-ref__hex"><span class="agent-ref__chip" style="background:#FFFFFF"></span>#FFFFFF</div></div>
+    <div class="agent-ref__row"><div class="agent-ref__role">Text primary</div><div class="agent-ref__token">ink</div><div class="agent-ref__hex"><span class="agent-ref__chip" style="background:#242424"></span>#242424</div></div>
+    <div class="agent-ref__row"><div class="agent-ref__role">Text muted</div><div class="agent-ref__token">ink-muted</div><div class="agent-ref__hex"><span class="agent-ref__chip" style="background:#6B6B6B"></span>#6B6B6B</div></div>
+    <div class="agent-ref__row"><div class="agent-ref__role">Headline</div><div class="agent-ref__token">pure-black</div><div class="agent-ref__hex"><span class="agent-ref__chip" style="background:#000000"></span>#000000</div></div>
+    <div class="agent-ref__row"><div class="agent-ref__role">Rule / border</div><div class="agent-ref__token">border-strong</div><div class="agent-ref__hex"><span class="agent-ref__chip" style="background:#242424"></span>#242424</div></div>
+    <div class="agent-ref__row"><div class="agent-ref__role">Error</div><div class="agent-ref__token">error</div><div class="agent-ref__hex"><span class="agent-ref__chip" style="background:#C94A4A"></span>#C94A4A</div></div>
+  </div>
+
+  <h3 style="margin-bottom:16px;font-size:16px;font-weight:600;">Example Component Prompts</h3>
+  <div class="agent-prompts">
+    <div class="agent-prompt-card">
+      <div class="agent-prompt-card__head"><span class="agent-prompt-card__icon">&#127775;</span><span class="agent-prompt-card__name">Hero Section</span></div>
+      <div class="agent-prompt-card__body"><pre>Medium 스타일 히어로 섹션을 만들어줘.
+- 배경: #F7F4ED 단색 (그라디언트/그림자 없음),
+  min-height 560px
+- H1: gt-super serif, 80~120px, weight 400,
+  tracking -0.055em, color #000000, 좌측 정렬
+- 서브텍스트: sohne, 22px, color #242424
+- CTA: pill 버튼 (border-radius 99em),
+  배경 #191919(또는 그린 #1A8917), 흰 텍스트,
+  padding 8px 20px, width 196px
+- 우측: 손그림 일러스트 1개 (absolute, bleed)
+- 텍스트 컬럼 max-width: 720px</pre></div>
+    </div>
+    <div class="agent-prompt-card">
+      <div class="agent-prompt-card__head"><span class="agent-prompt-card__icon">&#129518;</span><span class="agent-prompt-card__name">Navigation</span></div>
+      <div class="agent-prompt-card__body"><pre>Medium 스타일 상단 네비를 만들어줘.
+- position: fixed, height 75px, 배경 #F7F4ED
+- 하단 border: solid 1px #242424 (옅은 회색 아님!)
+- 로고: 좌측, 25px 높이, fill #242424,
+  gt-super serif 워드마크
+- 링크: sohne 14px/20px, color #242424, 간격 25px
+- CTA: 우측, 다크 pill (#191919, hover #000000)</pre></div>
+    </div>
+    <div class="agent-prompt-card">
+      <div class="agent-prompt-card__head"><span class="agent-prompt-card__icon">&#128279;</span><span class="agent-prompt-card__name">Button (pill)</span></div>
+      <div class="agent-prompt-card__body"><pre>Medium 스타일 pill 버튼을 만들어줘.
+- border-radius: 99em (완전 캡슐), border 1px
+- 다크: bg #191919, text #fff, hover bg #000000
+- 그린: bg #1A8917, text #fff, hover bg #156D12
+- padding 8px 20px, font sohne 16px weight 500
+- transition: background-color 300ms linear
+  (transform 없음)</pre></div>
+    </div>
+    <div class="agent-prompt-card">
+      <div class="agent-prompt-card__head"><span class="agent-prompt-card__icon">&#9999;&#65039;</span><span class="agent-prompt-card__name">Hairline rule</span></div>
+      <div class="agent-prompt-card__body"><pre>Medium 스타일 구분선/구조.
+- box-shadow 금지 &mdash; 그림자 0개
+- nav/footer 구분: solid 1px #242424
+- 옅은 divider: 1px #E5E5E5
+- 깊이는 그림자가 아니라 잉크 선으로만
+- gradient 금지 &mdash; 단색 fill만</pre></div>
+    </div>
+  </div>
+
+  <div class="agent-tips">
+    <div class="agent-tips__head">Iteration Guide</div>
+    <ul>
+      <li><b>색상 변경 시</b>: brand green <code>#1A8917</code>은 accent/CTA/링크에만. 본문엔 절대 쓰지 말 것. 마케팅 배경은 <code>#F7F4ED</code> 고정.</li>
+      <li><b>폰트 변경 시</b>: display=GT Super(serif), body=Söhne(sans), reading=Charter(serif). 셋을 섞지 말 것. weight는 300/400/500/700만 &mdash; <b>600 금지</b>.</li>
+      <li><b>여백 조정 시</b>: <code>8 / 16 / 24 / 48 / 64 / 75px</code> 스케일만.</li>
+      <li><b>radius</b>: 버튼 <code>99em</code>, 원형 <code>50%</code>, 나머지 <code>0</code>. 중간값(8~12px) 금지.</li>
+      <li><b>깊이 표현</b>: box-shadow 금지 &mdash; 1px <code>#242424</code> 또는 <code>#E5E5E5</code> 보더로만.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="verdict">
+  <div class="section__num">16</div>
+  <h2 class="section__title">Do / Don&apos;t</h2>
+  <p class="section__lede">실제 CSS에서 검증된 규칙만 수록.</p>
+  <div class="dd-grid">
+    <div class="dd-card dd-card--do">
+      <h3>DO</h3>
+      <ul>
+        <li>마케팅 표면은 따뜻한 크림 <code>#F7F4ED</code>, 앱/리딩 표면은 <code>#FFFFFF</code>로 분리할 것</li>
+        <li>GT Super(serif display) + Söhne(sans body)를 짝지을 것 &mdash; 역할 고정</li>
+        <li>모든 버튼을 pill(<code>border-radius: 99em</code>)로 만들 것</li>
+        <li>nav/footer 구분은 <code>1px solid #242424</code> 하드 라인으로 그릴 것</li>
+        <li>본문 텍스트 <code>#242424</code>, 보조 <code>#6B6B6B</code>, 헤드라인만 <code>#000000</code></li>
+        <li>브랜드 그린 <code>#1A8917</code>, hover <code>#156D12</code> &mdash; accent/CTA/링크에만</li>
+        <li>display tracking <code>-0.055em</code> (큰 사이즈일수록 더 타이트하게)</li>
+      </ul>
+    </div>
+    <div class="dd-card dd-card--dont">
+      <h3>DON&apos;T</h3>
+      <ul>
+        <li>마케팅 배경을 <code>#FFFFFF</code> 또는 white로 두지 말 것 &mdash; 대신 <code>#F7F4ED</code></li>
+        <li>본문 텍스트를 <code>#000000</code>/black으로 두지 말 것 &mdash; <code>#242424</code> 사용 (순흑은 hero 전용)</li>
+        <li><code>font-weight: 600</code> 사용 금지 &mdash; Medium은 500 다음 700 (600 부재)</li>
+        <li>버튼을 <code>border-radius: 8px</code> 같은 고정 px로 두지 말 것 &mdash; <code>99em</code></li>
+        <li>nav/footer 강조 라인을 <code>#E5E5E5</code> 옅은 회색으로 두지 말 것 &mdash; <code>#242424</code> 1px</li>
+        <li><code>box-shadow</code>로 깊이 만들지 말 것 &mdash; 그림자 0개, 1px 보더만</li>
+        <li><code>linear-gradient</code>/<code>radial-gradient</code> 금지 &mdash; 단색 fill만</li>
+        <li>브랜드 그린을 본문/chrome 전반에 쓰지 말 것 &mdash; accent 전용</li>
+        <li>hover에 <code>transform</code>/<code>scale</code>/<code>box-shadow</code> 금지 &mdash; <code>background-color 300ms linear</code>만</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout">
+    <b>What This Site Doesn&apos;t Use (Negative-Space Identity)</b>
+    <ul>
+      <li><b>Box-shadow</b>: zero &mdash; 1px 헤어라인이 모든 구조 작업을 한다</li>
+      <li><b>Gradients</b>: none &mdash; 모든 표면에 단색 fill만</li>
+      <li><b>Weight 600</b>: absent &mdash; 300 / 400 / 500 / 700만</li>
+      <li><b>Mid-range radius</b>: none &mdash; <code>99em</code> pill과 <code>50%</code> circle뿐, 표면은 <code>0</code></li>
+      <li><b>Pure black on body text</b>: never &mdash; <code>#000000</code>은 hero 헤드라인 한 곳뿐</li>
+      <li><b>Transform / scale hover</b>: none &mdash; 인터랙션은 color-only, <code>300ms linear</code></li>
+      <li><b>Second brand color</b>: none &mdash; <code>#1A8917</code>이 유일한 채도 브랜드 값</li>
+      <li><b>Card chrome on homepage</b>: none &mdash; 일러스트 + 타입이 hero를 운반</li>
+      <li><b>Eased motion</b>: none &mdash; 모든 transition은 <code>linear</code></li>
+    </ul>
+  </div>
+  <div class="callout" style="font-size:12px;">
+    <b>Known Gaps:</b> 분석은 로그아웃 홈페이지(LOHP) 단일 페이지 기준. HTML/CSS는 Wayback Machine 스냅샷(<code>20260625215241</code>)에서, 렌더 스크린샷은 라이브 사이트에서 수집(약 1일 차). green vs black CTA는 한 컴포넌트에서 둘 다 출고되며 어느 브레이크포인트/A·B 버킷에서 무엇이 렌더되는지 미확정. 브레이크포인트(~728 / ~1080 / ~1304px)는 헤드라인 스케일 클래스에서 역산한 근사값. 다크 모드 / 폼 컴포넌트 / 리딩 타이포는 이 경로에서 미관측.
+  </div>
+</section>
+
+</main></div>
+<div class="rfoot">
+  <div>insane-design &middot; Medium</div>
+  <div>Fetched 2026-06-26</div>
+</div>
+<script>
+(function(){
+  document.querySelectorAll('.code-tabs button[data-tab]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var tab = btn.dataset.tab;
+      var root = btn.closest('.code-export');
+      root.querySelectorAll('.code-tabs button').forEach(function(b){ b.classList.remove('is-active'); });
+      btn.classList.add('is-active');
+      root.querySelectorAll('.code-pane').forEach(function(p){ p.classList.remove('is-active'); });
+      var pane = root.querySelector('.code-pane[data-pane="' + tab + '"]');
+      if (pane) pane.classList.add('is-active');
+    });
+  });
+  document.querySelectorAll('.code-copy[data-copy-active]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var root = btn.closest('.code-export');
+      var pane = root.querySelector('.code-pane.is-active code');
+      if (pane) {
+        navigator.clipboard.writeText(pane.textContent);
+        btn.textContent = 'Copied!';
+        setTimeout(function(){ btn.textContent = 'Copy'; }, 1200);
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>
