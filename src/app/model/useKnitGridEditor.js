@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useAtom } from 'jotai';
+import { useTextDraftEditor } from './useTextDraftEditor.js';
 import {
   rowsAtom,
   colsAtom,
@@ -24,6 +25,7 @@ import {
   insertAnchorCellAtom,
   progressRowAtom,
   completedRowsAtom,
+  progressMarksAtom,
   historyAtom,
   futureAtom,
   isDraggingAtom,
@@ -148,6 +150,8 @@ import {
   getImagePlacement
 } from './knitgridModel.js';
 
+const progressMarkKey = (row, col) => `${row}:${col}`;
+
 export function useKnitGridEditor() {
   const [rows, setRows] = useAtom(rowsAtom);
   const [cols, setCols] = useAtom(colsAtom);
@@ -172,6 +176,7 @@ export function useKnitGridEditor() {
   const [insertAnchorCell, setInsertAnchorCell] = useAtom(insertAnchorCellAtom);
   const [progressRow, setProgressRow] = useAtom(progressRowAtom);
   const [completedRows, setCompletedRows] = useAtom(completedRowsAtom);
+  const [progressMarks, setProgressMarks] = useAtom(progressMarksAtom);
   const [history, setHistory] = useAtom(historyAtom);
   const [future, setFuture] = useAtom(futureAtom);
   const [isDragging, setIsDragging] = useAtom(isDraggingAtom);
@@ -521,6 +526,7 @@ export function useKnitGridEditor() {
     setInsertAnchorCell((cell) => clampCellToGrid(cell, nextRows, nextCols));
     setProgressRow(data.numberStart || 1);
     setCompletedRows(new Set());
+    setProgressMarks(new Set());
     setHistory([]);
     setFuture([]);
     setPaletteNotice('');
@@ -582,6 +588,7 @@ export function useKnitGridEditor() {
     setInsertAnchorCell({ row: 23, col: 17 });
     setProgressRow(17);
     setCompletedRows(new Set());
+    setProgressMarks(new Set());
     setHistory([]);
     setFuture([]);
     setPaletteNotice('');
@@ -771,6 +778,26 @@ export function useKnitGridEditor() {
     ]);
     setFuture([]);
   }, [activePaletteId, cols, completedRows, currentCell, grid, insertAnchorCell, palette, progressRow, rows]);
+  const textDraftEditor = useTextDraftEditor({
+    rows,
+    cols,
+    palette,
+    activePalette,
+    pushHistory,
+    setRows,
+    setCols,
+    setDraftRows,
+    setDraftCols,
+    setGrid,
+    setCurrentCell,
+    setInsertAnchorCell,
+    setMode,
+    numberStart,
+    setProgressRow,
+    setCompletedRows,
+    setPaletteNotice,
+    clearProgressMarks: () => setProgressMarks(new Set())
+  });
 
   const clampProgressRow = useCallback(
     (value, nextRows) => clampNumber(value, numberStart, numberStart + nextRows - 1),
@@ -800,10 +827,11 @@ export function useKnitGridEditor() {
     setInsertAnchorCell(clampCellToGrid(snapshot.insertAnchorCell ?? insertAnchorCell, snapshotRows, snapshotCols));
     setProgressRow(snapshot.progressRow ?? clampProgressRow(progressRow, snapshotRows));
     setCompletedRows(snapshot.completedRows ? new Set(snapshot.completedRows) : new Set());
+    setProgressMarks(new Set());
     setExpandedPaletteId('');
     setPaletteNotice('');
     setPendingResize(null);
-  }, [clampProgressRow, currentCell, insertAnchorCell, progressRow]);
+  }, [clampProgressRow, currentCell, insertAnchorCell, progressRow, setProgressMarks]);
 
   const applyGridStructure = useCallback(
     (nextGrid, nextRows, nextCols, nextCurrentCell = currentCell, nextInsertAnchorCell = insertAnchorCell) => {
@@ -816,9 +844,28 @@ export function useKnitGridEditor() {
       setInsertAnchorCell(clampCellToGrid(nextInsertAnchorCell, nextRows, nextCols));
       setProgressRow((value) => clampProgressRow(value, nextRows));
       setCompletedRows((value) => clampCompletedRows(value, nextRows));
+      setProgressMarks(new Set());
     },
-    [clampCompletedRows, clampProgressRow, currentCell, insertAnchorCell]
+    [clampCompletedRows, clampProgressRow, currentCell, insertAnchorCell, setProgressMarks]
   );
+
+  const updateProgressMark = useCallback(
+    (row, col, action) => {
+      if (row < 0 || row >= rows || col < 0 || col >= cols) return;
+      setProgressMarks((previous) => {
+        const next = new Set(previous);
+        const key = progressMarkKey(row, col);
+        if (action === 'remove') next.delete(key);
+        else next.add(key);
+        return next;
+      });
+    },
+    [cols, rows, setProgressMarks]
+  );
+
+  const clearProgressMarks = useCallback(() => {
+    setProgressMarks(new Set());
+  }, [setProgressMarks]);
 
   const paintCell = useCallback(
     (row, col, selectedTool = tool, shouldRecord = true) => {
@@ -887,6 +934,13 @@ export function useKnitGridEditor() {
   );
 
   const handlePointerDown = (row, col) => {
+    setCurrentCell({ row, col });
+    if (mode === 'progress' && ['pen', 'eraser'].includes(tool)) {
+      setIsDragging(true);
+      updateProgressMark(row, col, tool === 'eraser' ? 'remove' : 'add');
+      return;
+    }
+    if (mode !== 'edit') return;
     setIsDragging(true);
     setInsertAnchorCell({ row, col });
     paintCell(row, col, tool, true);
@@ -895,6 +949,10 @@ export function useKnitGridEditor() {
   const handlePointerEnter = (row, col) => {
     setCurrentCell({ row, col });
     if (!isDragging || !['pen', 'eraser'].includes(tool)) return;
+    if (mode === 'progress') {
+      updateProgressMark(row, col, tool === 'eraser' ? 'remove' : 'add');
+      return;
+    }
     paintCell(row, col, tool, false);
   };
 
@@ -1363,6 +1421,7 @@ export function useKnitGridEditor() {
     if (!imageDraft || !selectedImageCandidate) return;
     pushHistory();
     setGrid(cloneGrid(selectedImageCandidate.grid));
+    setProgressMarks(new Set());
     replaceAppliedSourceImageFromDraft(imageDraft, imageOptions, rows, cols);
     if (imagePaletteMode === 'extract') {
       const nextPalette = clonePalette(selectedImageCandidate.palette);
@@ -1542,6 +1601,7 @@ export function useKnitGridEditor() {
     insertAnchorCell,
     setInsertAnchorCell,
     progressRow,
+    progressMarks,
     setProgressRow,
     completedRows,
     setCompletedRows,
@@ -1621,6 +1681,7 @@ export function useKnitGridEditor() {
     imageWarnings,
     imagePreviewCounts,
     selectedImageCandidate,
+    ...textDraftEditor,
     updateCropDraftSelection,
     completeCropDraftSelection,
     resetCropDraft,
@@ -1653,6 +1714,7 @@ export function useKnitGridEditor() {
     applySnapshot,
     applyGridStructure,
     paintCell,
+    clearProgressMarks,
     handlePointerDown,
     handlePointerEnter,
     handlePointerUp,

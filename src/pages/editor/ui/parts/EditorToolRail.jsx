@@ -1,5 +1,5 @@
 import { ToolRail } from '../../../../components/index.js';
-import { Copy, RotateCcw } from 'lucide-react';
+import { Copy, Eye, RotateCcw, Trash2 } from 'lucide-react';
 import { TOOLS } from '../../../../app/model/knitgridModel.js';
 
 export function EditorToolRail({ editor }) {
@@ -8,8 +8,22 @@ export function EditorToolRail({ editor }) {
     setTool,
     mirrorGrid,
     rotateGrid,
-    copyRepeat
+    copyRepeat,
+    clearProgressMarks,
+    progressMarks,
+    mode
   } = editor;
+
+  if (mode === 'preview') {
+    return (
+      <aside className="tool-rail mode-rail" aria-label="미리보기 모드">
+        <div>
+          <Eye size={20} aria-hidden="true" />
+          <span>보기</span>
+        </div>
+      </aside>
+    );
+  }
 
   return (
     <ToolRail
@@ -26,6 +40,16 @@ export function EditorToolRail({ editor }) {
         <Copy size={20} />
         <span>반복</span>
       </button>
+      {mode === 'progress' ? (
+        <button
+          onClick={clearProgressMarks}
+          disabled={!progressMarks.size}
+          title="진행 체크 전체 지우기"
+        >
+          <Trash2 size={20} />
+          <span>전체 지우기</span>
+        </button>
+      ) : null}
     </ToolRail>
   );
 }

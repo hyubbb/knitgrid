@@ -9,6 +9,7 @@ import {
   countPaintedCells,
   formatProjectDate
 } from '../../../../app/model/knitgridModel.js';
+import { EditorTextDraftModal } from './EditorTextDraftModal.jsx';
 
 export function EditorModals({ editor }) {
   const {
@@ -408,6 +409,7 @@ export function EditorModals({ editor }) {
           </div>
         </Modal>
       ) : null}
+      <EditorTextDraftModal editor={editor} />
     </>
   );
 }

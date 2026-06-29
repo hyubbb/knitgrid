@@ -2,6 +2,7 @@ import { atom } from 'jotai';
 import {
   DEFAULT_APPLIED_SOURCE_OVERLAY_TRANSFORM,
   INITIAL_IMAGE_OPTIONS,
+  INITIAL_TEXT_OPTIONS,
   INITIAL_PALETTE,
   seedGrid
 } from '../model/knitgridModel.js';
@@ -29,13 +30,16 @@ export const currentCellAtom = atom({ row: 23, col: 17 });
 export const insertAnchorCellAtom = atom({ row: 23, col: 17 });
 export const progressRowAtom = atom(17);
 export const completedRowsAtom = atom(new Set([1, 2, 3, 4, 5]));
+export const progressMarksAtom = atom(new Set());
 export const historyAtom = atom([]);
 export const futureAtom = atom([]);
 export const isDraggingAtom = atom(false);
 export const projectNameAtom = atom('코지 파우치 패턴');
 export const cropDraftAtom = atom(null);
 export const imageDraftAtom = atom(null);
+export const textDraftAtom = atom(null);
 export const imageOptionsAtom = atom(INITIAL_IMAGE_OPTIONS);
+export const textOptionsAtom = atom(INITIAL_TEXT_OPTIONS);
 export const imagePaletteModeAtom = atom('extract');
 export const imageCandidatesAtom = atom([]);
 export const selectedImageCandidateIdAtom = atom('');

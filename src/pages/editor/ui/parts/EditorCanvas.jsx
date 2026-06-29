@@ -1,11 +1,14 @@
 import { Slider, Toolbar } from '../../../../components/index.js';
+import { useEffect, useRef, useState } from 'react';
 import {
   ArrowDown,
   ArrowLeft,
   ArrowRight,
   ArrowUp,
+  X,
   Eye,
   Hand,
+  Maximize2,
   RotateCcw,
   Trash2,
   ZoomIn,
@@ -16,6 +19,14 @@ import {
   luminance,
   resolveCellDisplay
 } from '../../../../app/model/knitgridModel.js';
+
+const CANVAS_BASE_CELL_SIZE = 24;
+const CANVAS_MIN_ZOOM = 4;
+const CANVAS_MAX_ZOOM = 132;
+const CHART_FIXED_WIDTH = 76;
+const CHART_FIXED_HEIGHT = 64;
+const FULLSCREEN_MAX_CELL_SIZE = 34;
+const FULLSCREEN_MIN_CELL_SIZE = 2;
 
 export function EditorCanvas({ editor }) {
   const {
@@ -54,12 +65,48 @@ export function EditorCanvas({ editor }) {
     showOppositeHeaders,
     completedRows,
     progressRow,
+    progressMarks,
     insertAnchorCell,
     rowNumber,
     colNumber,
     handlePointerDown,
     handlePointerEnter
   } = editor;
+  const canEditSourceOverlay = mode === 'edit';
+  const canFitWholePreview = mode === 'preview';
+  const [isFullscreenPreviewOpen, setIsFullscreenPreviewOpen] = useState(false);
+  const [fullscreenCellSize, setFullscreenCellSize] = useState(() => getFullscreenPreviewCellSize(rows, cols));
+  const fullscreenCloseButtonRef = useRef(null);
+
+  const openFullscreenPreview = () => {
+    setFullscreenCellSize(getFullscreenPreviewCellSize(rows, cols));
+    setIsFullscreenPreviewOpen(true);
+  };
+
+  useEffect(() => {
+    if (!isFullscreenPreviewOpen) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    const updateFullscreenCellSize = () => setFullscreenCellSize(getFullscreenPreviewCellSize(rows, cols));
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') setIsFullscreenPreviewOpen(false);
+    };
+    const focusFrame = requestAnimationFrame(() => fullscreenCloseButtonRef.current?.focus());
+
+    document.body.style.overflow = 'hidden';
+    updateFullscreenCellSize();
+    window.addEventListener('resize', updateFullscreenCellSize);
+    window.addEventListener('keydown', closeOnEscape);
+    window.visualViewport?.addEventListener('resize', updateFullscreenCellSize);
+
+    return () => {
+      cancelAnimationFrame(focusFrame);
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('resize', updateFullscreenCellSize);
+      window.removeEventListener('keydown', closeOnEscape);
+      window.visualViewport?.removeEventListener('resize', updateFullscreenCellSize);
+    };
+  }, [isFullscreenPreviewOpen, rows, cols]);
 
   return (
     <main className="workspace">
@@ -69,7 +116,21 @@ export function EditorCanvas({ editor }) {
             <strong>{cols} x {rows}</strong>
             <span>{guideEvery > 0 ? `${guideEvery}칸 보조선` : '보조선 없음'} · 최대 200 x 200</span>
           </div>
-          <Slider min={46} max={132} value={zoom} onChange={setZoom} leftIcon={ZoomOut} rightIcon={ZoomIn} valueLabel={`${zoom}%`} />
+          <div className="canvas-zoom-actions">
+            <Slider min={CANVAS_MIN_ZOOM} max={CANVAS_MAX_ZOOM} value={zoom} onChange={setZoom} leftIcon={ZoomOut} rightIcon={ZoomIn} valueLabel={`${zoom}%`} />
+            {canFitWholePreview ? (
+              <button
+                className="canvas-fit-button"
+                type="button"
+                onClick={openFullscreenPreview}
+                title="전체 화면에서 도안 보기"
+                aria-label="미리보기 전체보기"
+              >
+                <Maximize2 size={14} />
+                전체보기
+              </button>
+            ) : null}
+          </div>
           <div className="source-overlay-control">
             <button
               className={showAppliedSourceOverlay ? 'active' : ''}
@@ -85,15 +146,17 @@ export function EditorCanvas({ editor }) {
               <Eye size={14} />
               원본 보기
             </button>
-            <button
-              className={isAdjustingAppliedSourceOverlay ? 'active' : ''}
-              onClick={() => setIsAdjustingAppliedSourceOverlay((value) => !value)}
-              disabled={!appliedSourceImage || !showAppliedSourceOverlay}
-              title="원본 위치와 크기 조정"
-            >
-              <Hand size={14} />
-              원본 조정
-            </button>
+            {canEditSourceOverlay ? (
+              <button
+                className={isAdjustingAppliedSourceOverlay ? 'active' : ''}
+                onClick={() => setIsAdjustingAppliedSourceOverlay((value) => !value)}
+                disabled={!appliedSourceImage || !showAppliedSourceOverlay}
+                title="원본 위치와 크기 조정"
+              >
+                <Hand size={14} />
+                원본 조정
+              </button>
+            ) : null}
             <label>
               <span>투명도</span>
               <input
@@ -106,113 +169,117 @@ export function EditorCanvas({ editor }) {
                 aria-label="편집 화면 원본 투명도"
               />
             </label>
-            <div className="source-overlay-scale-mode" aria-label="원본 크기 조정 방식">
-              <button
-                className={appliedSourceOverlayTransform.scaleMode === 'uniform' ? 'active' : ''}
-                onClick={() => updateAppliedSourceOverlayTransform({ scaleMode: 'uniform' })}
-                disabled={!appliedSourceImage || !showAppliedSourceOverlay}
-              >
-                균일
-              </button>
-              <button
-                className={appliedSourceOverlayTransform.scaleMode === 'free' ? 'active' : ''}
-                onClick={() => updateAppliedSourceOverlayTransform({ scaleMode: 'free' })}
-                disabled={!appliedSourceImage || !showAppliedSourceOverlay}
-              >
-                가로/세로
-              </button>
-            </div>
-            {appliedSourceOverlayTransform.scaleMode === 'uniform' ? (
-              <label>
-                <span>크기</span>
-                <input
-                  type="range"
-                  min="50"
-                  max="250"
-                  step="1"
-                  value={appliedSourceOverlayTransform.scale}
-                  disabled={!appliedSourceImage || !showAppliedSourceOverlay}
-                  onChange={(event) => updateAppliedSourceOverlayTransform({ scale: event.target.value })}
-                  aria-label="원본 균일 크기"
-                />
-              </label>
-            ) : (
+            {canEditSourceOverlay ? (
               <>
-                <label>
-                  <span>가로</span>
-                  <input
-                    type="range"
-                    min="50"
-                    max="250"
-                    step="1"
-                    value={appliedSourceOverlayTransform.scaleX}
+                <div className="source-overlay-scale-mode" aria-label="원본 크기 조정 방식">
+                  <button
+                    className={appliedSourceOverlayTransform.scaleMode === 'uniform' ? 'active' : ''}
+                    onClick={() => updateAppliedSourceOverlayTransform({ scaleMode: 'uniform' })}
                     disabled={!appliedSourceImage || !showAppliedSourceOverlay}
-                    onChange={(event) => updateAppliedSourceOverlayTransform({ scaleX: event.target.value })}
-                    aria-label="원본 가로 크기"
-                  />
-                </label>
-                <label>
-                  <span>세로</span>
-                  <input
-                    type="range"
-                    min="50"
-                    max="250"
-                    step="1"
-                    value={appliedSourceOverlayTransform.scaleY}
+                  >
+                    균일
+                  </button>
+                  <button
+                    className={appliedSourceOverlayTransform.scaleMode === 'free' ? 'active' : ''}
+                    onClick={() => updateAppliedSourceOverlayTransform({ scaleMode: 'free' })}
                     disabled={!appliedSourceImage || !showAppliedSourceOverlay}
-                    onChange={(event) => updateAppliedSourceOverlayTransform({ scaleY: event.target.value })}
-                    aria-label="원본 세로 크기"
-                  />
-                </label>
-              </>
-            )}
-            <div className="source-overlay-stepper">
-              <label>
-                <span>이동</span>
-                <input
-                  type="number"
-                  min="0.1"
-                  max="200"
-                  step="0.1"
-                  value={appliedSourceOverlayMoveStep}
+                  >
+                    가로/세로
+                  </button>
+                </div>
+                {appliedSourceOverlayTransform.scaleMode === 'uniform' ? (
+                  <label>
+                    <span>크기</span>
+                    <input
+                      type="range"
+                      min="50"
+                      max="250"
+                      step="1"
+                      value={appliedSourceOverlayTransform.scale}
+                      disabled={!appliedSourceImage || !showAppliedSourceOverlay}
+                      onChange={(event) => updateAppliedSourceOverlayTransform({ scale: event.target.value })}
+                      aria-label="원본 균일 크기"
+                    />
+                  </label>
+                ) : (
+                  <>
+                    <label>
+                      <span>가로</span>
+                      <input
+                        type="range"
+                        min="50"
+                        max="250"
+                        step="1"
+                        value={appliedSourceOverlayTransform.scaleX}
+                        disabled={!appliedSourceImage || !showAppliedSourceOverlay}
+                        onChange={(event) => updateAppliedSourceOverlayTransform({ scaleX: event.target.value })}
+                        aria-label="원본 가로 크기"
+                      />
+                    </label>
+                    <label>
+                      <span>세로</span>
+                      <input
+                        type="range"
+                        min="50"
+                        max="250"
+                        step="1"
+                        value={appliedSourceOverlayTransform.scaleY}
+                        disabled={!appliedSourceImage || !showAppliedSourceOverlay}
+                        onChange={(event) => updateAppliedSourceOverlayTransform({ scaleY: event.target.value })}
+                        aria-label="원본 세로 크기"
+                      />
+                    </label>
+                  </>
+                )}
+                <div className="source-overlay-stepper">
+                  <label>
+                    <span>이동</span>
+                    <input
+                      type="number"
+                      min="0.1"
+                      max="200"
+                      step="0.1"
+                      value={appliedSourceOverlayMoveStep}
+                      disabled={!appliedSourceImage || !showAppliedSourceOverlay}
+                      onChange={(event) => setAppliedSourceOverlayMoveStep(clampFiniteNumber(event.target.value, 0.1, 200))}
+                      aria-label="원본 이동 칸 수"
+                    />
+                  </label>
+                  <div className="source-overlay-move-pad" aria-label="원본 이동">
+                    <button onClick={() => moveAppliedSourceOverlay(0, -1)} disabled={!appliedSourceImage || !showAppliedSourceOverlay} title="원본 위로 이동" aria-label="원본 위로 이동">
+                      <ArrowUp size={13} />
+                    </button>
+                    <button onClick={() => moveAppliedSourceOverlay(-1, 0)} disabled={!appliedSourceImage || !showAppliedSourceOverlay} title="원본 왼쪽으로 이동" aria-label="원본 왼쪽으로 이동">
+                      <ArrowLeft size={13} />
+                    </button>
+                    <button onClick={() => moveAppliedSourceOverlay(1, 0)} disabled={!appliedSourceImage || !showAppliedSourceOverlay} title="원본 오른쪽으로 이동" aria-label="원본 오른쪽으로 이동">
+                      <ArrowRight size={13} />
+                    </button>
+                    <button onClick={() => moveAppliedSourceOverlay(0, 1)} disabled={!appliedSourceImage || !showAppliedSourceOverlay} title="원본 아래로 이동" aria-label="원본 아래로 이동">
+                      <ArrowDown size={13} />
+                    </button>
+                  </div>
+                </div>
+                <button
+                  className="icon-only reset"
+                  onClick={resetAppliedSourceOverlayTransform}
                   disabled={!appliedSourceImage || !showAppliedSourceOverlay}
-                  onChange={(event) => setAppliedSourceOverlayMoveStep(clampFiniteNumber(event.target.value, 0.1, 200))}
-                  aria-label="원본 이동 칸 수"
-                />
-              </label>
-              <div className="source-overlay-move-pad" aria-label="원본 이동">
-                <button onClick={() => moveAppliedSourceOverlay(0, -1)} disabled={!appliedSourceImage || !showAppliedSourceOverlay} title="원본 위로 이동" aria-label="원본 위로 이동">
-                  <ArrowUp size={13} />
+                  title="정렬 초기화"
+                  aria-label="정렬 초기화"
+                >
+                  <RotateCcw size={14} />
                 </button>
-                <button onClick={() => moveAppliedSourceOverlay(-1, 0)} disabled={!appliedSourceImage || !showAppliedSourceOverlay} title="원본 왼쪽으로 이동" aria-label="원본 왼쪽으로 이동">
-                  <ArrowLeft size={13} />
+                <button
+                  className="icon-only"
+                  onClick={clearAppliedSourceImage}
+                  disabled={!appliedSourceImage}
+                  title="원본 제거"
+                  aria-label="원본 제거"
+                >
+                  <Trash2 size={14} />
                 </button>
-                <button onClick={() => moveAppliedSourceOverlay(1, 0)} disabled={!appliedSourceImage || !showAppliedSourceOverlay} title="원본 오른쪽으로 이동" aria-label="원본 오른쪽으로 이동">
-                  <ArrowRight size={13} />
-                </button>
-                <button onClick={() => moveAppliedSourceOverlay(0, 1)} disabled={!appliedSourceImage || !showAppliedSourceOverlay} title="원본 아래로 이동" aria-label="원본 아래로 이동">
-                  <ArrowDown size={13} />
-                </button>
-              </div>
-            </div>
-            <button
-              className="icon-only reset"
-              onClick={resetAppliedSourceOverlayTransform}
-              disabled={!appliedSourceImage || !showAppliedSourceOverlay}
-              title="정렬 초기화"
-              aria-label="정렬 초기화"
-            >
-              <RotateCcw size={14} />
-            </button>
-            <button
-              className="icon-only"
-              onClick={clearAppliedSourceImage}
-              disabled={!appliedSourceImage}
-              title="원본 제거"
-              aria-label="원본 제거"
-            >
-              <Trash2 size={14} />
-            </button>
+              </>
+            ) : null}
           </div>
         </Toolbar>
         {appliedSourceImage && appliedSourceSizeChanged ? (
@@ -222,83 +289,189 @@ export function EditorCanvas({ editor }) {
         ) : null}
 
         <div ref={gridScrollRef} className={`grid-scroll mode-${mode}`}>
-          <div
-            className="chart-grid"
-            style={{
-              '--rows': rows,
-              '--cols': cols,
-              '--cell': `${Math.round((zoom / 100) * 24)}px`,
-              '--guide-color': guideLineColor,
-              '--grid-line': gridLineColor || undefined
-            }}
-          >
-            {appliedSourceImage && showAppliedSourceOverlay ? (
-              <div
-                className={`applied-source-overlay ${isAdjustingAppliedSourceOverlay ? 'adjusting' : ''}`}
-                aria-hidden="true"
-                style={{
-                  opacity: appliedSourceOverlayOpacity / 100,
-                  transform: appliedSourceTransformCss
-                }}
-                onPointerDown={handleAppliedSourceOverlayPointerDown}
-                onPointerMove={handleAppliedSourceOverlayPointerMove}
-                onPointerUp={handleAppliedSourceOverlayPointerUp}
-                onPointerCancel={handleAppliedSourceOverlayPointerUp}
-              >
-                <img
-                  src={appliedSourceImage.src}
-                  alt=""
-                  style={{
-                    objectFit: appliedSourceImage.imageOptions.fit === 'stretch' ? 'fill' : appliedSourceImage.imageOptions.fit,
-                    objectPosition: `${appliedSourceImage.imageOptions.alignX === 'left' ? 0 : appliedSourceImage.imageOptions.alignX === 'right' ? 100 : 50}% ${appliedSourceImage.imageOptions.alignY === 'top' ? 0 : appliedSourceImage.imageOptions.alignY === 'bottom' ? 100 : 50}%`
-                  }}
-                />
-              </div>
-            ) : null}
-            <div className="corner top-left" />
-            <HeaderRow cols={cols} colNumber={colNumber} area="top" />
-            <div className="corner top-right" />
-            <HeaderColumn rows={rows} rowNumber={rowNumber} area="left" completedRows={completedRows} />
-            <div className="cells" style={{ gridTemplateColumns: `repeat(${cols}, var(--cell))` }}>
-              {grid.map((row, r) =>
-                row.map((cell, c) => {
-                  const actualRowNumber = rowNumber(r);
-                  const guideRow = guideEvery > 0 && (rowDirection === 'bottom-up'
-                    ? r < rows - 1 && (rows - 1 - r) % guideEvery === 0
-                    : (r + 1) % guideEvery === 0);
-                  const guideCol = guideEvery > 0 && (c + 1) % guideEvery === 0;
-                  const progress = mode === 'progress' && actualRowNumber === progressRow;
-                  const completed = mode === 'progress' && completedRows.has(actualRowNumber);
-                  const display = resolveCellDisplay(cell, palette);
-                  const shouldShowCell = cell.active && display.visible;
-                  const isInsertAnchor = insertAnchorCell.row === r && insertAnchorCell.col === c;
-                  return (
-                    <button
-                      key={`${r}-${c}`}
-                      className={`cell ${cell.active ? 'filled' : ''} ${isInsertAnchor ? 'insert-anchor' : ''} ${!display.visible ? 'palette-hidden' : ''} ${guideRow ? 'guide-row' : ''} ${guideCol ? 'guide-col' : ''} ${progress ? 'progress-row' : ''} ${completed ? 'completed-row' : ''}`}
-                      style={{ background: shouldShowCell && displayMode !== 'code' ? display.color : '#fff' }}
-                      onPointerDown={() => handlePointerDown(r, c)}
-                      onPointerEnter={() => handlePointerEnter(r, c)}
-                      title={`${actualRowNumber}행 ${colNumber(c)}열 ${shouldShowCell ? display.symbol || '빈 칸' : `${display.symbol || '색상'} 숨김`}`}
-                    >
-                      {shouldShowCell && displayMode !== 'color' ? (
-                        <span style={{ color: displayMode === 'code' || luminance(display.color) > 0.55 ? '#172033' : '#fff' }}>
-                          {display.symbol}
-                        </span>
-                      ) : null}
-                    </button>
-                  );
-                })
-              )}
-            </div>
-            {showOppositeHeaders ? <HeaderColumn rows={rows} rowNumber={rowNumber} area="right" completedRows={completedRows} /> : <div />}
-            {showOppositeHeaders ? <div className="corner bottom-left" /> : <div />}
-            {showOppositeHeaders ? <HeaderRow cols={cols} colNumber={colNumber} area="bottom" /> : <div />}
-            {showOppositeHeaders ? <div className="corner bottom-right" /> : <div />}
-          </div>
+          <ChartGrid
+            editor={editor}
+            cellSize={Math.round((zoom / 100) * CANVAS_BASE_CELL_SIZE)}
+            canEditSourceOverlay={canEditSourceOverlay}
+          />
         </div>
       </section>
+      {isFullscreenPreviewOpen ? (
+        <div
+          className="preview-fullscreen-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="preview-fullscreen-title"
+        >
+          <div className="preview-fullscreen-modal">
+            <header className="preview-fullscreen-header">
+              <div>
+                <strong id="preview-fullscreen-title">전체보기</strong>
+                <span>{cols} x {rows} 도안을 화면에 맞춰 표시합니다.</span>
+              </div>
+              <button
+                ref={fullscreenCloseButtonRef}
+                type="button"
+                onClick={() => setIsFullscreenPreviewOpen(false)}
+                aria-label="전체보기 닫기"
+                title="닫기"
+              >
+                <X size={18} />
+              </button>
+            </header>
+            <div className="preview-fullscreen-stage">
+              <ChartGrid
+                editor={editor}
+                cellSize={fullscreenCellSize}
+                canEditSourceOverlay={false}
+                includeSourceOverlay={false}
+                readOnly
+              />
+            </div>
+          </div>
+        </div>
+      ) : null}
     </main>
+  );
+}
+
+function getFullscreenPreviewCellSize(rows, cols) {
+  if (typeof window === 'undefined' || rows <= 0 || cols <= 0) return 8;
+
+  const viewportWidth = window.visualViewport?.width ?? window.innerWidth;
+  const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+  const compactViewport = viewportWidth < 520;
+  const overlayPaddingX = compactViewport ? 24 : 48;
+  const overlayReservedHeight = compactViewport ? 92 : 112;
+  const availableWidth = Math.max(1, viewportWidth - overlayPaddingX - CHART_FIXED_WIDTH);
+  const availableHeight = Math.max(1, viewportHeight - overlayReservedHeight - CHART_FIXED_HEIGHT);
+  const fitCellSize = Math.floor(Math.min(availableWidth / cols, availableHeight / rows));
+
+  return Math.min(FULLSCREEN_MAX_CELL_SIZE, Math.max(FULLSCREEN_MIN_CELL_SIZE, fitCellSize));
+}
+
+function ChartGrid({
+  editor,
+  cellSize,
+  canEditSourceOverlay,
+  includeSourceOverlay = true,
+  readOnly = false
+}) {
+  const {
+    rows,
+    cols,
+    grid,
+    palette,
+    mode,
+    displayMode,
+    guideEvery,
+    rowDirection,
+    appliedSourceImage,
+    showAppliedSourceOverlay,
+    appliedSourceOverlayOpacity,
+    appliedSourceOverlayTransform,
+    appliedSourceTransformCss,
+    handleAppliedSourceOverlayPointerDown,
+    handleAppliedSourceOverlayPointerMove,
+    handleAppliedSourceOverlayPointerUp,
+    showOppositeHeaders,
+    completedRows,
+    progressRow,
+    progressMarks,
+    insertAnchorCell,
+    rowNumber,
+    colNumber,
+    handlePointerDown,
+    handlePointerEnter,
+    guideLineColor,
+    gridLineColor,
+    isAdjustingAppliedSourceOverlay
+  } = editor;
+  const CellElement = readOnly ? 'div' : 'button';
+  const showSourceOverlay = includeSourceOverlay && appliedSourceImage && showAppliedSourceOverlay;
+
+  return (
+    <div
+      className={`chart-grid mode-${mode}`}
+      style={{
+        '--rows': rows,
+        '--cols': cols,
+        '--cell': `${cellSize}px`,
+        '--guide-color': guideLineColor,
+        '--grid-line': gridLineColor || undefined
+      }}
+    >
+      {showSourceOverlay ? (
+        <div
+          className={`applied-source-overlay ${canEditSourceOverlay && isAdjustingAppliedSourceOverlay ? 'adjusting' : ''}`}
+          aria-hidden="true"
+          style={{
+            opacity: appliedSourceOverlayOpacity / 100,
+            transform: appliedSourceTransformCss
+          }}
+          onPointerDown={handleAppliedSourceOverlayPointerDown}
+          onPointerMove={handleAppliedSourceOverlayPointerMove}
+          onPointerUp={handleAppliedSourceOverlayPointerUp}
+          onPointerCancel={handleAppliedSourceOverlayPointerUp}
+        >
+          <img
+            src={appliedSourceImage.src}
+            alt=""
+            style={{
+              objectFit: appliedSourceImage.imageOptions.fit === 'stretch' ? 'fill' : appliedSourceImage.imageOptions.fit,
+              objectPosition: `${appliedSourceImage.imageOptions.alignX === 'left' ? 0 : appliedSourceImage.imageOptions.alignX === 'right' ? 100 : 50}% ${appliedSourceImage.imageOptions.alignY === 'top' ? 0 : appliedSourceImage.imageOptions.alignY === 'bottom' ? 100 : 50}%`
+            }}
+          />
+        </div>
+      ) : null}
+      <div className="corner top-left" />
+      <HeaderRow cols={cols} colNumber={colNumber} area="top" />
+      <div className="corner top-right" />
+      <HeaderColumn rows={rows} rowNumber={rowNumber} area="left" completedRows={completedRows} showCompleted={mode === 'progress'} />
+      <div className="cells" style={{ gridTemplateColumns: `repeat(${cols}, var(--cell))` }}>
+        {grid.map((row, r) =>
+          row.map((cell, c) => {
+            const actualRowNumber = rowNumber(r);
+            const guideRow = guideEvery > 0 && (rowDirection === 'bottom-up'
+              ? r < rows - 1 && (rows - 1 - r) % guideEvery === 0
+              : (r + 1) % guideEvery === 0);
+            const guideCol = guideEvery > 0 && (c + 1) % guideEvery === 0;
+            const progress = mode === 'progress' && actualRowNumber === progressRow;
+            const completed = mode === 'progress' && completedRows.has(actualRowNumber);
+            const progressMark = mode === 'progress' && progressMarks.has(`${r}:${c}`);
+            const display = resolveCellDisplay(cell, palette);
+            const shouldShowCell = cell.active && display.visible;
+            const isInsertAnchor = mode === 'edit' && insertAnchorCell.row === r && insertAnchorCell.col === c;
+            const cellProps = readOnly
+              ? { role: 'gridcell' }
+              : {
+                  onPointerDown: () => handlePointerDown(r, c),
+                  onPointerEnter: () => handlePointerEnter(r, c)
+                };
+
+            return (
+              <CellElement
+                key={`${r}-${c}`}
+                className={`cell ${cell.active ? 'filled' : ''} ${isInsertAnchor ? 'insert-anchor' : ''} ${!display.visible ? 'palette-hidden' : ''} ${guideRow ? 'guide-row' : ''} ${guideCol ? 'guide-col' : ''} ${progress ? 'progress-row' : ''} ${completed ? 'completed-row' : ''} ${progressMark ? 'progress-note' : ''}`}
+                style={{ background: shouldShowCell && displayMode !== 'code' ? display.color : '#fff' }}
+                title={`${actualRowNumber}행 ${colNumber(c)}열 ${shouldShowCell ? display.symbol || '빈 칸' : `${display.symbol || '색상'} 숨김`}`}
+                {...cellProps}
+              >
+                {shouldShowCell && displayMode !== 'color' ? (
+                  <span style={{ color: displayMode === 'code' || luminance(display.color) > 0.55 ? '#172033' : '#fff' }}>
+                    {display.symbol}
+                  </span>
+                ) : null}
+              </CellElement>
+            );
+          })
+        )}
+      </div>
+      {showOppositeHeaders ? <HeaderColumn rows={rows} rowNumber={rowNumber} area="right" completedRows={completedRows} showCompleted={mode === 'progress'} /> : <div />}
+      {showOppositeHeaders ? <div className="corner bottom-left" /> : <div />}
+      {showOppositeHeaders ? <HeaderRow cols={cols} colNumber={colNumber} area="bottom" /> : <div />}
+      {showOppositeHeaders ? <div className="corner bottom-right" /> : <div />}
+    </div>
   );
 }
 
@@ -312,13 +485,13 @@ function HeaderRow({ cols, colNumber, area }) {
   );
 }
 
-function HeaderColumn({ rows, rowNumber, area, completedRows }) {
+function HeaderColumn({ rows, rowNumber, area, completedRows, showCompleted }) {
   return (
     <div className={`header-column ${area}`}>
       {Array.from({ length: rows }, (_, index) => {
         const number = rowNumber(index);
         return (
-          <div key={index} className={completedRows.has(number) ? 'done' : ''}>
+          <div key={index} className={showCompleted && completedRows.has(number) ? 'done' : ''}>
             {number}
           </div>
         );

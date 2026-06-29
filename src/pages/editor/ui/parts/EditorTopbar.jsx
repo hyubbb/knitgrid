@@ -1,13 +1,19 @@
-import { Button, IconButton, SegmentedControl, TextField, Toolbar, Badge, ThemeToggle } from '../../../../components/index.js';
+import { Badge, Button, DropdownMenu, IconButton, SegmentedControl, TextField, ThemeToggle, Toolbar } from '../../../../components/index.js';
 import {
   Eye,
+  Download,
+  FileImage,
   FileText,
+  FolderOpen,
   Grid3X3,
+  ImagePlus,
+  MoreVertical,
   PenLine,
   Plus,
   Redo2,
   Rows3,
   Save,
+  Type,
   Undo2
 } from 'lucide-react';
 
@@ -27,8 +33,25 @@ export function EditorTopbar({ editor }) {
     future,
     undo,
     redo,
-    goToStartScreen
+    goToStartScreen,
+    fileInputRef,
+    projectInputRef,
+    prepareImageDraft,
+    openTextDraft,
+    loadProject,
+    exportPng,
+    exportPdf,
+    saveProject
   } = editor;
+
+  const fileMenuItems = [
+    { id: 'image-draft', label: '이미지로 초안 생성', icon: ImagePlus, onSelect: () => fileInputRef.current?.click() },
+    { id: 'text-draft', label: '텍스트로 초안 생성', icon: Type, onSelect: openTextDraft },
+    { id: 'open-json', label: '프로젝트 JSON 열기', icon: FolderOpen, onSelect: () => projectInputRef.current?.click() },
+    { id: 'export-png', label: 'PNG 내보내기', icon: FileImage, onSelect: exportPng },
+    { id: 'export-pdf', label: 'PDF 내보내기', icon: FileText, onSelect: exportPdf },
+    { id: 'export-json', label: 'JSON 내보내기', icon: Download, onSelect: saveProject }
+  ];
 
   return (
     <header className="topbar">
@@ -74,7 +97,10 @@ export function EditorTopbar({ editor }) {
         <Button variant="primary" icon={Save} onClick={saveCurrentLocalProject} disabled={localSaveState === 'saving'}>
           로컬 저장
         </Button>
+        <DropdownMenu label="가져오기 및 내보내기" icon={MoreVertical} items={fileMenuItems} />
       </Toolbar>
+      <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp" onChange={prepareImageDraft} hidden />
+      <input ref={projectInputRef} type="file" accept="application/json,.json" onChange={loadProject} hidden />
     </header>
   );
 }
