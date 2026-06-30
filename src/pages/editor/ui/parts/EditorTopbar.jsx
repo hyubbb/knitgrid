@@ -1,5 +1,7 @@
+import { useEffect, useRef, useState } from 'react';
 import { Badge, Button, DropdownMenu, IconButton, SegmentedControl, TextField, ThemeToggle, Toolbar } from '../../../../components/index.js';
 import {
+  ChevronDown,
   Eye,
   Download,
   FileImage,
@@ -7,6 +9,7 @@ import {
   FolderOpen,
   Grid3X3,
   ImagePlus,
+  Menu,
   MoreVertical,
   PenLine,
   Plus,
@@ -17,7 +20,13 @@ import {
   Undo2
 } from 'lucide-react';
 
-export function EditorTopbar({ editor }) {
+const MODE_ITEMS = [
+  { id: 'edit', label: '편집', icon: PenLine },
+  { id: 'preview', label: '미리보기', icon: Eye },
+  { id: 'progress', label: '진행', icon: Rows3 }
+];
+
+export function EditorTopbar({ editor, mobileDrawer, onOpenMobileDrawer }) {
   const {
     projectName,
     setProjectName,
@@ -43,6 +52,33 @@ export function EditorTopbar({ editor }) {
     exportPdf,
     saveProject
   } = editor;
+  const [mobileModeMenuOpen, setMobileModeMenuOpen] = useState(false);
+  const mobileModeRef = useRef(null);
+  const currentMode = MODE_ITEMS.find((item) => item.id === mode) ?? MODE_ITEMS[0];
+  const CurrentModeIcon = currentMode.icon;
+
+  useEffect(() => {
+    if (!mobileModeMenuOpen) return undefined;
+
+    const handlePointerDown = (event) => {
+      if (!mobileModeRef.current?.contains(event.target)) setMobileModeMenuOpen(false);
+    };
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') setMobileModeMenuOpen(false);
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [mobileModeMenuOpen]);
+
+  const selectMobileMode = (nextMode) => {
+    setMode(nextMode);
+    setMobileModeMenuOpen(false);
+  };
 
   const fileMenuItems = [
     { id: 'image-draft', label: '이미지로 초안 생성', icon: ImagePlus, onSelect: () => fileInputRef.current?.click() },
@@ -55,6 +91,59 @@ export function EditorTopbar({ editor }) {
 
   return (
     <header className="topbar">
+      <div className="mobile-topbar-controls">
+        <button
+          type="button"
+          className={mobileDrawer === 'tools' ? 'active' : ''}
+          onClick={() => onOpenMobileDrawer('tools')}
+          aria-label="왼쪽 도구 열기"
+          title="도구 열기"
+        >
+          <Menu size={18} />
+        </button>
+        <div className="mobile-mode-picker" ref={mobileModeRef}>
+          <button
+            type="button"
+            className="mobile-mode-trigger"
+            onClick={() => setMobileModeMenuOpen((value) => !value)}
+            aria-haspopup="menu"
+            aria-expanded={mobileModeMenuOpen}
+            aria-label="작업 모드 선택"
+          >
+            <CurrentModeIcon size={16} />
+            <span>{currentMode.label}</span>
+            <ChevronDown size={15} />
+          </button>
+          {mobileModeMenuOpen ? (
+            <div className="mobile-mode-menu" role="menu" aria-label="작업 모드">
+              {MODE_ITEMS.map((item) => {
+                const ItemIcon = item.icon;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    role="menuitem"
+                    className={item.id === mode ? 'active' : ''}
+                    onClick={() => selectMobileMode(item.id)}
+                  >
+                    <ItemIcon size={15} />
+                    <span>{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
+        </div>
+        <button
+          type="button"
+          className={mobileDrawer === 'inspector' ? 'active' : ''}
+          onClick={() => onOpenMobileDrawer('inspector')}
+          aria-label="오른쪽 설정 열기"
+          title="설정 열기"
+        >
+          <Menu size={18} />
+        </button>
+      </div>
       <div className="brand">
         <button
           type="button"
@@ -74,11 +163,7 @@ export function EditorTopbar({ editor }) {
       <SegmentedControl
         className="mode-tabs"
         ariaLabel="작업 모드"
-        items={[
-          { id: 'edit', label: '편집', icon: PenLine },
-          { id: 'preview', label: '미리보기', icon: Eye },
-          { id: 'progress', label: '진행', icon: Rows3 }
-        ]}
+        items={MODE_ITEMS}
         value={mode}
         onChange={setMode}
       />

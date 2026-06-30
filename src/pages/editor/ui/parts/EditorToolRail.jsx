@@ -2,7 +2,7 @@ import { ToolRail } from '../../../../components/index.js';
 import { Copy, Eye, RotateCcw, Trash2 } from 'lucide-react';
 import { TOOLS } from '../../../../app/model/knitgridModel.js';
 
-export function EditorToolRail({ editor }) {
+export function EditorToolRail({ editor, onMobileAction }) {
   const {
     tool,
     setTool,
@@ -29,20 +29,36 @@ export function EditorToolRail({ editor }) {
     <ToolRail
       items={TOOLS}
       value={tool}
-      onSelect={(id) => id === 'mirror' ? mirrorGrid() : setTool(id)}
+      onSelect={(id) => {
+        if (id === 'mirror') {
+          mirrorGrid();
+        } else {
+          setTool(id);
+        }
+        onMobileAction?.();
+      }}
       ariaLabel="편집 도구"
     >
-      <button onClick={rotateGrid} title="회전">
+      <button onClick={() => {
+        rotateGrid();
+        onMobileAction?.();
+      }} title="회전">
         <RotateCcw size={20} />
         <span>회전</span>
       </button>
-      <button onClick={copyRepeat} title="반복 복제">
+      <button onClick={() => {
+        copyRepeat();
+        onMobileAction?.();
+      }} title="반복 복제">
         <Copy size={20} />
         <span>반복</span>
       </button>
       {mode === 'progress' ? (
         <button
-          onClick={clearProgressMarks}
+          onClick={() => {
+            clearProgressMarks();
+            onMobileAction?.();
+          }}
           disabled={!progressMarks.size}
           title="진행 체크 전체 지우기"
         >
