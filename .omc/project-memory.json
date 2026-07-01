@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1782453059261,
+  "lastScanned": 1782789793632,
   "projectRoot": "/Users/benji/Desktop/questi/dev/knitgrid",
   "techStack": {
     "languages": [
@@ -65,7 +65,7 @@
       "path": "dist",
       "purpose": "Distribution/build output",
       "fileCount": 1,
-      "lastAccessed": 1782453059239,
+      "lastAccessed": 1782789793603,
       "keyFiles": [
         "index.html"
       ]
@@ -74,14 +74,21 @@
       "path": "docs",
       "purpose": "Documentation",
       "fileCount": 0,
-      "lastAccessed": 1782453059239,
+      "lastAccessed": 1782789793609,
+      "keyFiles": []
+    },
+    "insane-design": {
+      "path": "insane-design",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1782789793610,
       "keyFiles": []
     },
     "src": {
       "path": "src",
       "purpose": "Source code",
       "fileCount": 3,
-      "lastAccessed": 1782453059244,
+      "lastAccessed": 1782789793611,
       "keyFiles": [
         "App.jsx",
         "main.jsx",
@@ -92,25 +99,25 @@
       "path": "dist/assets",
       "purpose": "Static assets",
       "fileCount": 7,
-      "lastAccessed": 1782453059244,
+      "lastAccessed": 1782789793611,
       "keyFiles": [
-        "html2canvas-CbGeB_m1.js",
-        "index-CR6Gi3F2.css",
-        "index-CxMph4ei.js"
+        "html2canvas-DRDeDKrj.js",
+        "index-DV85f8_q.js",
+        "index-o_pVhItc.css"
       ]
     },
     "src/app": {
       "path": "src/app",
       "purpose": "Application code",
       "fileCount": 0,
-      "lastAccessed": 1782453059245,
+      "lastAccessed": 1782789793613,
       "keyFiles": []
     },
     "src/components": {
       "path": "src/components",
       "purpose": "UI components",
-      "fileCount": 21,
-      "lastAccessed": 1782453059245,
+      "fileCount": 23,
+      "lastAccessed": 1782789793613,
       "keyFiles": [
         "Badge.jsx",
         "Button.jsx",
@@ -121,7 +128,7 @@
       "path": "src/pages",
       "purpose": "Page components",
       "fileCount": 0,
-      "lastAccessed": 1782453059245,
+      "lastAccessed": 1782789793614,
       "keyFiles": []
     }
   },
