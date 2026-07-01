@@ -1,10 +1,10 @@
-import { ArrowLeft, ArrowRight, Settings2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Settings2, X } from 'lucide-react';
 import { InspectorPalettePanel } from './inspector/InspectorPalettePanel.jsx';
 import { InspectorProgressPanel } from './inspector/InspectorProgressPanel.jsx';
 import { InspectorSetupPanel } from './inspector/InspectorSetupPanel.jsx';
 import { InspectorViewPanel } from './inspector/InspectorViewPanel.jsx';
 
-export function EditorInspector({ editor }) {
+export function EditorInspector({ editor, onMobileClose }) {
   const {
     isInspectorCollapsed,
     setIsInspectorCollapsed,
@@ -14,14 +14,26 @@ export function EditorInspector({ editor }) {
   const isPreviewMode = mode === 'preview';
   const isProgressMode = mode === 'progress';
   const collapseAction = (
-    <button
-      className="icon-toggle"
-      onClick={() => setIsInspectorCollapsed(true)}
-      title="격자 설정 접기"
-      aria-label="격자 설정 접기"
-    >
-      <ArrowRight size={15} />
-    </button>
+    <>
+      <button
+        type="button"
+        className="icon-toggle desktop-inspector-collapse"
+        onClick={() => setIsInspectorCollapsed(true)}
+        title="오른쪽 설정 접기"
+        aria-label="오른쪽 설정 접기"
+      >
+        <ArrowRight size={15} />
+      </button>
+      <button
+        type="button"
+        className="icon-toggle mobile-inspector-close"
+        onClick={onMobileClose}
+        title="설정 닫기"
+        aria-label="설정 닫기"
+      >
+        <X size={15} />
+      </button>
+    </>
   );
 
   return (

@@ -57,7 +57,7 @@ export function EditorPage() {
       ) : null}
       <EditorToolRail editor={editor} onMobileAction={closeMobileDrawer} />
       <EditorCanvas editor={editor} />
-      <EditorInspector editor={editor} />
+      <EditorInspector editor={editor} onMobileClose={closeMobileDrawer} />
       <EditorModals editor={editor} />
       <EditorStatus editor={editor} />
     </div>
