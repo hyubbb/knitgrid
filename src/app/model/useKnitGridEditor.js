@@ -100,6 +100,7 @@ import {
   clampCellToGrid,
   hasPaintedCells,
   resizeGridKeepingContent,
+  resizeGridKeepingContentAligned,
   moveGridContent,
   insertGridRow,
   insertGridCol,
@@ -151,6 +152,12 @@ import {
 } from './knitgridModel.js';
 
 const progressMarkKey = (row, col) => `${row}:${col}`;
+
+const imageAlignmentToResizeAnchor = (alignment, startValue, endValue) => {
+  if (alignment === startValue) return 'start';
+  if (alignment === endValue) return 'end';
+  return 'center';
+};
 
 export function useKnitGridEditor() {
   const [rows, setRows] = useAtom(rowsAtom);
@@ -1003,7 +1010,12 @@ export function useKnitGridEditor() {
     const safeCols = Math.min(200, Math.max(1, Number(nextCols) || cols));
     pushHistory();
     const nextGrid = mode === 'keep'
-      ? resizeGridKeepingContent(grid, safeRows, safeCols)
+      ? appliedSourceImage
+        ? resizeGridKeepingContentAligned(grid, safeRows, safeCols, {
+            alignX: imageAlignmentToResizeAnchor(appliedSourceImage.imageOptions?.alignX, 'left', 'right'),
+            alignY: imageAlignmentToResizeAnchor(appliedSourceImage.imageOptions?.alignY, 'top', 'bottom')
+          })
+        : resizeGridKeepingContent(grid, safeRows, safeCols)
       : createGrid(safeRows, safeCols);
     applyGridStructure(nextGrid, safeRows, safeCols);
     setPendingResize(null);

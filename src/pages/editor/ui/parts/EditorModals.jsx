@@ -36,6 +36,7 @@ export function EditorModals({ editor }) {
     rows,
     commitGridResize,
     paintedCellCount,
+    appliedSourceImage,
     cropDraft,
     closeCropDraft,
     completeCropDraft,
@@ -173,7 +174,21 @@ export function EditorModals({ editor }) {
           <AlertTriangle size={20} />
           <div>
             <strong>그려진 칸 {paintedCellCount}개가 있습니다.</strong>
-            <p>그림을 유지하면 좌상단 기준으로 보존되고, 줄어드는 영역의 오른쪽/아래 칸은 잘립니다.</p>
+            <p>
+              {appliedSourceImage
+                ? '이미지 도안은 현재 이미지 정렬 기준으로 보존됩니다. 줄어들면 그 기준의 바깥쪽부터 잘리고, 늘어나면 반대쪽에 빈 칸이 생깁니다.'
+                : '그림을 유지하면 좌상단 기준으로 보존되고, 줄어드는 영역의 오른쪽/아래 칸은 잘립니다.'}
+            </p>
+            {appliedSourceImage && pendingResize ? (
+              <ResizeAlignPreview
+                curCols={cols}
+                curRows={rows}
+                nextCols={pendingResize.cols}
+                nextRows={pendingResize.rows}
+                alignX={appliedSourceImage.imageOptions?.alignX}
+                alignY={appliedSourceImage.imageOptions?.alignY}
+              />
+            ) : null}
           </div>
         </Modal>
       ) : null}
@@ -411,5 +426,56 @@ export function EditorModals({ editor }) {
       ) : null}
       <EditorTextDraftModal editor={editor} />
     </>
+  );
+}
+
+const alignLabel = (options, id) => options.find((item) => item.id === id)?.label ?? '중앙';
+const resizeAnchor = (id, endId) => (id === endId ? 'end' : id === 'center' ? 'center' : 'start');
+const anchorStart = (unionSize, size, anchor) =>
+  anchor === 'end' ? unionSize - size : anchor === 'center' ? (unionSize - size) / 2 : 0;
+
+// 리사이즈 시 정렬 기준으로 어디가 유지/잘림/빈칸이 되는지 보여주는 미니 다이어그램
+function ResizeAlignPreview({ curCols, curRows, nextCols, nextRows, alignX, alignY }) {
+  const ax = resizeAnchor(alignX, 'right');
+  const ay = resizeAnchor(alignY, 'bottom');
+  const uW = Math.max(curCols, nextCols);
+  const uH = Math.max(curRows, nextRows);
+  const cell = Math.max(4, Math.min(12, 116 / Math.max(uW, uH)));
+  const curX = anchorStart(uW, curCols, ax);
+  const nextX = anchorStart(uW, nextCols, ax);
+  const curY = anchorStart(uH, curRows, ay);
+  const nextY = anchorStart(uH, nextRows, ay);
+  const keepX = Math.max(curX, nextX);
+  const keepY = Math.max(curY, nextY);
+  const keepW = Math.max(0, Math.min(curX + curCols, nextX + nextCols) - keepX);
+  const keepH = Math.max(0, Math.min(curY + curRows, nextY + nextRows) - keepY);
+  const rect = (x, y, w, h, extra) => (
+    <span aria-hidden style={{ position: 'absolute', left: x * cell, top: y * cell, width: w * cell, height: h * cell, ...extra }} />
+  );
+  const hatch = 'repeating-linear-gradient(45deg, transparent 0 2px, var(--kg-line) 2px 3px)';
+  const swatch = { width: 10, height: 10, borderRadius: 2, display: 'inline-block' };
+  const legendItem = { display: 'inline-flex', alignItems: 'center', gap: 4 };
+  return (
+    <div style={{ marginTop: 10 }}>
+      <span
+        style={{
+          display: 'inline-block', padding: '3px 8px', borderRadius: 999,
+          background: 'var(--kg-teal-soft)', color: 'var(--kg-teal)', fontSize: 11, fontWeight: 800
+        }}
+      >
+        이미지 정렬: 가로 {alignLabel(HORIZONTAL_ALIGNMENTS, alignX)} · 세로 {alignLabel(VERTICAL_ALIGNMENTS, alignY)}
+      </span>
+      <div style={{ position: 'relative', width: uW * cell, height: uH * cell, marginTop: 8 }}>
+        {rect(curX, curY, curCols, curRows, { background: 'var(--kg-coral-soft)' })}
+        {rect(nextX, nextY, nextCols, nextRows, { backgroundImage: hatch })}
+        {keepW > 0 && keepH > 0 ? rect(keepX, keepY, keepW, keepH, { background: 'var(--kg-teal)', opacity: 0.85 }) : null}
+        {rect(nextX, nextY, nextCols, nextRows, { border: '2px solid var(--kg-teal)', borderRadius: 2 })}
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 8, fontSize: 11, fontWeight: 700, color: 'var(--kg-muted)' }}>
+        <span style={legendItem}><span style={{ ...swatch, background: 'var(--kg-teal)', opacity: 0.85 }} />유지</span>
+        <span style={legendItem}><span style={{ ...swatch, background: 'var(--kg-coral-soft)' }} />잘림</span>
+        <span style={legendItem}><span style={{ ...swatch, backgroundImage: hatch, border: '1px solid var(--kg-line)' }} />빈 칸(비어 있음)</span>
+      </div>
+    </div>
   );
 }

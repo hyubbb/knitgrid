@@ -1216,7 +1216,7 @@
   }
 
   .text-preview-frame {
-    @apply min-h-[320px];
+    @apply min-h-[320px] w-full min-w-0 max-w-full;
   }
 
   .text-preview-frame.zoomed {
@@ -1224,7 +1224,7 @@
   }
 
   .text-preview-scroll {
-    @apply relative size-full min-h-0 overflow-hidden;
+    @apply relative size-full min-h-0 min-w-0 overflow-hidden;
   }
 
   .text-preview-frame.zoomed .text-preview-scroll {

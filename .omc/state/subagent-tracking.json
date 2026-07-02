@@ -1,7 +1,62 @@
 {
-  "agents": [],
-  "total_spawned": 0,
-  "total_completed": 0,
+  "agents": [
+    {
+      "agent_id": "ad635b834ab360573",
+      "agent_type": "oh-my-claudecode:code-reviewer",
+      "started_at": "2026-07-02T03:30:05.281Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-07-02T03:31:23.040Z",
+      "duration_ms": 77759
+    },
+    {
+      "agent_id": "a4c145cc2dc52b065",
+      "agent_type": "Code Reviewer",
+      "started_at": "2026-07-02T05:07:30.976Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-07-02T05:13:29.158Z",
+      "duration_ms": 358182
+    },
+    {
+      "agent_id": "a449a136eade2b2b3",
+      "agent_type": "Frontend Developer",
+      "started_at": "2026-07-02T05:07:40.967Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-07-02T05:13:37.585Z",
+      "duration_ms": 356618
+    },
+    {
+      "agent_id": "a6c1cc70186c1beca",
+      "agent_type": "UX Researcher",
+      "started_at": "2026-07-02T05:22:37.135Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-07-02T05:24:39.761Z",
+      "duration_ms": 122626
+    },
+    {
+      "agent_id": "a15a550972ed8c183",
+      "agent_type": "UI Designer",
+      "started_at": "2026-07-02T05:22:42.322Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-07-02T05:27:48.152Z",
+      "duration_ms": 305830
+    },
+    {
+      "agent_id": "abc5757dd705161d0",
+      "agent_type": "Growth Hacker",
+      "started_at": "2026-07-02T05:22:46.802Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-07-02T05:26:35.655Z",
+      "duration_ms": 228853
+    }
+  ],
+  "total_spawned": 10,
+  "total_completed": 90,
   "total_failed": 0,
-  "last_updated": "2026-07-01T02:35:06.289Z"
+  "last_updated": "2026-07-02T06:00:32.675Z"
 }

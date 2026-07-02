@@ -34,12 +34,32 @@ export const clampCellToGrid = (cell, nextRows, nextCols) => ({
 
 export const hasPaintedCells = (grid) => grid.some((row) => row.some((cell) => cell.active));
 
-export const resizeGridKeepingContent = (grid, nextRows, nextCols) =>
-  Array.from({ length: nextRows }, (_, rowIndex) =>
-    Array.from({ length: nextCols }, (_, colIndex) =>
-      grid[rowIndex]?.[colIndex] ? { ...grid[rowIndex][colIndex] } : makeCell()
-    )
+const getAlignedResizeWindow = (currentSize, nextSize, alignment) => {
+  const delta = Math.abs(currentSize - nextSize);
+  const offset = alignment === 'end' ? delta : alignment === 'center' ? Math.floor(delta / 2) : 0;
+  return currentSize > nextSize
+    ? { sourceStart: offset, targetStart: 0 }
+    : { sourceStart: 0, targetStart: offset };
+};
+
+export const resizeGridKeepingContentAligned = (grid, nextRows, nextCols, options = {}) => {
+  const currentRows = grid.length;
+  const currentCols = grid[0]?.length ?? 0;
+  const vertical = getAlignedResizeWindow(currentRows, nextRows, options.alignY ?? 'center');
+  const horizontal = getAlignedResizeWindow(currentCols, nextCols, options.alignX ?? 'center');
+
+  return Array.from({ length: nextRows }, (_, rowIndex) =>
+    Array.from({ length: nextCols }, (_, colIndex) => {
+      const sourceRow = rowIndex - vertical.targetStart + vertical.sourceStart;
+      const sourceCol = colIndex - horizontal.targetStart + horizontal.sourceStart;
+      return grid[sourceRow]?.[sourceCol] ? { ...grid[sourceRow][sourceCol] } : makeCell();
+    })
   );
+};
+
+// 좌상단 고정 리사이즈 = 양축 'start' 정렬과 동일
+export const resizeGridKeepingContent = (grid, nextRows, nextCols) =>
+  resizeGridKeepingContentAligned(grid, nextRows, nextCols, { alignX: 'start', alignY: 'start' });
 
 export const moveGridContent = (grid, rowDelta, colDelta) => {
   const nextRows = grid.length;
