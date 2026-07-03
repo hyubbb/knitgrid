@@ -419,12 +419,12 @@
 
   .header-row div {
     @apply h-8 border-r border-[var(--kg-line)];
-    width: var(--cell);
+    width: var(--cell-w, var(--cell));
   }
 
   .header-column {
     @apply grid w-[38px] bg-[var(--kg-bg)];
-    grid-template-rows: repeat(var(--rows), var(--cell));
+    grid-template-rows: repeat(var(--rows), var(--cell-h, var(--cell)));
   }
 
   .header-column.left {
@@ -437,7 +437,7 @@
 
   .header-column div {
     @apply border-b border-[var(--kg-line)];
-    height: var(--cell);
+    height: var(--cell-h, var(--cell));
   }
 
   .header-column div.done {
@@ -452,8 +452,8 @@
     @apply pointer-events-none absolute z-[6] mix-blend-multiply;
     left: 38px;
     top: 32px;
-    width: calc(var(--cols) * var(--cell));
-    height: calc(var(--rows) * var(--cell));
+    width: calc(var(--cols) * var(--cell-w, var(--cell)));
+    height: calc(var(--rows) * var(--cell-h, var(--cell)));
     transform-origin: center center;
   }
 
@@ -467,10 +467,10 @@
 
   .cell {
     @apply relative grid place-items-center rounded-none border-0 border-b border-r border-[var(--kg-line)] p-0 leading-none;
-    width: var(--cell);
-    height: var(--cell);
-    min-width: var(--cell);
-    min-height: var(--cell);
+    width: var(--cell-w, var(--cell));
+    height: var(--cell-h, var(--cell));
+    min-width: var(--cell-w, var(--cell));
+    min-height: var(--cell-h, var(--cell));
   }
 
   .cell.guide-row {
@@ -515,6 +515,16 @@
   .mode-progress .cell.progress-row::after {
     @apply pointer-events-none absolute inset-x-0 border-y-2 border-[var(--kg-coral)] content-[""];
     inset-block: -1px;
+  }
+
+  .mode-progress .cell.progress-stitch {
+    @apply z-[4] outline outline-[3px] outline-offset-[-2px] outline-[var(--kg-teal)];
+  }
+
+  .mode-progress .cell.progress-stitch::before {
+    @apply pointer-events-none absolute z-[5] rounded-full bg-[var(--kg-teal)] content-[""];
+    inset: max(2px, calc(var(--cell) * 0.3));
+    box-shadow: 0 0 0 2px var(--kg-surface);
   }
 
   .inspector {
@@ -596,6 +606,98 @@
 
   .check-row input {
     @apply min-h-[15px] w-[15px] accent-[var(--kg-teal)];
+  }
+
+  .gauge-panel {
+    @apply pb-3;
+  }
+
+  .gauge-result {
+    @apply mx-3 mb-2.5 flex flex-col gap-1 rounded-lg border border-[var(--kg-line)] bg-[var(--kg-surface-soft)] px-3 py-2.5;
+  }
+
+  .gauge-result-label {
+    @apply text-[11px] font-bold text-[var(--kg-muted)];
+  }
+
+  .gauge-result strong {
+    @apply text-[13px] text-[var(--kg-ink)];
+  }
+
+  .gauge-hint {
+    @apply mx-3 mb-2.5 text-[11px] leading-relaxed text-[var(--kg-muted)];
+  }
+
+  .gauge-aspect-row {
+    @apply items-start;
+  }
+
+  .gauge-aspect-toggle {
+    @apply min-h-7 shrink-0 rounded-md border border-[var(--kg-line)] bg-[var(--kg-surface)] px-2.5 text-[11px] font-bold text-[var(--kg-muted)];
+  }
+
+  .gauge-aspect-toggle[aria-pressed="true"] {
+    @apply border-[var(--kg-teal)] bg-[var(--kg-teal-soft)] text-[var(--kg-teal)];
+  }
+
+  .gauge-aspect-toggle:disabled {
+    @apply cursor-not-allowed opacity-50;
+  }
+
+  .gauge-reverse-inputs {
+    @apply px-0 pb-0;
+  }
+
+  .gauge-reverse .gauge-result {
+    @apply mx-0;
+  }
+
+  .written-panel {
+    @apply pb-3;
+  }
+
+  .written-option {
+    @apply flex flex-col gap-1.5 px-3 pb-2.5;
+  }
+
+  .written-option-label {
+    @apply text-[11px] font-bold text-[var(--kg-muted)];
+  }
+
+  .written-tabs {
+    @apply grid grid-cols-2 gap-1.5;
+  }
+
+  .written-tabs button {
+    @apply min-h-8 rounded-[7px] border border-[var(--kg-line)] bg-[var(--kg-surface)] text-[12px] font-bold text-[var(--kg-muted)];
+  }
+
+  .written-tabs button.active {
+    @apply border-[var(--kg-teal)] bg-[var(--kg-teal-soft)] text-[var(--kg-teal)];
+  }
+
+  .written-hint {
+    @apply text-[11px] leading-relaxed text-[var(--kg-muted)];
+  }
+
+  .written-empty {
+    @apply mx-3 mb-2.5;
+  }
+
+  .written-preview {
+    @apply mx-3 mb-2.5 max-h-64 overflow-auto rounded-lg border border-[var(--kg-line)] bg-[var(--kg-surface-soft)] p-3;
+  }
+
+  .written-preview pre {
+    @apply whitespace-pre-wrap break-words font-mono text-[11px] leading-relaxed text-[var(--kg-ink)];
+  }
+
+  .written-actions {
+    @apply grid grid-cols-2 gap-2 px-3 pb-2.5;
+  }
+
+  .written-pdf-row {
+    @apply items-start;
   }
 
   .structure-panel {
@@ -807,6 +909,152 @@
 
   .row-chips button.current {
     @apply border-[var(--kg-coral)] bg-[var(--kg-coral-soft)] text-[var(--kg-coral)];
+  }
+
+  .stitch-counter {
+    @apply mx-3 mb-2.5 mt-1 flex flex-col gap-2 rounded-lg border border-[var(--kg-line)] bg-[var(--kg-surface-soft)] p-2.5;
+  }
+
+  .stitch-counter-head {
+    @apply flex items-baseline justify-between;
+  }
+
+  .stitch-counter-head span {
+    @apply text-[11px] font-bold text-[var(--kg-muted)];
+  }
+
+  .stitch-counter-head strong {
+    @apply text-[22px] leading-none text-[var(--kg-ink)];
+  }
+
+  .stitch-counter-head strong em {
+    @apply text-[13px] font-bold not-italic text-[var(--kg-muted)];
+  }
+
+  .stitch-counter-controls {
+    @apply flex items-center gap-2;
+  }
+
+  .stitch-counter-controls button {
+    @apply grid h-9 w-9 shrink-0 place-items-center rounded-md border border-[var(--kg-line-strong)] bg-[var(--kg-surface)] text-[var(--kg-ink)];
+  }
+
+  .stitch-counter-controls button:active {
+    @apply bg-[var(--kg-coral-soft)] text-[var(--kg-coral)];
+  }
+
+  .stitch-counter-bar {
+    @apply relative h-2 flex-1 overflow-hidden rounded-full bg-[var(--kg-line)];
+  }
+
+  .stitch-counter-bar span {
+    @apply absolute inset-y-0 left-0 rounded-full bg-[var(--kg-coral)] transition-[width] duration-150;
+  }
+
+  .stitch-counter .check-row {
+    @apply px-0 pb-0;
+  }
+
+  .stitch-auto-toggle,
+  .wake-lock-toggle {
+    @apply inline-flex min-h-7 shrink-0 items-center gap-1.5 rounded-md border border-[var(--kg-line)] bg-[var(--kg-surface)] px-2.5 text-[11px] font-bold text-[var(--kg-muted)];
+  }
+
+  .stitch-auto-toggle[aria-pressed="true"],
+  .wake-lock-toggle[aria-pressed="true"] {
+    @apply border-[var(--kg-teal)] bg-[var(--kg-teal-soft)] text-[var(--kg-teal)];
+  }
+
+  .stitch-counter-hint {
+    @apply text-[10px] leading-relaxed text-[var(--kg-muted)];
+  }
+
+  .wake-lock-row {
+    @apply items-start;
+  }
+
+  .wake-lock-unsupported {
+    @apply px-3 pb-2.5;
+  }
+
+  .progress-colors {
+    @apply mx-3 mb-2.5 flex flex-col gap-1.5 rounded-lg border border-[var(--kg-line)] bg-[var(--kg-surface-soft)] px-3 py-2.5;
+  }
+
+  .progress-colors-title {
+    @apply text-[11px] font-bold text-[var(--kg-muted)];
+  }
+
+  .progress-colors ul {
+    @apply flex flex-col gap-1;
+  }
+
+  .progress-colors li {
+    @apply flex items-center gap-2 text-[12px] text-[var(--kg-ink)];
+  }
+
+  .progress-colors-swatch {
+    @apply h-3.5 w-3.5 shrink-0 rounded-[3px] border border-[var(--kg-line-strong)];
+  }
+
+  .progress-colors-swatch.empty {
+    @apply bg-[var(--kg-surface)];
+  }
+
+  .progress-colors-label {
+    @apply flex-1 truncate font-bold;
+  }
+
+  .progress-colors-count {
+    @apply text-[11px] font-bold text-[var(--kg-muted)];
+  }
+
+  .progress-strip {
+    @apply flex items-center gap-3 overflow-x-auto border-b border-[var(--kg-line)] bg-[var(--kg-surface-soft)] px-3.5 py-2;
+  }
+
+  .progress-strip-lead {
+    @apply flex shrink-0 items-baseline gap-2;
+  }
+
+  .progress-strip-lead strong {
+    @apply text-[14px] text-[var(--kg-ink)];
+  }
+
+  .progress-strip-arrow {
+    @apply text-[15px] font-bold text-[var(--kg-teal)];
+  }
+
+  .progress-strip-count {
+    @apply text-[11px] font-bold text-[var(--kg-muted)];
+  }
+
+  .progress-strip-runs {
+    @apply flex items-center gap-1.5;
+  }
+
+  .progress-strip-run {
+    @apply inline-flex shrink-0 items-center gap-1 rounded-md border border-[var(--kg-line)] bg-[var(--kg-surface)] px-2 py-1 text-[11px] font-bold text-[var(--kg-ink)];
+  }
+
+  .progress-strip-run.active {
+    @apply border-[var(--kg-coral)] bg-[var(--kg-coral-soft)] text-[var(--kg-coral)] shadow-[0_0_0_1px_var(--kg-coral)];
+  }
+
+  .progress-strip-run.empty {
+    @apply text-[var(--kg-muted)];
+  }
+
+  .progress-strip-swatch {
+    @apply h-3 w-3 shrink-0 rounded-[3px] border border-[var(--kg-line-strong)];
+  }
+
+  .progress-strip-mult {
+    @apply text-[var(--kg-muted)];
+  }
+
+  .progress-strip-run.active .progress-strip-mult {
+    @apply text-[var(--kg-coral)];
   }
 
   .local-project-actions {

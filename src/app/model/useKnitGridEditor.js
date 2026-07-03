@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useAtom } from 'jotai';
 import { useTextDraftEditor } from './useTextDraftEditor.js';
+import { useWakeLock } from './useWakeLock.js';
 import {
   rowsAtom,
   colsAtom,
@@ -20,10 +21,19 @@ import {
   gridLineCustomColorAtom,
   numberStartAtom,
   rowDirectionAtom,
+  gaugeStitchesAtom,
+  gaugeRowsAtom,
+  cellAspectRatioAtom,
+  writtenKnitModeAtom,
+  writtenStartDirectionAtom,
+  writtenIncludeInPdfAtom,
   showOppositeHeadersAtom,
   currentCellAtom,
   insertAnchorCellAtom,
   progressRowAtom,
+  progressStitchAtom,
+  progressAutoAdvanceAtom,
+  wakeLockEnabledAtom,
   completedRowsAtom,
   progressMarksAtom,
   historyAtom,
@@ -148,7 +158,11 @@ import {
   FIT_OPTIONS,
   HORIZONTAL_ALIGNMENTS,
   VERTICAL_ALIGNMENTS,
-  getImagePlacement
+  getImagePlacement,
+  buildWrittenPatternLines,
+  buildWrittenPatternText,
+  buildWrittenPatternCanvases,
+  analyzeProgressRow
 } from './knitgridModel.js';
 
 const progressMarkKey = (row, col) => `${row}:${col}`;
@@ -178,10 +192,19 @@ export function useKnitGridEditor() {
   const [gridLineCustomColor, setGridLineCustomColor] = useAtom(gridLineCustomColorAtom);
   const [numberStart, setNumberStart] = useAtom(numberStartAtom);
   const [rowDirection, setRowDirection] = useAtom(rowDirectionAtom);
+  const [gaugeStitches, setGaugeStitches] = useAtom(gaugeStitchesAtom);
+  const [gaugeRows, setGaugeRows] = useAtom(gaugeRowsAtom);
+  const [cellAspectRatio, setCellAspectRatio] = useAtom(cellAspectRatioAtom);
+  const [writtenKnitMode, setWrittenKnitMode] = useAtom(writtenKnitModeAtom);
+  const [writtenStartDirection, setWrittenStartDirection] = useAtom(writtenStartDirectionAtom);
+  const [writtenIncludeInPdf, setWrittenIncludeInPdf] = useAtom(writtenIncludeInPdfAtom);
   const [showOppositeHeaders, setShowOppositeHeaders] = useAtom(showOppositeHeadersAtom);
   const [currentCell, setCurrentCell] = useAtom(currentCellAtom);
   const [insertAnchorCell, setInsertAnchorCell] = useAtom(insertAnchorCellAtom);
   const [progressRow, setProgressRow] = useAtom(progressRowAtom);
+  const [progressStitch, setProgressStitch] = useAtom(progressStitchAtom);
+  const [progressAutoAdvance, setProgressAutoAdvance] = useAtom(progressAutoAdvanceAtom);
+  const [wakeLockEnabled, setWakeLockEnabled] = useAtom(wakeLockEnabledAtom);
   const [completedRows, setCompletedRows] = useAtom(completedRowsAtom);
   const [progressMarks, setProgressMarks] = useAtom(progressMarksAtom);
   const [history, setHistory] = useAtom(historyAtom);
@@ -371,6 +394,34 @@ export function useKnitGridEditor() {
           ? normalizeHex(gridLineCustomColor) ?? '#c9ced6'
           : '';
 
+  // 게이지: 10cm당 코수/단수가 모두 양수일 때만 유효.
+  const hasGauge = gaugeStitches > 0 && gaugeRows > 0;
+  // 현재 격자 기준 완성 예상 치수(cm). 코 1개 = 10/코수 cm, 단 1개 = 10/단수 cm.
+  const finishedSize = hasGauge
+    ? { widthCm: (cols * 10) / gaugeStitches, heightCm: (rows * 10) / gaugeRows }
+    : null;
+  // 실제 코 비율 렌더링 스케일. 셀 가로:세로 = (10/코수):(10/단수) → 가로/세로 = 단수/코수.
+  // 넓이를 유지하도록 기하평균으로 정규화(면적 ≈ 기준 셀²)해 확대/축소 왜곡을 최소화한다.
+  const cellAspectActive = hasGauge && cellAspectRatio;
+  const cellAspectScale = useMemo(() => {
+    if (!cellAspectActive) return { w: 1, h: 1 };
+    const ratio = gaugeRows / gaugeStitches; // 가로/세로
+    const root = Math.sqrt(ratio);
+    return { w: root, h: 1 / root };
+  }, [cellAspectActive, gaugeRows, gaugeStitches]);
+
+  // 목표 치수(cm) → 필요한 격자 크기(코수 × 단수). 게이지 없으면 null.
+  const computeGridSizeForDimensions = useCallback(
+    (widthCm, heightCm) => {
+      if (!hasGauge) return null;
+      const nextCols = clampNumber(Math.round((Number(widthCm) * gaugeStitches) / 10), 1, 200);
+      const nextRows = clampNumber(Math.round((Number(heightCm) * gaugeRows) / 10), 1, 200);
+      if (!Number.isFinite(nextCols) || !Number.isFinite(nextRows)) return null;
+      return { cols: nextCols, rows: nextRows };
+    },
+    [gaugeRows, gaugeStitches, hasGauge]
+  );
+
   useEffect(() => {
     const scrollNode = gridScrollRef.current;
     if (!scrollNode) return undefined;
@@ -496,8 +547,19 @@ export function useKnitGridEditor() {
     gridLineColorMode,
     gridLineCustomColor,
     rowDirection,
-    numberStart
-  }), [activePaletteId, cols, displayMode, grid, guideColorMode, guideCustomColor, gridLineColorMode, gridLineCustomColor, numberStart, palette, projectName, rowDirection, rows]);
+    numberStart,
+    gaugeStitches: gaugeStitches || null,
+    gaugeRows: gaugeRows || null,
+    cellAspectRatio,
+    // 진행 상태(현재 행/코, 완료 행, 진행 체크, 자동 이동)를 함께 저장한다.
+    progress: {
+      row: progressRow,
+      stitch: progressStitch,
+      autoAdvance: progressAutoAdvance,
+      completedRows: [...completedRows].sort((a, b) => a - b),
+      marks: [...progressMarks]
+    }
+  }), [activePaletteId, cellAspectRatio, cols, completedRows, displayMode, gaugeRows, gaugeStitches, grid, guideColorMode, guideCustomColor, gridLineColorMode, gridLineCustomColor, numberStart, palette, progressAutoAdvance, progressMarks, progressRow, progressStitch, projectName, rowDirection, rows]);
 
   const applyProjectData = useCallback((data, options = {}) => {
     const loadedPalette = normalizePaletteItems(data.palette);
@@ -529,11 +591,20 @@ export function useKnitGridEditor() {
     setGridLineCustomColor(normalizeHex(data.gridLineCustomColor) || '#c9ced6');
     setRowDirection(data.rowDirection || 'bottom-up');
     setNumberStart(data.numberStart || 1);
+    // 게이지 필드가 없는 기존 프로젝트는 안전하게 미설정(0)/off 처리.
+    setGaugeStitches(Math.max(0, Number(data.gaugeStitches) || 0));
+    setGaugeRows(Math.max(0, Number(data.gaugeRows) || 0));
+    setCellAspectRatio(Boolean(data.cellAspectRatio));
     setCurrentCell((cell) => clampCellToGrid(cell, nextRows, nextCols));
     setInsertAnchorCell((cell) => clampCellToGrid(cell, nextRows, nextCols));
-    setProgressRow(data.numberStart || 1);
-    setCompletedRows(new Set());
-    setProgressMarks(new Set());
+    // 진행 상태 복원(게이지/서술형처럼 기존 프로젝트엔 없을 수 있어 안전한 기본값 사용).
+    const nextNumberStart = data.numberStart || 1;
+    const savedProgress = data.progress || {};
+    setProgressRow(clampNumber(Number(savedProgress.row) || nextNumberStart, nextNumberStart, nextNumberStart + nextRows - 1));
+    setProgressStitch(clampNumber(Number(savedProgress.stitch) || 1, 1, nextCols));
+    setProgressAutoAdvance(savedProgress.autoAdvance !== false);
+    setCompletedRows(new Set(Array.isArray(savedProgress.completedRows) ? savedProgress.completedRows : []));
+    setProgressMarks(new Set(Array.isArray(savedProgress.marks) ? savedProgress.marks : []));
     setHistory([]);
     setFuture([]);
     setPaletteNotice('');
@@ -591,9 +662,14 @@ export function useKnitGridEditor() {
     setDisplayMode('color-code');
     setRowDirection('bottom-up');
     setNumberStart(1);
+    setGaugeStitches(0);
+    setGaugeRows(0);
+    setCellAspectRatio(false);
     setCurrentCell({ row: 23, col: 17 });
     setInsertAnchorCell({ row: 23, col: 17 });
-    setProgressRow(17);
+    setProgressRow(1);
+    setProgressStitch(1);
+    setProgressAutoAdvance(true);
     setCompletedRows(new Set());
     setProgressMarks(new Set());
     setHistory([]);
@@ -850,10 +926,11 @@ export function useKnitGridEditor() {
       setCurrentCell(clampCellToGrid(nextCurrentCell, nextRows, nextCols));
       setInsertAnchorCell(clampCellToGrid(nextInsertAnchorCell, nextRows, nextCols));
       setProgressRow((value) => clampProgressRow(value, nextRows));
+      setProgressStitch((value) => clampNumber(value, 1, nextCols));
       setCompletedRows((value) => clampCompletedRows(value, nextRows));
       setProgressMarks(new Set());
     },
-    [clampCompletedRows, clampProgressRow, currentCell, insertAnchorCell, setProgressMarks]
+    [clampCompletedRows, clampProgressRow, currentCell, insertAnchorCell, setProgressMarks, setProgressStitch]
   );
 
   const updateProgressMark = useCallback(
@@ -873,6 +950,93 @@ export function useKnitGridEditor() {
   const clearProgressMarks = useCallback(() => {
     setProgressMarks(new Set());
   }, [setProgressMarks]);
+
+  const progressRowMin = numberStart;
+  const progressRowMax = numberStart + rows - 1;
+
+  // 진행 모드일 때만 현재 행을 읽기 순서로 분석(코 단위 스트립/색 요약/현재 코 위치용).
+  const currentRowAnalysis = useMemo(() => {
+    if (mode !== 'progress') return null;
+    return analyzeProgressRow({
+      grid,
+      palette,
+      rows,
+      cols,
+      rowNumber: progressRow,
+      rowDirection,
+      numberStart,
+      knitMode: writtenKnitMode,
+      startDirection: writtenStartDirection
+    });
+  }, [mode, grid, palette, rows, cols, progressRow, rowDirection, numberStart, writtenKnitMode, writtenStartDirection]);
+
+  // 현재 코가 위치한 격자 셀(강조 표시용). progressStitch는 1부터 시작.
+  const progressStitchCell = useMemo(() => {
+    if (!currentRowAnalysis) return null;
+    const cell = currentRowAnalysis.cells[clampNumber(progressStitch, 1, currentRowAnalysis.totalStitches) - 1];
+    if (!cell) return null;
+    return { row: currentRowAnalysis.rowIndex, col: cell.col };
+  }, [currentRowAnalysis, progressStitch]);
+
+  // 화면 꺼짐 방지: 진행 모드 + 사용자가 켠 경우에만 활성.
+  const wakeLock = useWakeLock(mode === 'progress' && wakeLockEnabled);
+
+  // 현재 행 변경(슬라이더/칩): 행을 옮기고 코 위치를 처음으로 되돌린다.
+  const handleProgressRowChange = useCallback((nextRow) => {
+    setProgressRow(clampNumber(Number(nextRow), progressRowMin, progressRowMax));
+    setProgressStitch(1);
+  }, [progressRowMin, progressRowMax, setProgressRow, setProgressStitch]);
+
+  const handleProgressStitchChange = useCallback((nextStitch) => {
+    setProgressStitch(clampNumber(Number(nextStitch), 1, cols));
+  }, [cols, setProgressStitch]);
+
+  const stitchForward = useCallback(() => {
+    setProgressStitch((previous) => {
+      const total = cols;
+      if (previous < total) return previous + 1;
+      // 행 끝: 자동 이동이 켜져 있고 다음 행이 있으면 다음 행 첫 코로.
+      if (progressAutoAdvance && progressRow < progressRowMax) {
+        setProgressRow((row) => clampNumber(row + 1, progressRowMin, progressRowMax));
+        return 1;
+      }
+      return total;
+    });
+  }, [cols, progressAutoAdvance, progressRow, progressRowMin, progressRowMax, setProgressRow, setProgressStitch]);
+
+  const stitchBackward = useCallback(() => {
+    setProgressStitch((previous) => {
+      if (previous > 1) return previous - 1;
+      // 행 처음: 자동 이동이 켜져 있고 이전 행이 있으면 이전 행 마지막 코로.
+      if (progressAutoAdvance && progressRow > progressRowMin) {
+        setProgressRow((row) => clampNumber(row - 1, progressRowMin, progressRowMax));
+        return cols;
+      }
+      return 1;
+    });
+  }, [cols, progressAutoAdvance, progressRow, progressRowMin, progressRowMax, setProgressRow, setProgressStitch]);
+
+  // 코 단위 키보드 조작. 입력 필드에 포커스가 있으면 무시한다.
+  useEffect(() => {
+    if (mode !== 'progress') return undefined;
+    const handleKeyDown = (event) => {
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      const target = event.target;
+      const tag = target?.tagName;
+      // 입력 필드(슬라이더 등)에 포커스가 있으면 무시. 코 카운터 버튼은 포커스를 잡지 않게 해
+      // 스페이스 이중 처리를 막는다(패널 버튼 onMouseDown preventDefault).
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable) return;
+      if (event.key === ' ' || event.key === 'Spacebar' || event.key === 'ArrowRight') {
+        event.preventDefault();
+        stitchForward();
+      } else if (event.key === 'ArrowLeft' || event.key === 'Backspace') {
+        event.preventDefault();
+        stitchBackward();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mode, stitchForward, stitchBackward]);
 
   const paintCell = useCallback(
     (row, col, selectedTool = tool, shouldRecord = true) => {
@@ -1020,6 +1184,7 @@ export function useKnitGridEditor() {
     applyGridStructure(nextGrid, safeRows, safeCols);
     setPendingResize(null);
     setProgressRow(numberStart);
+    setProgressStitch(1);
     setCompletedRows(new Set());
   };
 
@@ -1149,13 +1314,16 @@ export function useKnitGridEditor() {
   const colNumber = (colIndex) => colIndex + numberStart;
 
   const buildExportCanvas = ({ includeLegend = true, includeSymbols = true, includeHeaders = true } = {}) => {
-    const cell = 18;
+    const baseCell = 18;
+    // 종횡비 토글이 켜지면 export에도 실제 코 비율을 반영(가로/세로 셀 크기 분리).
+    const cellW = cellAspectActive ? baseCell * cellAspectScale.w : baseCell;
+    const cellH = cellAspectActive ? baseCell * cellAspectScale.h : baseCell;
     const header = includeHeaders ? 34 : 0;
     const margin = 18;
     const legendWidth = includeLegend ? 260 : 0;
     const canvas = document.createElement('canvas');
-    canvas.width = margin * 2 + header * 2 + cols * cell + legendWidth;
-    canvas.height = margin * 2 + header * 2 + rows * cell;
+    canvas.width = margin * 2 + header * 2 + cols * cellW + legendWidth;
+    canvas.height = margin * 2 + header * 2 + rows * cellH;
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1167,8 +1335,8 @@ export function useKnitGridEditor() {
     const chartY = margin;
     const ox = chartX + header;
     const oy = chartY + header;
-    const gridRight = ox + cols * cell;
-    const gridBottom = oy + rows * cell;
+    const gridRight = ox + cols * cellW;
+    const gridBottom = oy + rows * cellH;
 
     if (includeHeaders) {
       ctx.font = 'bold 12px Arial';
@@ -1185,45 +1353,45 @@ export function useKnitGridEditor() {
       ctx.strokeRect(gridRight, gridBottom, header, header);
 
       for (let c = 0; c < cols; c += 1) {
-        const x = ox + c * cell;
+        const x = ox + c * cellW;
         ctx.fillStyle = '#e9f1f8';
         ctx.strokeStyle = '#cbd5e1';
         ctx.lineWidth = 1;
-        ctx.fillRect(x, chartY, cell, header);
-        ctx.strokeRect(x, chartY, cell, header);
-        ctx.fillRect(x, gridBottom, cell, header);
-        ctx.strokeRect(x, gridBottom, cell, header);
+        ctx.fillRect(x, chartY, cellW, header);
+        ctx.strokeRect(x, chartY, cellW, header);
+        ctx.fillRect(x, gridBottom, cellW, header);
+        ctx.strokeRect(x, gridBottom, cellW, header);
         ctx.fillStyle = '#344054';
-        ctx.fillText(colNumber(c), x + cell / 2, chartY + header / 2);
-        ctx.fillText(colNumber(c), x + cell / 2, gridBottom + header / 2);
+        ctx.fillText(colNumber(c), x + cellW / 2, chartY + header / 2);
+        ctx.fillText(colNumber(c), x + cellW / 2, gridBottom + header / 2);
       }
       for (let r = 0; r < rows; r += 1) {
-        const y = oy + r * cell;
+        const y = oy + r * cellH;
         ctx.fillStyle = '#e9f1f8';
         ctx.strokeStyle = '#cbd5e1';
         ctx.lineWidth = 1;
-        ctx.fillRect(chartX, y, header, cell);
-        ctx.strokeRect(chartX, y, header, cell);
-        ctx.fillRect(gridRight, y, header, cell);
-        ctx.strokeRect(gridRight, y, header, cell);
+        ctx.fillRect(chartX, y, header, cellH);
+        ctx.strokeRect(chartX, y, header, cellH);
+        ctx.fillRect(gridRight, y, header, cellH);
+        ctx.strokeRect(gridRight, y, header, cellH);
         ctx.fillStyle = '#344054';
-        ctx.fillText(rowNumber(r), chartX + header / 2, y + cell / 2);
-        ctx.fillText(rowNumber(r), gridRight + header / 2, y + cell / 2);
+        ctx.fillText(rowNumber(r), chartX + header / 2, y + cellH / 2);
+        ctx.fillText(rowNumber(r), gridRight + header / 2, y + cellH / 2);
       }
     }
 
     grid.forEach((row, r) => {
       row.forEach((cellData, c) => {
-        const x = ox + c * cell;
-        const y = oy + r * cell;
+        const x = ox + c * cellW;
+        const y = oy + r * cellH;
         const display = resolveCellDisplay(cellData, palette);
         const shouldShowCell = cellData.active && display.visible;
         ctx.fillStyle = shouldShowCell ? display.color : '#ffffff';
-        ctx.fillRect(x, y, cell, cell);
+        ctx.fillRect(x, y, cellW, cellH);
         if (includeSymbols && shouldShowCell && display.symbol) {
           ctx.fillStyle = luminance(display.color) < 0.55 ? '#ffffff' : '#111827';
           ctx.font = '8px Arial';
-          ctx.fillText(display.symbol, x + cell / 2, y + cell / 2);
+          ctx.fillText(display.symbol, x + cellW / 2, y + cellH / 2);
         }
       });
     });
@@ -1232,7 +1400,7 @@ export function useKnitGridEditor() {
     for (let c = 0; c <= cols; c += 1) {
       const isGuideLine = c > 0 && c < cols && c % guideEvery === 0;
       if (!isGuideLine && gridLineColorMode === 'none') continue;
-      const x = ox + c * cell;
+      const x = ox + c * cellW;
       ctx.beginPath();
       ctx.strokeStyle = isGuideLine ? guideLineColor : (gridLineColor || '#aeb8c4');
       ctx.lineWidth = isGuideLine ? 2.2 : 0.9;
@@ -1244,7 +1412,7 @@ export function useKnitGridEditor() {
     for (let r = 0; r <= rows; r += 1) {
       const isGuideLine = r > 0 && r < rows && (rowDirection === 'bottom-up' ? (rows - r) % guideEvery === 0 : r % guideEvery === 0);
       if (!isGuideLine && gridLineColorMode === 'none') continue;
-      const y = oy + r * cell;
+      const y = oy + r * cellH;
       ctx.beginPath();
       ctx.strokeStyle = isGuideLine ? guideLineColor : (gridLineColor || '#aeb8c4');
       ctx.lineWidth = isGuideLine ? 2.2 : 0.9;
@@ -1286,6 +1454,39 @@ export function useKnitGridEditor() {
     link.click();
   };
 
+  // 현재 상태 + 서술형 옵션으로 줄별 텍스트를 만든다. overrides로 옵션을 임시 변경 가능.
+  const buildWrittenPattern = useCallback(
+    (overrides = {}) => {
+      const params = {
+        grid,
+        palette,
+        rows,
+        cols,
+        rowDirection,
+        numberStart,
+        projectName,
+        knitMode: writtenKnitMode,
+        startDirection: writtenStartDirection,
+        ...overrides
+      };
+      return {
+        lines: buildWrittenPatternLines(params),
+        text: buildWrittenPatternText(params)
+      };
+    },
+    [cols, grid, numberStart, palette, projectName, rowDirection, rows, writtenKnitMode, writtenStartDirection]
+  );
+
+  const downloadWrittenPatternText = useCallback(() => {
+    const { text } = buildWrittenPattern();
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const link = document.createElement('a');
+    link.download = `${projectName || 'knitgrid'}-서술형.txt`;
+    link.href = URL.createObjectURL(blob);
+    link.click();
+    URL.revokeObjectURL(link.href);
+  }, [buildWrittenPattern, projectName]);
+
   const exportPdf = async () => {
     const canvas = buildExportCanvas();
     const { jsPDF } = await import('jspdf');
@@ -1295,6 +1496,23 @@ export function useKnitGridEditor() {
       format: [canvas.width, canvas.height]
     });
     pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.width, canvas.height);
+
+    // 서술형 도안 포함 옵션: 한글이 깨지는 jsPDF 기본 폰트 대신 canvas 렌더 이미지를 페이지로 덧붙인다.
+    if (writtenIncludeInPdf) {
+      const { lines } = buildWrittenPattern();
+      const modeLabel = writtenKnitMode === 'round' ? '원통뜨기' : '평면뜨기';
+      const pages = buildWrittenPatternCanvases(lines, {
+        title: `${projectName || '도안'} — 서술형 도안`,
+        subtitle: `${cols} x ${rows}칸 · ${modeLabel} · 총 ${lines.length}행`
+      });
+      pages.forEach((pageCanvas) => {
+        const pageW = pageCanvas.width / 2;
+        const pageH = pageCanvas.height / 2;
+        pdf.addPage([pageW, pageH], pageW > pageH ? 'landscape' : 'portrait');
+        pdf.addImage(pageCanvas.toDataURL('image/png'), 'PNG', 0, 0, pageW, pageH);
+      });
+    }
+
     pdf.save(`${projectName || 'knitgrid'}.pdf`);
   };
 
@@ -1606,6 +1824,25 @@ export function useKnitGridEditor() {
     setNumberStart,
     rowDirection,
     setRowDirection,
+    gaugeStitches,
+    setGaugeStitches,
+    gaugeRows,
+    setGaugeRows,
+    cellAspectRatio,
+    setCellAspectRatio,
+    writtenKnitMode,
+    setWrittenKnitMode,
+    writtenStartDirection,
+    setWrittenStartDirection,
+    writtenIncludeInPdf,
+    setWrittenIncludeInPdf,
+    buildWrittenPattern,
+    downloadWrittenPatternText,
+    hasGauge,
+    finishedSize,
+    cellAspectActive,
+    cellAspectScale,
+    computeGridSizeForDimensions,
     showOppositeHeaders,
     setShowOppositeHeaders,
     currentCell,
@@ -1615,6 +1852,22 @@ export function useKnitGridEditor() {
     progressRow,
     progressMarks,
     setProgressRow,
+    progressStitch,
+    setProgressStitch,
+    progressAutoAdvance,
+    setProgressAutoAdvance,
+    progressRowMin,
+    progressRowMax,
+    currentRowAnalysis,
+    progressStitchCell,
+    handleProgressRowChange,
+    handleProgressStitchChange,
+    stitchForward,
+    stitchBackward,
+    wakeLockEnabled,
+    setWakeLockEnabled,
+    wakeLockSupported: wakeLock.supported,
+    wakeLockStatus: wakeLock.status,
     completedRows,
     setCompletedRows,
     history,

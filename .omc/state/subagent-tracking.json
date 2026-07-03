@@ -53,10 +53,73 @@
       "status": "completed",
       "completed_at": "2026-07-02T05:26:35.655Z",
       "duration_ms": 228853
+    },
+    {
+      "agent_id": "ab6e12b00acc52906",
+      "agent_type": "Trend Researcher",
+      "started_at": "2026-07-03T01:57:41.210Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-07-03T01:59:23.985Z",
+      "duration_ms": 102775
+    },
+    {
+      "agent_id": "a00e68eb6accb5a2e",
+      "agent_type": "Product Manager",
+      "started_at": "2026-07-03T01:57:42.965Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-07-03T01:58:47.230Z",
+      "duration_ms": 64265
+    },
+    {
+      "agent_id": "atrend-research-1cf03a71412acb6b",
+      "agent_type": "trend-research",
+      "started_at": "2026-07-03T01:54:18.232Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-07-03T01:57:58.018Z",
+      "duration_ms": 219786
+    },
+    {
+      "agent_id": "apm-analysis-833b756d76646c80",
+      "agent_type": "pm-analysis",
+      "started_at": "2026-07-03T01:54:35.477Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-07-03T01:58:03.152Z",
+      "duration_ms": 207675
+    },
+    {
+      "agent_id": "afeat-gauge-0cf02134f5533341",
+      "agent_type": "feat-gauge",
+      "started_at": "2026-07-03T02:07:17.527Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-07-03T02:20:34.743Z",
+      "duration_ms": 797216
+    },
+    {
+      "agent_id": "afeat-written-77bef14ec68798fc",
+      "agent_type": "feat-written",
+      "started_at": "2026-07-03T02:21:23.109Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-07-03T02:27:58.193Z",
+      "duration_ms": 395084
+    },
+    {
+      "agent_id": "afeat-progress-83a1d8498ea69944",
+      "agent_type": "feat-progress",
+      "started_at": "2026-07-03T02:28:56.482Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-07-03T02:43:26.082Z",
+      "duration_ms": 869600
     }
   ],
-  "total_spawned": 10,
-  "total_completed": 90,
+  "total_spawned": 19,
+  "total_completed": 170,
   "total_failed": 0,
-  "last_updated": "2026-07-02T08:10:03.235Z"
+  "last_updated": "2026-07-03T02:47:32.405Z"
 }

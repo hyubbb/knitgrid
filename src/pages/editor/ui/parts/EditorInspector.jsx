@@ -1,8 +1,10 @@
 import { ArrowLeft, ArrowRight, Settings2, X } from 'lucide-react';
+import { InspectorGaugePanel } from './inspector/InspectorGaugePanel.jsx';
 import { InspectorPalettePanel } from './inspector/InspectorPalettePanel.jsx';
 import { InspectorProgressPanel } from './inspector/InspectorProgressPanel.jsx';
 import { InspectorSetupPanel } from './inspector/InspectorSetupPanel.jsx';
 import { InspectorViewPanel } from './inspector/InspectorViewPanel.jsx';
+import { InspectorWrittenPanel } from './inspector/InspectorWrittenPanel.jsx';
 
 export function EditorInspector({ editor, onMobileClose }) {
   const {
@@ -53,6 +55,8 @@ export function EditorInspector({ editor, onMobileClose }) {
           {isEditMode ? <InspectorSetupPanel editor={editor} action={collapseAction} /> : null}
           {isPreviewMode ? <InspectorViewPanel editor={editor} title="미리보기 설정" action={collapseAction} /> : null}
           {isProgressMode ? <InspectorViewPanel editor={editor} title="진행 보기 설정" action={collapseAction} /> : null}
+          {isEditMode || isPreviewMode ? <InspectorGaugePanel editor={editor} editable={isEditMode} /> : null}
+          {isEditMode || isPreviewMode ? <InspectorWrittenPanel editor={editor} /> : null}
           <InspectorPalettePanel editor={editor} editable={isEditMode} />
           {isProgressMode ? <InspectorProgressPanel editor={editor} /> : null}
         </>

@@ -66,6 +66,8 @@ export function EditorCanvas({ editor }) {
     completedRows,
     progressRow,
     progressMarks,
+    progressStitch,
+    currentRowAnalysis,
     insertAnchorCell,
     rowNumber,
     colNumber,
@@ -74,12 +76,15 @@ export function EditorCanvas({ editor }) {
   } = editor;
   const canEditSourceOverlay = mode === 'edit';
   const canFitWholePreview = mode === 'preview';
+  const { w: cellWScale, h: cellHScale } = editor.cellAspectScale;
+  // 종횡비가 켜지면 확대되는 축을 기준으로 기준 셀을 줄여 전체보기가 화면에 담기도록 한다.
+  const cellAspectMaxScale = Math.max(cellWScale, cellHScale);
   const [isFullscreenPreviewOpen, setIsFullscreenPreviewOpen] = useState(false);
   const [fullscreenCellSize, setFullscreenCellSize] = useState(() => getFullscreenPreviewCellSize(rows, cols));
   const fullscreenCloseButtonRef = useRef(null);
 
   const openFullscreenPreview = () => {
-    setFullscreenCellSize(getFullscreenPreviewCellSize(rows, cols));
+    setFullscreenCellSize(getFullscreenPreviewCellSize(rows, cols, cellAspectMaxScale));
     setIsFullscreenPreviewOpen(true);
   };
 
@@ -87,7 +92,7 @@ export function EditorCanvas({ editor }) {
     if (!isFullscreenPreviewOpen) return undefined;
 
     const previousOverflow = document.body.style.overflow;
-    const updateFullscreenCellSize = () => setFullscreenCellSize(getFullscreenPreviewCellSize(rows, cols));
+    const updateFullscreenCellSize = () => setFullscreenCellSize(getFullscreenPreviewCellSize(rows, cols, cellAspectMaxScale));
     const closeOnEscape = (event) => {
       if (event.key === 'Escape') setIsFullscreenPreviewOpen(false);
     };
@@ -106,7 +111,7 @@ export function EditorCanvas({ editor }) {
       window.removeEventListener('keydown', closeOnEscape);
       window.visualViewport?.removeEventListener('resize', updateFullscreenCellSize);
     };
-  }, [isFullscreenPreviewOpen, rows, cols]);
+  }, [isFullscreenPreviewOpen, rows, cols, cellAspectMaxScale]);
 
   return (
     <main className="workspace">
@@ -288,11 +293,17 @@ export function EditorCanvas({ editor }) {
           </div>
         ) : null}
 
+        {mode === 'progress' && currentRowAnalysis ? (
+          <ProgressRowStrip analysis={currentRowAnalysis} progressRow={progressRow} progressStitch={progressStitch} />
+        ) : null}
+
         <div ref={gridScrollRef} className={`grid-scroll mode-${mode}`}>
           <ChartGrid
             editor={editor}
             cellSize={Math.round((zoom / 100) * CANVAS_BASE_CELL_SIZE)}
             canEditSourceOverlay={canEditSourceOverlay}
+            cellWScale={cellWScale}
+            cellHScale={cellHScale}
           />
         </div>
       </section>
@@ -325,6 +336,8 @@ export function EditorCanvas({ editor }) {
                 cellSize={fullscreenCellSize}
                 canEditSourceOverlay={false}
                 includeSourceOverlay={false}
+                cellWScale={cellWScale}
+                cellHScale={cellHScale}
                 readOnly
               />
             </div>
@@ -335,7 +348,7 @@ export function EditorCanvas({ editor }) {
   );
 }
 
-function getFullscreenPreviewCellSize(rows, cols) {
+function getFullscreenPreviewCellSize(rows, cols, maxScale = 1) {
   if (typeof window === 'undefined' || rows <= 0 || cols <= 0) return 8;
 
   const viewportWidth = window.visualViewport?.width ?? window.innerWidth;
@@ -345,7 +358,10 @@ function getFullscreenPreviewCellSize(rows, cols) {
   const overlayReservedHeight = compactViewport ? 92 : 112;
   const availableWidth = Math.max(1, viewportWidth - overlayPaddingX - CHART_FIXED_WIDTH);
   const availableHeight = Math.max(1, viewportHeight - overlayReservedHeight - CHART_FIXED_HEIGHT);
-  const fitCellSize = Math.floor(Math.min(availableWidth / cols, availableHeight / rows));
+  // 종횡비 확대분(maxScale)을 미리 나눠 확대된 축도 화면 안에 들어오게 한다.
+  const scaledCols = cols * maxScale;
+  const scaledRows = rows * maxScale;
+  const fitCellSize = Math.floor(Math.min(availableWidth / scaledCols, availableHeight / scaledRows));
 
   return Math.min(FULLSCREEN_MAX_CELL_SIZE, Math.max(FULLSCREEN_MIN_CELL_SIZE, fitCellSize));
 }
@@ -355,6 +371,8 @@ function ChartGrid({
   cellSize,
   canEditSourceOverlay,
   includeSourceOverlay = true,
+  cellWScale = 1,
+  cellHScale = 1,
   readOnly = false
 }) {
   const {
@@ -378,6 +396,7 @@ function ChartGrid({
     completedRows,
     progressRow,
     progressMarks,
+    progressStitchCell,
     insertAnchorCell,
     rowNumber,
     colNumber,
@@ -397,6 +416,8 @@ function ChartGrid({
         '--rows': rows,
         '--cols': cols,
         '--cell': `${cellSize}px`,
+        '--cell-w': `${cellSize * cellWScale}px`,
+        '--cell-h': `${cellSize * cellHScale}px`,
         '--guide-color': guideLineColor,
         '--grid-line': gridLineColor || undefined
       }}
@@ -428,7 +449,7 @@ function ChartGrid({
       <HeaderRow cols={cols} colNumber={colNumber} area="top" />
       <div className="corner top-right" />
       <HeaderColumn rows={rows} rowNumber={rowNumber} area="left" completedRows={completedRows} showCompleted={mode === 'progress'} />
-      <div className="cells" style={{ gridTemplateColumns: `repeat(${cols}, var(--cell))` }}>
+      <div className="cells" style={{ gridTemplateColumns: `repeat(${cols}, var(--cell-w, var(--cell)))` }}>
         {grid.map((row, r) =>
           row.map((cell, c) => {
             const actualRowNumber = rowNumber(r);
@@ -439,6 +460,7 @@ function ChartGrid({
             const progress = mode === 'progress' && actualRowNumber === progressRow;
             const completed = mode === 'progress' && completedRows.has(actualRowNumber);
             const progressMark = mode === 'progress' && progressMarks.has(`${r}:${c}`);
+            const stitchHere = mode === 'progress' && progressStitchCell && progressStitchCell.row === r && progressStitchCell.col === c;
             const display = resolveCellDisplay(cell, palette);
             const shouldShowCell = cell.active && display.visible;
             const isInsertAnchor = mode === 'edit' && insertAnchorCell.row === r && insertAnchorCell.col === c;
@@ -452,7 +474,7 @@ function ChartGrid({
             return (
               <CellElement
                 key={`${r}-${c}`}
-                className={`cell ${cell.active ? 'filled' : ''} ${isInsertAnchor ? 'insert-anchor' : ''} ${!display.visible ? 'palette-hidden' : ''} ${guideRow ? 'guide-row' : ''} ${guideCol ? 'guide-col' : ''} ${progress ? 'progress-row' : ''} ${completed ? 'completed-row' : ''} ${progressMark ? 'progress-note' : ''}`}
+                className={`cell ${cell.active ? 'filled' : ''} ${isInsertAnchor ? 'insert-anchor' : ''} ${!display.visible ? 'palette-hidden' : ''} ${guideRow ? 'guide-row' : ''} ${guideCol ? 'guide-col' : ''} ${progress ? 'progress-row' : ''} ${completed ? 'completed-row' : ''} ${progressMark ? 'progress-note' : ''} ${stitchHere ? 'progress-stitch' : ''}`}
                 style={{ background: shouldShowCell && displayMode !== 'code' ? display.color : '#fff' }}
                 title={`${actualRowNumber}행 ${colNumber(c)}열 ${shouldShowCell ? display.symbol || '빈 칸' : `${display.symbol || '색상'} 숨김`}`}
                 {...cellProps}
@@ -477,10 +499,40 @@ function ChartGrid({
 
 function HeaderRow({ cols, colNumber, area }) {
   return (
-    <div className={`header-row ${area}`} style={{ gridTemplateColumns: `repeat(${cols}, var(--cell))` }}>
+    <div className={`header-row ${area}`} style={{ gridTemplateColumns: `repeat(${cols}, var(--cell-w, var(--cell)))` }}>
       {Array.from({ length: cols }, (_, index) => (
         <div key={index}>{colNumber(index)}</div>
       ))}
+    </div>
+  );
+}
+
+// 진행 모드: 현재 행을 색상 run 단위로 요약한 가로 스트립. 현재 코가 속한 run을 강조.
+function ProgressRowStrip({ analysis, progressRow, progressStitch }) {
+  const { runs, arrow, totalStitches } = analysis;
+  return (
+    <div className="progress-strip" aria-label={`${progressRow}행 코 구성`}>
+      <div className="progress-strip-lead">
+        <strong>{progressRow}행</strong>
+        <span className="progress-strip-arrow" title={analysis.ltr ? '왼쪽→오른쪽' : '오른쪽→왼쪽'}>{arrow}</span>
+        <span className="progress-strip-count">{progressStitch} / {totalStitches}코</span>
+      </div>
+      <div className="progress-strip-runs">
+        {runs.map((run, index) => {
+          const active = progressStitch >= run.startOrdinal && progressStitch <= run.endOrdinal;
+          return (
+            <span
+              key={index}
+              className={`progress-strip-run ${run.empty ? 'empty' : ''} ${active ? 'active' : ''}`}
+              title={`${run.empty ? '빈칸' : `${run.code} ${run.name}`.trim()} ${run.count}코 (${run.startOrdinal}~${run.endOrdinal})`}
+            >
+              {run.empty ? null : <span className="progress-strip-swatch" style={{ background: run.color }} />}
+              <span className="progress-strip-label">{run.empty ? '빈칸' : run.code || run.name || '색상'}</span>
+              <span className="progress-strip-mult">×{run.count}</span>
+            </span>
+          );
+        })}
+      </div>
     </div>
   );
 }

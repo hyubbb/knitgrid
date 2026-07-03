@@ -1,7 +1,7 @@
 {
-  "tool_name": "mcp__claude-in-chrome__find",
-  "tool_input_preview": "{\"query\":\"텍스트로 초안 생성 메뉴 또는 버튼\",\"tabId\":783891882}",
-  "error": "The accessibility tree does not contain any menu or button with text matching \"텍스트로 초안 생성\" (Generate draft from text). The page appears to be a knitting/pattern grid editor (KnitGrid) with tools for editing, drawing, filling, and managing grid layouts, but no text-to-draft generation feature is visible in the current accessibility tree.",
-  "timestamp": "2026-07-02T06:22:37.647Z",
+  "tool_name": "mcp__chrome-devtools__take_snapshot",
+  "tool_input_preview": "{}",
+  "error": "Error: The selected page has been closed. Call list_pages to see open pages.",
+  "timestamp": "2026-07-03T02:38:51.674Z",
   "retry_count": 1
 }

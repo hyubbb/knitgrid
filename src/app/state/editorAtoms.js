@@ -25,10 +25,25 @@ export const gridLineColorModeAtom = atom('default');
 export const gridLineCustomColorAtom = atom('#c9ced6');
 export const numberStartAtom = atom(1);
 export const rowDirectionAtom = atom('bottom-up');
+// 게이지: 10cm당 코수(가로), 10cm당 단수(세로). 0 = 미설정.
+export const gaugeStitchesAtom = atom(0);
+export const gaugeRowsAtom = atom(0);
+// 게이지 기반 실제 코 비율로 셀을 렌더링할지 여부.
+export const cellAspectRatioAtom = atom(false);
+// 서술형 도안: 뜨기 방식(flat=평면/round=원통)과 첫 행 진행 방향(rtl/ltr), PDF 포함 여부.
+export const writtenKnitModeAtom = atom('flat');
+export const writtenStartDirectionAtom = atom('rtl');
+export const writtenIncludeInPdfAtom = atom(false);
 export const showOppositeHeadersAtom = atom(true);
 export const currentCellAtom = atom({ row: 23, col: 17 });
 export const insertAnchorCellAtom = atom({ row: 23, col: 17 });
 export const progressRowAtom = atom(17);
+// 현재 행 안에서 진행 중인 코 위치(1부터, 읽기 순서 기준).
+export const progressStitchAtom = atom(1);
+// 행 끝(마지막 코)에 도달하면 다음 행으로 자동 이동할지 여부.
+export const progressAutoAdvanceAtom = atom(true);
+// 진행 모드에서 화면 꺼짐 방지(Wake Lock) 사용 여부.
+export const wakeLockEnabledAtom = atom(true);
 export const completedRowsAtom = atom(new Set([1, 2, 3, 4, 5]));
 export const progressMarksAtom = atom(new Set());
 export const historyAtom = atom([]);

@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-02T08:10:03.133Z",
+  "updatedAt": "2026-07-03T02:47:32.304Z",
   "missions": [
     {
       "id": "session:ca1daab2-24e4-4e62-9be4-4a7bc589f994:none",
@@ -7,7 +7,7 @@
       "name": "none",
       "objective": "Session mission",
       "createdAt": "2026-07-02T03:20:20.617Z",
-      "updatedAt": "2026-07-02T03:27:42.355Z",
+      "updatedAt": "2026-07-03T02:40:37.618Z",
       "status": "done",
       "workerCount": 1,
       "taskCounts": {
@@ -27,7 +27,7 @@
           "currentStep": null,
           "latestUpdate": "completed",
           "completedSummary": null,
-          "updatedAt": "2026-07-02T03:27:42.355Z"
+          "updatedAt": "2026-07-03T02:40:37.618Z"
         }
       ],
       "timeline": [
@@ -118,6 +118,14 @@
           "agent": "statusline-setup:ab06af7",
           "detail": "completed",
           "sourceKey": "session-stop:a64ad38365821959e"
+        },
+        {
+          "id": "session-stop:ae243080747c950b1:2026-07-03T02:40:37.618Z",
+          "at": "2026-07-03T02:40:37.618Z",
+          "kind": "completion",
+          "agent": "statusline-setup:ab06af7",
+          "detail": "completed",
+          "sourceKey": "session-stop:ae243080747c950b1"
         }
       ]
     },
@@ -920,6 +928,400 @@
           "agent": "code-reviewer:ad635b8",
           "detail": "completed",
           "sourceKey": "session-stop:a4eb42226977a5eef"
+        }
+      ]
+    },
+    {
+      "id": "session:2e9151f3-d256-4aea-a9a5-07dfab2ee298:none",
+      "source": "session",
+      "name": "none",
+      "objective": "Session mission",
+      "createdAt": "2026-07-03T01:53:56.052Z",
+      "updatedAt": "2026-07-03T01:59:23.985Z",
+      "status": "done",
+      "workerCount": 2,
+      "taskCounts": {
+        "total": 2,
+        "pending": 0,
+        "blocked": 0,
+        "inProgress": 0,
+        "completed": 2,
+        "failed": 0
+      },
+      "agents": [
+        {
+          "name": "Trend Researcher:ab6e12b",
+          "role": "Trend Researcher",
+          "ownership": "ab6e12b00acc52906",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-07-03T01:59:23.985Z"
+        },
+        {
+          "name": "Product Manager:a00e68e",
+          "role": "Product Manager",
+          "ownership": "a00e68eb6accb5a2e",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-07-03T01:58:47.230Z"
+        }
+      ],
+      "timeline": [
+        {
+          "id": "session-stop:ab6e12b00acc52906:2026-07-03T01:57:29.033Z",
+          "at": "2026-07-03T01:57:29.033Z",
+          "kind": "completion",
+          "agent": "Trend Researcher:ab6e12b",
+          "detail": "completed",
+          "sourceKey": "session-stop:ab6e12b00acc52906"
+        },
+        {
+          "id": "session-start:ab6e12b00acc52906:2026-07-03T01:57:41.210Z",
+          "at": "2026-07-03T01:57:41.210Z",
+          "kind": "update",
+          "agent": "Trend Researcher:ab6e12b",
+          "detail": "started Trend Researcher:ab6e12b",
+          "sourceKey": "session-start:ab6e12b00acc52906"
+        },
+        {
+          "id": "session-start:a00e68eb6accb5a2e:2026-07-03T01:57:42.965Z",
+          "at": "2026-07-03T01:57:42.965Z",
+          "kind": "update",
+          "agent": "Product Manager:a00e68e",
+          "detail": "started Product Manager:a00e68e",
+          "sourceKey": "session-start:a00e68eb6accb5a2e"
+        },
+        {
+          "id": "session-stop:a00e68eb6accb5a2e:2026-07-03T01:58:23.205Z",
+          "at": "2026-07-03T01:58:23.205Z",
+          "kind": "completion",
+          "agent": "Product Manager:a00e68e",
+          "detail": "completed",
+          "sourceKey": "session-stop:a00e68eb6accb5a2e"
+        },
+        {
+          "id": "session-stop:a00e68eb6accb5a2e:2026-07-03T01:58:26.915Z",
+          "at": "2026-07-03T01:58:26.915Z",
+          "kind": "completion",
+          "agent": "Product Manager:a00e68e",
+          "detail": "completed",
+          "sourceKey": "session-stop:a00e68eb6accb5a2e"
+        },
+        {
+          "id": "session-stop:a00e68eb6accb5a2e:2026-07-03T01:58:30.922Z",
+          "at": "2026-07-03T01:58:30.922Z",
+          "kind": "completion",
+          "agent": "Product Manager:a00e68e",
+          "detail": "completed",
+          "sourceKey": "session-stop:a00e68eb6accb5a2e"
+        },
+        {
+          "id": "session-stop:a00e68eb6accb5a2e:2026-07-03T01:58:32.995Z",
+          "at": "2026-07-03T01:58:32.995Z",
+          "kind": "completion",
+          "agent": "Product Manager:a00e68e",
+          "detail": "completed",
+          "sourceKey": "session-stop:a00e68eb6accb5a2e"
+        },
+        {
+          "id": "session-stop:a00e68eb6accb5a2e:2026-07-03T01:58:35.552Z",
+          "at": "2026-07-03T01:58:35.552Z",
+          "kind": "completion",
+          "agent": "Product Manager:a00e68e",
+          "detail": "completed",
+          "sourceKey": "session-stop:a00e68eb6accb5a2e"
+        },
+        {
+          "id": "session-stop:a00e68eb6accb5a2e:2026-07-03T01:58:42.559Z",
+          "at": "2026-07-03T01:58:42.559Z",
+          "kind": "completion",
+          "agent": "Product Manager:a00e68e",
+          "detail": "completed",
+          "sourceKey": "session-stop:a00e68eb6accb5a2e"
+        },
+        {
+          "id": "session-stop:a00e68eb6accb5a2e:2026-07-03T01:58:44.096Z",
+          "at": "2026-07-03T01:58:44.096Z",
+          "kind": "completion",
+          "agent": "Product Manager:a00e68e",
+          "detail": "completed",
+          "sourceKey": "session-stop:a00e68eb6accb5a2e"
+        },
+        {
+          "id": "session-stop:a00e68eb6accb5a2e:2026-07-03T01:58:45.705Z",
+          "at": "2026-07-03T01:58:45.705Z",
+          "kind": "completion",
+          "agent": "Product Manager:a00e68e",
+          "detail": "completed",
+          "sourceKey": "session-stop:a00e68eb6accb5a2e"
+        },
+        {
+          "id": "session-stop:a00e68eb6accb5a2e:2026-07-03T01:58:47.230Z",
+          "at": "2026-07-03T01:58:47.230Z",
+          "kind": "completion",
+          "agent": "Product Manager:a00e68e",
+          "detail": "completed",
+          "sourceKey": "session-stop:a00e68eb6accb5a2e"
+        },
+        {
+          "id": "session-stop:ab6e12b00acc52906:2026-07-03T01:59:00.720Z",
+          "at": "2026-07-03T01:59:00.720Z",
+          "kind": "completion",
+          "agent": "Trend Researcher:ab6e12b",
+          "detail": "completed",
+          "sourceKey": "session-stop:ab6e12b00acc52906"
+        },
+        {
+          "id": "session-stop:ab6e12b00acc52906:2026-07-03T01:59:09.029Z",
+          "at": "2026-07-03T01:59:09.029Z",
+          "kind": "completion",
+          "agent": "Trend Researcher:ab6e12b",
+          "detail": "completed",
+          "sourceKey": "session-stop:ab6e12b00acc52906"
+        },
+        {
+          "id": "session-stop:ab6e12b00acc52906:2026-07-03T01:59:12.153Z",
+          "at": "2026-07-03T01:59:12.153Z",
+          "kind": "completion",
+          "agent": "Trend Researcher:ab6e12b",
+          "detail": "completed",
+          "sourceKey": "session-stop:ab6e12b00acc52906"
+        },
+        {
+          "id": "session-stop:ab6e12b00acc52906:2026-07-03T01:59:14.813Z",
+          "at": "2026-07-03T01:59:14.813Z",
+          "kind": "completion",
+          "agent": "Trend Researcher:ab6e12b",
+          "detail": "completed",
+          "sourceKey": "session-stop:ab6e12b00acc52906"
+        },
+        {
+          "id": "session-stop:ab6e12b00acc52906:2026-07-03T01:59:16.260Z",
+          "at": "2026-07-03T01:59:16.260Z",
+          "kind": "completion",
+          "agent": "Trend Researcher:ab6e12b",
+          "detail": "completed",
+          "sourceKey": "session-stop:ab6e12b00acc52906"
+        },
+        {
+          "id": "session-stop:ab6e12b00acc52906:2026-07-03T01:59:18.798Z",
+          "at": "2026-07-03T01:59:18.798Z",
+          "kind": "completion",
+          "agent": "Trend Researcher:ab6e12b",
+          "detail": "completed",
+          "sourceKey": "session-stop:ab6e12b00acc52906"
+        },
+        {
+          "id": "session-stop:ab6e12b00acc52906:2026-07-03T01:59:21.036Z",
+          "at": "2026-07-03T01:59:21.036Z",
+          "kind": "completion",
+          "agent": "Trend Researcher:ab6e12b",
+          "detail": "completed",
+          "sourceKey": "session-stop:ab6e12b00acc52906"
+        },
+        {
+          "id": "session-stop:ab6e12b00acc52906:2026-07-03T01:59:22.536Z",
+          "at": "2026-07-03T01:59:22.536Z",
+          "kind": "completion",
+          "agent": "Trend Researcher:ab6e12b",
+          "detail": "completed",
+          "sourceKey": "session-stop:ab6e12b00acc52906"
+        },
+        {
+          "id": "session-stop:ab6e12b00acc52906:2026-07-03T01:59:23.985Z",
+          "at": "2026-07-03T01:59:23.985Z",
+          "kind": "completion",
+          "agent": "Trend Researcher:ab6e12b",
+          "detail": "completed",
+          "sourceKey": "session-stop:ab6e12b00acc52906"
+        }
+      ]
+    },
+    {
+      "id": "session:e06a579c-6bb4-411e-9dc7-a5aac7fd9f49:none",
+      "source": "session",
+      "name": "none",
+      "objective": "Session mission",
+      "createdAt": "2026-07-03T01:54:18.232Z",
+      "updatedAt": "2026-07-03T02:47:32.304Z",
+      "status": "done",
+      "workerCount": 5,
+      "taskCounts": {
+        "total": 5,
+        "pending": 0,
+        "blocked": 0,
+        "inProgress": 0,
+        "completed": 5,
+        "failed": 0
+      },
+      "agents": [
+        {
+          "name": "trend-research:atrend-",
+          "role": "trend-research",
+          "ownership": "atrend-research-1cf03a71412acb6b",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-07-03T02:47:32.304Z"
+        },
+        {
+          "name": "pm-analysis:apm-ana",
+          "role": "pm-analysis",
+          "ownership": "apm-analysis-833b756d76646c80",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-07-03T01:58:03.152Z"
+        },
+        {
+          "name": "feat-gauge:afeat-g",
+          "role": "feat-gauge",
+          "ownership": "afeat-gauge-0cf02134f5533341",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-07-03T02:20:34.743Z"
+        },
+        {
+          "name": "feat-written:afeat-w",
+          "role": "feat-written",
+          "ownership": "afeat-written-77bef14ec68798fc",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-07-03T02:27:58.193Z"
+        },
+        {
+          "name": "feat-progress:afeat-p",
+          "role": "feat-progress",
+          "ownership": "afeat-progress-83a1d8498ea69944",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-07-03T02:43:26.082Z"
+        }
+      ],
+      "timeline": [
+        {
+          "id": "session-stop:afeat-written-77bef14ec68798fc:2026-07-03T02:27:53.936Z",
+          "at": "2026-07-03T02:27:53.936Z",
+          "kind": "completion",
+          "agent": "feat-written:afeat-w",
+          "detail": "completed",
+          "sourceKey": "session-stop:afeat-written-77bef14ec68798fc"
+        },
+        {
+          "id": "session-stop:afeat-written-77bef14ec68798fc:2026-07-03T02:27:58.193Z",
+          "at": "2026-07-03T02:27:58.193Z",
+          "kind": "completion",
+          "agent": "feat-written:afeat-w",
+          "detail": "completed",
+          "sourceKey": "session-stop:afeat-written-77bef14ec68798fc"
+        },
+        {
+          "id": "session-start:afeat-progress-83a1d8498ea69944:2026-07-03T02:28:56.482Z",
+          "at": "2026-07-03T02:28:56.482Z",
+          "kind": "update",
+          "agent": "feat-progress:afeat-p",
+          "detail": "started feat-progress:afeat-p",
+          "sourceKey": "session-start:afeat-progress-83a1d8498ea69944"
+        },
+        {
+          "id": "session-stop:a898b45c8678689d5:2026-07-03T02:32:10.123Z",
+          "at": "2026-07-03T02:32:10.123Z",
+          "kind": "completion",
+          "agent": "trend-research:atrend-",
+          "detail": "completed",
+          "sourceKey": "session-stop:a898b45c8678689d5"
+        },
+        {
+          "id": "session-stop:afeat-progress-83a1d8498ea69944:2026-07-03T02:42:53.559Z",
+          "at": "2026-07-03T02:42:53.559Z",
+          "kind": "completion",
+          "agent": "feat-progress:afeat-p",
+          "detail": "completed",
+          "sourceKey": "session-stop:afeat-progress-83a1d8498ea69944"
+        },
+        {
+          "id": "session-stop:afeat-progress-83a1d8498ea69944:2026-07-03T02:43:00.921Z",
+          "at": "2026-07-03T02:43:00.921Z",
+          "kind": "completion",
+          "agent": "feat-progress:afeat-p",
+          "detail": "completed",
+          "sourceKey": "session-stop:afeat-progress-83a1d8498ea69944"
+        },
+        {
+          "id": "session-stop:afeat-progress-83a1d8498ea69944:2026-07-03T02:43:09.033Z",
+          "at": "2026-07-03T02:43:09.033Z",
+          "kind": "completion",
+          "agent": "feat-progress:afeat-p",
+          "detail": "completed",
+          "sourceKey": "session-stop:afeat-progress-83a1d8498ea69944"
+        },
+        {
+          "id": "session-stop:afeat-progress-83a1d8498ea69944:2026-07-03T02:43:12.949Z",
+          "at": "2026-07-03T02:43:12.949Z",
+          "kind": "completion",
+          "agent": "feat-progress:afeat-p",
+          "detail": "completed",
+          "sourceKey": "session-stop:afeat-progress-83a1d8498ea69944"
+        },
+        {
+          "id": "session-stop:afeat-progress-83a1d8498ea69944:2026-07-03T02:43:15.725Z",
+          "at": "2026-07-03T02:43:15.725Z",
+          "kind": "completion",
+          "agent": "feat-progress:afeat-p",
+          "detail": "completed",
+          "sourceKey": "session-stop:afeat-progress-83a1d8498ea69944"
+        },
+        {
+          "id": "session-stop:afeat-progress-83a1d8498ea69944:2026-07-03T02:43:18.933Z",
+          "at": "2026-07-03T02:43:18.933Z",
+          "kind": "completion",
+          "agent": "feat-progress:afeat-p",
+          "detail": "completed",
+          "sourceKey": "session-stop:afeat-progress-83a1d8498ea69944"
+        },
+        {
+          "id": "session-stop:afeat-progress-83a1d8498ea69944:2026-07-03T02:43:21.808Z",
+          "at": "2026-07-03T02:43:21.808Z",
+          "kind": "completion",
+          "agent": "feat-progress:afeat-p",
+          "detail": "completed",
+          "sourceKey": "session-stop:afeat-progress-83a1d8498ea69944"
+        },
+        {
+          "id": "session-stop:afeat-progress-83a1d8498ea69944:2026-07-03T02:43:24.061Z",
+          "at": "2026-07-03T02:43:24.061Z",
+          "kind": "completion",
+          "agent": "feat-progress:afeat-p",
+          "detail": "completed",
+          "sourceKey": "session-stop:afeat-progress-83a1d8498ea69944"
+        },
+        {
+          "id": "session-stop:afeat-progress-83a1d8498ea69944:2026-07-03T02:43:26.082Z",
+          "at": "2026-07-03T02:43:26.082Z",
+          "kind": "completion",
+          "agent": "feat-progress:afeat-p",
+          "detail": "completed",
+          "sourceKey": "session-stop:afeat-progress-83a1d8498ea69944"
+        },
+        {
+          "id": "session-stop:affb3fdaa2b98036a:2026-07-03T02:47:32.304Z",
+          "at": "2026-07-03T02:47:32.304Z",
+          "kind": "completion",
+          "agent": "trend-research:atrend-",
+          "detail": "completed",
+          "sourceKey": "session-stop:affb3fdaa2b98036a"
         }
       ]
     }
