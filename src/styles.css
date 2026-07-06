@@ -377,7 +377,7 @@
   }
 
   .grid-scroll {
-    @apply grid min-h-0 overflow-hidden p-7;
+    @apply grid min-h-0 overflow-auto p-7;
     place-items: center;
     grid-row: 3;
     background:
@@ -388,7 +388,7 @@
 
   .grid-scroll.tool-pan {
     cursor: grab;
-    touch-action: none;
+    touch-action: auto;
   }
 
   .grid-scroll.tool-pan:active {
