@@ -81,11 +81,60 @@ export function EditorCanvas({ editor }) {
   const cellAspectMaxScale = Math.max(cellWScale, cellHScale);
   const [isFullscreenPreviewOpen, setIsFullscreenPreviewOpen] = useState(false);
   const [fullscreenCellSize, setFullscreenCellSize] = useState(() => getFullscreenPreviewCellSize(rows, cols));
+  const [isCanvasPanMode, setIsCanvasPanMode] = useState(false);
+  const [isCanvasPanDragging, setIsCanvasPanDragging] = useState(false);
   const fullscreenCloseButtonRef = useRef(null);
+  const canvasPanRef = useRef(null);
 
   const openFullscreenPreview = () => {
     setFullscreenCellSize(getFullscreenPreviewCellSize(rows, cols, cellAspectMaxScale));
     setIsFullscreenPreviewOpen(true);
+  };
+
+  const toggleCanvasPanMode = () => {
+    setIsCanvasPanMode((value) => {
+      const nextValue = !value;
+      if (nextValue) setIsAdjustingAppliedSourceOverlay(false);
+      return nextValue;
+    });
+  };
+
+  const startCanvasPan = (event) => {
+    if (!isCanvasPanMode || event.button !== 0) return;
+    const scrollNode = event.currentTarget;
+    canvasPanRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      scrollLeft: scrollNode.scrollLeft,
+      scrollTop: scrollNode.scrollTop
+    };
+    setIsCanvasPanDragging(true);
+    scrollNode.setPointerCapture(event.pointerId);
+    event.preventDefault();
+    event.stopPropagation();
+  };
+
+  const moveCanvasPan = (event) => {
+    const pan = canvasPanRef.current;
+    if (!pan || pan.pointerId !== event.pointerId) return;
+    const scrollNode = event.currentTarget;
+    scrollNode.scrollLeft = pan.scrollLeft - (event.clientX - pan.startX);
+    scrollNode.scrollTop = pan.scrollTop - (event.clientY - pan.startY);
+    event.preventDefault();
+    event.stopPropagation();
+  };
+
+  const stopCanvasPan = (event) => {
+    const pan = canvasPanRef.current;
+    if (!pan || pan.pointerId !== event.pointerId) return;
+    canvasPanRef.current = null;
+    setIsCanvasPanDragging(false);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    event.preventDefault();
+    event.stopPropagation();
   };
 
   useEffect(() => {
@@ -123,6 +172,17 @@ export function EditorCanvas({ editor }) {
           </div>
           <div className="canvas-zoom-actions">
             <Slider min={CANVAS_MIN_ZOOM} max={CANVAS_MAX_ZOOM} value={zoom} onChange={setZoom} leftIcon={ZoomOut} rightIcon={ZoomIn} valueLabel={`${zoom}%`} />
+            <button
+              className={`canvas-pan-button ${isCanvasPanMode ? 'active' : ''}`}
+              type="button"
+              onClick={toggleCanvasPanMode}
+              aria-pressed={isCanvasPanMode}
+              title="격자 화면 이동"
+              aria-label={isCanvasPanMode ? '격자 화면 이동 끄기' : '격자 화면 이동 켜기'}
+            >
+              <Hand size={14} />
+              화면 이동
+            </button>
             {canFitWholePreview ? (
               <button
                 className="canvas-fit-button"
@@ -154,7 +214,11 @@ export function EditorCanvas({ editor }) {
             {canEditSourceOverlay ? (
               <button
                 className={isAdjustingAppliedSourceOverlay ? 'active' : ''}
-                onClick={() => setIsAdjustingAppliedSourceOverlay((value) => !value)}
+                onClick={() => setIsAdjustingAppliedSourceOverlay((value) => {
+                  const nextValue = !value;
+                  if (nextValue) setIsCanvasPanMode(false);
+                  return nextValue;
+                })}
                 disabled={!appliedSourceImage || !showAppliedSourceOverlay}
                 title="원본 위치와 크기 조정"
               >
@@ -297,13 +361,21 @@ export function EditorCanvas({ editor }) {
           <ProgressRowStrip analysis={currentRowAnalysis} progressRow={progressRow} progressStitch={progressStitch} />
         ) : null}
 
-        <div ref={gridScrollRef} className={`grid-scroll mode-${mode}`}>
+        <div
+          ref={gridScrollRef}
+          className={`grid-scroll mode-${mode} ${isCanvasPanMode ? 'pan-enabled' : ''} ${isCanvasPanDragging ? 'is-panning' : ''}`}
+          onPointerDown={startCanvasPan}
+          onPointerMove={moveCanvasPan}
+          onPointerUp={stopCanvasPan}
+          onPointerCancel={stopCanvasPan}
+        >
           <ChartGrid
             editor={editor}
             cellSize={Math.round((zoom / 100) * CANVAS_BASE_CELL_SIZE)}
             canEditSourceOverlay={canEditSourceOverlay}
             cellWScale={cellWScale}
             cellHScale={cellHScale}
+            isCanvasPanning={isCanvasPanMode}
           />
         </div>
       </section>
@@ -373,6 +445,7 @@ function ChartGrid({
   includeSourceOverlay = true,
   cellWScale = 1,
   cellHScale = 1,
+  isCanvasPanning = false,
   readOnly = false
 }) {
   const {
@@ -406,7 +479,7 @@ function ChartGrid({
     gridLineColor,
     isAdjustingAppliedSourceOverlay
   } = editor;
-  const CellElement = readOnly ? 'div' : 'button';
+  const CellElement = readOnly || isCanvasPanning ? 'div' : 'button';
   const showSourceOverlay = includeSourceOverlay && appliedSourceImage && showAppliedSourceOverlay;
 
   return (
@@ -464,7 +537,7 @@ function ChartGrid({
             const display = resolveCellDisplay(cell, palette);
             const shouldShowCell = cell.active && display.visible;
             const isInsertAnchor = mode === 'edit' && insertAnchorCell.row === r && insertAnchorCell.col === c;
-            const cellProps = readOnly
+            const cellProps = readOnly || isCanvasPanning
               ? { role: 'gridcell' }
               : {
                   onPointerDown: () => handlePointerDown(r, c),

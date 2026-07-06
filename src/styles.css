@@ -291,12 +291,18 @@
     @apply flex flex-wrap items-center gap-2;
   }
 
-  .canvas-fit-button {
+  .canvas-fit-button,
+  .canvas-pan-button {
     @apply inline-flex min-h-8 items-center justify-center gap-1.5 rounded-md border border-[var(--kg-line)] bg-[var(--kg-surface)] px-2.5 text-[12px] font-extrabold text-[var(--kg-ink)];
   }
 
-  .canvas-fit-button:hover {
+  .canvas-fit-button:hover,
+  .canvas-pan-button:hover {
     @apply border-[var(--kg-line-strong)] bg-[var(--kg-surface-soft)];
+  }
+
+  .canvas-pan-button.active {
+    @apply border-[var(--kg-teal)] bg-[var(--kg-teal-soft)] text-[var(--kg-teal)];
   }
 
   .source-overlay-control {
@@ -371,6 +377,22 @@
       linear-gradient(var(--kg-gridline) 1px, transparent 1px),
       var(--kg-bg);
     background-size: 32px 32px;
+  }
+
+  .grid-scroll.pan-enabled {
+    @apply cursor-grab select-none;
+    touch-action: none;
+  }
+
+  .grid-scroll.pan-enabled .chart-grid,
+  .grid-scroll.pan-enabled .cell {
+    @apply cursor-grab;
+  }
+
+  .grid-scroll.is-panning,
+  .grid-scroll.is-panning .chart-grid,
+  .grid-scroll.is-panning .cell {
+    @apply cursor-grabbing;
   }
 
   .chart-grid {
