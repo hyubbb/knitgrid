@@ -1,4 +1,5 @@
 import { createGrid } from '../../../entities/grid/model/gridModel.js';
+import { parseNumericInput } from '../../../shared/lib/number.js';
 
 export const TEXT_MAX_CHARS = 80;
 export const TEXT_MAX_LINES = 4;
@@ -63,8 +64,7 @@ export const sanitizeTextDraftValue = (value) => {
 };
 
 export const normalizeTextGridSize = (value, fallback) => {
-  const nextValue = Number(value);
-  if (!Number.isFinite(nextValue)) return fallback;
+  const nextValue = parseNumericInput(value, fallback);
   return Math.min(TEXT_GRID_MAX_SIZE, Math.max(TEXT_GRID_MIN_SIZE, Math.round(nextValue)));
 };
 

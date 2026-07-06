@@ -347,7 +347,7 @@
     @apply min-w-[74px] max-w-[84px] flex-none;
   }
 
-  .source-overlay-stepper input[type="number"] {
+  .source-overlay-stepper input {
     @apply h-7 min-h-7 px-1.5 text-center;
   }
 
@@ -364,7 +364,8 @@
   }
 
   .grid-scroll {
-    @apply grid min-h-0 overflow-auto p-7;
+    @apply grid min-h-0 overflow-hidden p-7;
+    place-items: center;
     grid-row: 3;
     background:
       linear-gradient(90deg, var(--kg-gridline) 1px, transparent 1px),
@@ -373,9 +374,19 @@
     background-size: 32px 32px;
   }
 
+  .grid-scroll.tool-pan {
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .grid-scroll.tool-pan:active {
+    cursor: grabbing;
+  }
+
   .chart-grid {
     @apply relative grid w-max items-start overflow-visible rounded-md border border-[var(--kg-line-strong)] bg-[var(--kg-surface)] shadow-[0_18px_45px_rgba(0,0,0,0.13)];
     margin: auto;
+    will-change: transform;
     grid-template-columns: 38px max-content 38px;
     grid-template-rows: 32px max-content 32px;
   }

@@ -134,12 +134,10 @@ import {
   normalizePercentCrop,
   convertPercentCropToImageCrop,
   IMAGE_PALETTE_MODES,
-  IMAGE_SAMPLE_SCALE,
   IMAGE_EXTRACT_COLOR_LIMIT,
   IMAGE_COLOR_WARNING_DISTANCE,
   IMAGE_CANDIDATE_CONFIGS,
   getImageColorName,
-  shouldIgnoreImageArtifactPixel,
   getColorBucketKey,
   extractDominantImageColors,
   createPaletteFromImageColors,
@@ -243,7 +241,6 @@ export function useKnitGridEditor() {
   const fileInputRef = useRef(null);
   const projectInputRef = useRef(null);
   const backupInputRef = useRef(null);
-  const gridScrollRef = useRef(null);
 
   // URL ?project= 동기화 (네이티브 History API). project: null=시작화면, 'new'=새 도안, id=로컬 도안
   const navigateToProject = useCallback((project, { replace = false } = {}) => {
@@ -421,18 +418,6 @@ export function useKnitGridEditor() {
     },
     [gaugeRows, gaugeStitches, hasGauge]
   );
-
-  useEffect(() => {
-    const scrollNode = gridScrollRef.current;
-    if (!scrollNode) return undefined;
-
-    const frame = requestAnimationFrame(() => {
-      scrollNode.scrollLeft = Math.max(0, (scrollNode.scrollWidth - scrollNode.clientWidth) / 2);
-      scrollNode.scrollTop = Math.max(0, (scrollNode.scrollHeight - scrollNode.clientHeight) / 2);
-    });
-
-    return () => cancelAnimationFrame(frame);
-  }, [rows, cols, zoom, showOppositeHeaders, isInspectorCollapsed]);
 
   const resetAppliedSourceOverlayTransform = useCallback(() => {
     setAppliedSourceOverlayTransform(DEFAULT_APPLIED_SOURCE_OVERLAY_TRANSFORM);
@@ -1940,7 +1925,6 @@ export function useKnitGridEditor() {
     fileInputRef,
     projectInputRef,
     backupInputRef,
-    gridScrollRef,
     activePalette,
     activeCounts,
     imageWarnings,

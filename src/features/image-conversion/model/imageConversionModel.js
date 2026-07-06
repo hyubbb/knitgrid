@@ -153,7 +153,7 @@ export const IMAGE_PALETTE_MODES = [
   }
 ];
 
-export const IMAGE_SAMPLE_SCALE = 4;
+export const IMAGE_SAMPLE_SCALE = 6;
 export const IMAGE_EXTRACT_COLOR_LIMIT = 6;
 export const IMAGE_COLOR_WARNING_DISTANCE = 24;
 export const IMAGE_CANDIDATE_CONFIGS = [
@@ -307,8 +307,10 @@ export const getCellSampleColor = (pixels, canvasWidth, row, col, options = {}) 
   const inset = IMAGE_SAMPLE_SCALE > 2 ? 1 : 0;
   const offsetX = sampleOffset % 2;
   const offsetY = Math.floor(sampleOffset / 2) % 2;
-  const preferred = [];
-  const fallback = [];
+  let totalWeight = 0;
+  let totalR = 0;
+  let totalG = 0;
+  let totalB = 0;
 
   for (let y = yStart + inset + offsetY; y < yStart + IMAGE_SAMPLE_SCALE - inset; y += 1) {
     for (let x = xStart + inset + offsetX; x < xStart + IMAGE_SAMPLE_SCALE - inset; x += 1) {
@@ -320,22 +322,16 @@ export const getCellSampleColor = (pixels, canvasWidth, row, col, options = {}) 
         a: pixels[index + 3]
       };
       if (pixel.a < 32) continue;
-      fallback.push(pixel);
-      if (!options.artifactFilter || !shouldIgnoreImageArtifactPixel(pixel)) preferred.push(pixel);
+      const weight = options.artifactFilter && shouldIgnoreImageArtifactPixel(pixel) ? 0.35 : 1;
+      totalWeight += weight;
+      totalR += pixel.r * weight;
+      totalG += pixel.g * weight;
+      totalB += pixel.b * weight;
     }
   }
 
-  const selected = preferred.length ? preferred : fallback;
-  if (!selected.length) return null;
-  const total = selected.reduce(
-    (sum, pixel) => ({
-      r: sum.r + pixel.r,
-      g: sum.g + pixel.g,
-      b: sum.b + pixel.b
-    }),
-    { r: 0, g: 0, b: 0 }
-  );
-  return rgbToHex(total.r / selected.length, total.g / selected.length, total.b / selected.length);
+  if (!totalWeight) return null;
+  return rgbToHex(totalR / totalWeight, totalG / totalWeight, totalB / totalWeight);
 };
 
 export const drawImageToAnalysisCanvas = ({ image, rows, cols, imageOptions }) => {

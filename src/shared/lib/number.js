@@ -4,6 +4,13 @@ export const normalizeHex = (value) => {
   return /^#[0-9a-f]{6}$/.test(hex) ? hex : null;
 };
 
+export const parseNumericInput = (value, fallback) => {
+  const text = String(value).trim();
+  if (!text) return fallback;
+  const next = Number(text);
+  return Number.isFinite(next) ? next : fallback;
+};
+
 export const clampNumber = (value, min, max) => Math.min(max, Math.max(min, Number(value) || min));
 export const clampFiniteNumber = (value, min, max) => {
   const next = Number(value);

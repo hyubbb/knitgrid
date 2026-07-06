@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, Minus, Plus, Type } from 'lucide-react';
 import { Button, Modal } from '../../../../components/index.js';
 import { TEXT_SAMPLE_SCALE } from '../../../../app/model/knitgridModel.js';
+import { parseNumericInput } from '../../../../shared/lib/number.js';
 
 const DEFAULT_ZOOM_PREVIEW_CELL_SIZE = 16;
 const MIN_ZOOM_PREVIEW_CELL_SIZE = 10;
@@ -23,8 +24,6 @@ export function EditorTextDraftModal({ editor }) {
     textPreview,
     textTargetRows,
     textTargetCols,
-    textGridMinSize,
-    textGridMaxSize,
     canShrinkTextTargetGrid,
     canGrowTextTargetGrid,
     resizeTextTargetGrid,
@@ -121,11 +120,13 @@ export function EditorTextDraftModal({ editor }) {
               <label>
                 <span>가로</span>
                 <input
-                  type="number"
-                  min={textGridMinSize}
-                  max={textGridMaxSize}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  autoComplete="off"
+                  spellCheck={false}
                   value={textTargetCols}
-                  onChange={(event) => updateTextTargetGrid({ targetCols: event.target.value })}
+                  onChange={(event) => updateTextTargetGrid({ targetCols: parseNumericInput(event.target.value, textTargetCols) })}
                   aria-label="텍스트 격자 가로 칸 수"
                 />
               </label>
@@ -133,11 +134,13 @@ export function EditorTextDraftModal({ editor }) {
               <label>
                 <span>세로</span>
                 <input
-                  type="number"
-                  min={textGridMinSize}
-                  max={textGridMaxSize}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  autoComplete="off"
+                  spellCheck={false}
                   value={textTargetRows}
-                  onChange={(event) => updateTextTargetGrid({ targetRows: event.target.value })}
+                  onChange={(event) => updateTextTargetGrid({ targetRows: parseNumericInput(event.target.value, textTargetRows) })}
                   aria-label="텍스트 격자 세로 칸 수"
                 />
               </label>

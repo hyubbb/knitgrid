@@ -19,6 +19,7 @@ import {
   luminance,
   resolveCellDisplay
 } from '../../../../app/model/knitgridModel.js';
+import { parseNumericInput } from '../../../../shared/lib/number.js';
 
 const CANVAS_BASE_CELL_SIZE = 24;
 const CANVAS_MIN_ZOOM = 4;
@@ -35,12 +36,12 @@ export function EditorCanvas({ editor }) {
     grid,
     palette,
     mode,
+    tool,
     displayMode,
     zoom,
     setZoom,
     guideEvery,
     rowDirection,
-    gridScrollRef,
     appliedSourceImage,
     appliedSourceSizeChanged,
     showAppliedSourceOverlay,
@@ -76,12 +77,15 @@ export function EditorCanvas({ editor }) {
   } = editor;
   const canEditSourceOverlay = mode === 'edit';
   const canFitWholePreview = mode === 'preview';
+  const isPanTool = tool === 'pan';
   const { w: cellWScale, h: cellHScale } = editor.cellAspectScale;
   // 종횡비가 켜지면 확대되는 축을 기준으로 기준 셀을 줄여 전체보기가 화면에 담기도록 한다.
   const cellAspectMaxScale = Math.max(cellWScale, cellHScale);
   const [isFullscreenPreviewOpen, setIsFullscreenPreviewOpen] = useState(false);
   const [fullscreenCellSize, setFullscreenCellSize] = useState(() => getFullscreenPreviewCellSize(rows, cols));
+  const [gridPan, setGridPan] = useState({ x: 0, y: 0 });
   const fullscreenCloseButtonRef = useRef(null);
+  const panDragRef = useRef(null);
 
   const openFullscreenPreview = () => {
     setFullscreenCellSize(getFullscreenPreviewCellSize(rows, cols, cellAspectMaxScale));
@@ -112,6 +116,46 @@ export function EditorCanvas({ editor }) {
       window.visualViewport?.removeEventListener('resize', updateFullscreenCellSize);
     };
   }, [isFullscreenPreviewOpen, rows, cols, cellAspectMaxScale]);
+
+  useEffect(() => {
+    if (!isPanTool) panDragRef.current = null;
+  }, [isPanTool]);
+
+  const handleGridPointerDownCapture = (event) => {
+    if (!isPanTool || event.button !== 0) return;
+    const target = event.target;
+    if (target?.closest('button, input, select, textarea, a, [role="button"], [contenteditable="true"]')) return;
+    event.preventDefault();
+    event.stopPropagation();
+    panDragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      panX: gridPan.x,
+      panY: gridPan.y
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handleGridPointerMove = (event) => {
+    const drag = panDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    event.preventDefault();
+    setGridPan({
+      x: drag.panX + (event.clientX - drag.startX),
+      y: drag.panY + (event.clientY - drag.startY)
+    });
+  };
+
+  const handleGridPointerUp = (event) => {
+    const drag = panDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    event.preventDefault();
+    panDragRef.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  };
 
   return (
     <main className="workspace">
@@ -240,13 +284,14 @@ export function EditorCanvas({ editor }) {
                   <label>
                     <span>이동</span>
                     <input
-                      type="number"
-                      min="0.1"
-                      max="200"
-                      step="0.1"
+                      type="text"
+                      inputMode="decimal"
+                      pattern="[0-9]*[.,]?[0-9]*"
+                      autoComplete="off"
+                      spellCheck={false}
                       value={appliedSourceOverlayMoveStep}
                       disabled={!appliedSourceImage || !showAppliedSourceOverlay}
-                      onChange={(event) => setAppliedSourceOverlayMoveStep(clampFiniteNumber(event.target.value, 0.1, 200))}
+                      onChange={(event) => setAppliedSourceOverlayMoveStep(clampFiniteNumber(parseNumericInput(event.target.value, appliedSourceOverlayMoveStep), 0.1, 200))}
                       aria-label="원본 이동 칸 수"
                     />
                   </label>
@@ -297,13 +342,20 @@ export function EditorCanvas({ editor }) {
           <ProgressRowStrip analysis={currentRowAnalysis} progressRow={progressRow} progressStitch={progressStitch} />
         ) : null}
 
-        <div ref={gridScrollRef} className={`grid-scroll mode-${mode}`}>
+        <div
+          className={`grid-scroll mode-${mode} ${isPanTool ? 'tool-pan' : ''}`}
+          onPointerDownCapture={handleGridPointerDownCapture}
+          onPointerMove={handleGridPointerMove}
+          onPointerUp={handleGridPointerUp}
+          onPointerCancel={handleGridPointerUp}
+        >
           <ChartGrid
             editor={editor}
             cellSize={Math.round((zoom / 100) * CANVAS_BASE_CELL_SIZE)}
             canEditSourceOverlay={canEditSourceOverlay}
             cellWScale={cellWScale}
             cellHScale={cellHScale}
+            panOffset={gridPan}
           />
         </div>
       </section>
@@ -373,6 +425,7 @@ function ChartGrid({
   includeSourceOverlay = true,
   cellWScale = 1,
   cellHScale = 1,
+  panOffset = { x: 0, y: 0 },
   readOnly = false
 }) {
   const {
@@ -419,7 +472,8 @@ function ChartGrid({
         '--cell-w': `${cellSize * cellWScale}px`,
         '--cell-h': `${cellSize * cellHScale}px`,
         '--guide-color': guideLineColor,
-        '--grid-line': gridLineColor || undefined
+        '--grid-line': gridLineColor || undefined,
+        transform: `translate3d(${panOffset.x}px, ${panOffset.y}px, 0)`
       }}
     >
       {showSourceOverlay ? (
