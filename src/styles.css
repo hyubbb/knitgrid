@@ -4,7 +4,13 @@
   :root {
     color-scheme: light;
     font-family:
-      Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      Inter,
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif;
     font-size: 14px;
     line-height: 1.4;
     letter-spacing: 0;
@@ -40,7 +46,8 @@
 
   label {
     @apply grid gap-[5px] text-[11px] font-bold uppercase tracking-[0.04em] text-[var(--kg-muted)];
-    font-family: "ABC Favorit Mono", "Space Mono", ui-monospace, Monaco, monospace;
+    font-family:
+      "ABC Favorit Mono", "Space Mono", ui-monospace, Monaco, monospace;
   }
 
   label input,
@@ -291,12 +298,18 @@
     @apply flex flex-wrap items-center gap-2;
   }
 
-  .canvas-fit-button {
+  .canvas-fit-button,
+  .canvas-pan-button {
     @apply inline-flex min-h-8 items-center justify-center gap-1.5 rounded-md border border-[var(--kg-line)] bg-[var(--kg-surface)] px-2.5 text-[12px] font-extrabold text-[var(--kg-ink)];
   }
 
-  .canvas-fit-button:hover {
+  .canvas-fit-button:hover,
+  .canvas-pan-button:hover {
     @apply border-[var(--kg-line-strong)] bg-[var(--kg-surface-soft)];
+  }
+
+  .canvas-pan-button.active {
+    @apply border-[var(--kg-teal)] bg-[var(--kg-teal-soft)] text-[var(--kg-teal)];
   }
 
   .source-overlay-control {
@@ -369,8 +382,7 @@
     grid-row: 3;
     background:
       linear-gradient(90deg, var(--kg-gridline) 1px, transparent 1px),
-      linear-gradient(var(--kg-gridline) 1px, transparent 1px),
-      var(--kg-bg);
+      linear-gradient(var(--kg-gridline) 1px, transparent 1px), var(--kg-bg);
     background-size: 32px 32px;
   }
 
@@ -606,9 +618,20 @@
   .guide-color-preview {
     @apply h-8 self-end rounded-[7px] border border-[var(--kg-line)] bg-[var(--kg-surface)];
     background:
-      linear-gradient(90deg, transparent calc(50% - 1px), var(--guide-color, var(--kg-ink)) calc(50% - 1px), var(--guide-color, var(--kg-ink)) calc(50% + 1px), transparent calc(50% + 1px)),
-      linear-gradient(transparent calc(50% - 1px), var(--guide-color, var(--kg-ink)) calc(50% - 1px), var(--guide-color, var(--kg-ink)) calc(50% + 1px), transparent calc(50% + 1px)),
-      #FFFFFF;
+      linear-gradient(
+        90deg,
+        transparent calc(50% - 1px),
+        var(--guide-color, var(--kg-ink)) calc(50% - 1px),
+        var(--guide-color, var(--kg-ink)) calc(50% + 1px),
+        transparent calc(50% + 1px)
+      ),
+      linear-gradient(
+        transparent calc(50% - 1px),
+        var(--guide-color, var(--kg-ink)) calc(50% - 1px),
+        var(--guide-color, var(--kg-ink)) calc(50% + 1px),
+        transparent calc(50% + 1px)
+      ),
+      #ffffff;
   }
 
   .check-row {
@@ -1159,8 +1182,7 @@
     @apply grid min-h-0 overflow-auto p-3;
     background:
       linear-gradient(90deg, var(--kg-gridline) 1px, transparent 1px),
-      linear-gradient(var(--kg-gridline) 1px, transparent 1px),
-      var(--kg-bg);
+      linear-gradient(var(--kg-gridline) 1px, transparent 1px), var(--kg-bg);
     background-size: 30px 30px;
   }
 
@@ -1317,9 +1339,10 @@
   .image-preview-grid {
     @apply pointer-events-none absolute inset-0;
     background:
-      linear-gradient(90deg, rgba(0,0,0,0.12) 1px, transparent 1px),
-      linear-gradient(rgba(0,0,0,0.12) 1px, transparent 1px);
-    background-size: calc(100% / var(--preview-cols)) calc(100% / var(--preview-rows));
+      linear-gradient(90deg, rgba(0, 0, 0, 0.12) 1px, transparent 1px),
+      linear-gradient(rgba(0, 0, 0, 0.12) 1px, transparent 1px);
+    background-size: calc(100% / var(--preview-cols))
+      calc(100% / var(--preview-rows));
   }
 
   .image-preview-loading {
@@ -1678,48 +1701,48 @@
 @layer base {
   /* Linear neutral palette — light (clean grey/white/near-black) */
   :root {
-    --kg-bg: #F2F3F5;
-    --kg-surface: #FFFFFF;
-    --kg-surface-soft: #F6F7F9;
-    --kg-line: #E5E7EB;
-    --kg-line-strong: #D1D5DB;
-    --kg-ink: #16181B;
-    --kg-muted: #6B7280;
-    --kg-navy: #18191C;
-    --kg-teal: #5E6AD2;
-    --kg-teal-soft: #EDEEFF;
-    --kg-coral: #E5484D;
-    --kg-saffron: #C2820C;
-    --kg-green: #2E9E5B;
-    --kg-offwhite: #F2F3F5;
-    --kg-faint: #9CA3AF;
-    --kg-green-soft: #E9F6EE;
-    --kg-coral-soft: #FCECEC;
-    --kg-saffron-soft: #FAF3E2;
+    --kg-bg: #f2f3f5;
+    --kg-surface: #ffffff;
+    --kg-surface-soft: #f6f7f9;
+    --kg-line: #e5e7eb;
+    --kg-line-strong: #d1d5db;
+    --kg-ink: #16181b;
+    --kg-muted: #6b7280;
+    --kg-navy: #18191c;
+    --kg-teal: #5e6ad2;
+    --kg-teal-soft: #edeeff;
+    --kg-coral: #e5484d;
+    --kg-saffron: #c2820c;
+    --kg-green: #2e9e5b;
+    --kg-offwhite: #f2f3f5;
+    --kg-faint: #9ca3af;
+    --kg-green-soft: #e9f6ee;
+    --kg-coral-soft: #fcecec;
+    --kg-saffron-soft: #faf3e2;
     --kg-gridline: rgba(0, 0, 0, 0.05);
   }
 
   /* Linear neutral palette — dark (refined near-black neutral) */
   [data-theme="dark"] {
     color-scheme: dark;
-    --kg-bg: #0D0E10;
-    --kg-surface: #16171A;
-    --kg-surface-soft: #1B1C1F;
-    --kg-offwhite: #16171A;
-    --kg-line: #26282D;
-    --kg-line-strong: #34373D;
-    --kg-ink: #F7F8F8;
-    --kg-muted: #8A8F98;
-    --kg-faint: #62666D;
-    --kg-navy: #2A2B31;
-    --kg-teal: #818FFF;
-    --kg-teal-soft: #1E2140;
-    --kg-coral: #F0676B;
-    --kg-coral-soft: #2E1A1B;
-    --kg-saffron: #E0A44A;
-    --kg-saffron-soft: #2A2410;
-    --kg-green: #45C97D;
-    --kg-green-soft: #11251A;
+    --kg-bg: #0d0e10;
+    --kg-surface: #16171a;
+    --kg-surface-soft: #1b1c1f;
+    --kg-offwhite: #16171a;
+    --kg-line: #26282d;
+    --kg-line-strong: #34373d;
+    --kg-ink: #f7f8f8;
+    --kg-muted: #8a8f98;
+    --kg-faint: #62666d;
+    --kg-navy: #2a2b31;
+    --kg-teal: #818fff;
+    --kg-teal-soft: #1e2140;
+    --kg-coral: #f0676b;
+    --kg-coral-soft: #2e1a1b;
+    --kg-saffron: #e0a44a;
+    --kg-saffron-soft: #2a2410;
+    --kg-green: #45c97d;
+    --kg-green-soft: #11251a;
     --kg-gridline: rgba(255, 255, 255, 0.05);
   }
 
@@ -1859,8 +1882,8 @@
 
   .grid-scroll {
     background:
-      linear-gradient(90deg, rgba(49,57,251,0.06) 1px, transparent 1px),
-      linear-gradient(rgba(49,57,251,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(49, 57, 251, 0.06) 1px, transparent 1px),
+      linear-gradient(rgba(49, 57, 251, 0.06) 1px, transparent 1px),
       var(--kg-offwhite);
     background-size: 28px 28px;
   }
@@ -2041,9 +2064,12 @@
 
   .project-color-card {
     @apply grid min-h-[132px] w-full items-start gap-x-5 border-0 px-7 py-6 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_-12px_28px_rgba(0,0,0,0.08)] transition-transform duration-150;
-    grid-template-columns: 92px minmax(240px, 1fr) minmax(118px, 0.22fr) minmax(118px, 0.22fr) minmax(118px, 0.22fr) minmax(150px, 0.28fr);
+    grid-template-columns: 92px minmax(240px, 1fr) minmax(118px, 0.22fr) minmax(
+        118px,
+        0.22fr
+      ) minmax(118px, 0.22fr) minmax(150px, 0.28fr);
     background: var(--project-color);
-    color: #FFFFFF;
+    color: #ffffff;
   }
 
   .project-color-card:first-child {
@@ -2104,22 +2130,23 @@
   }
 
   :root {
-    --kg-bg: #EEF0F4;
-    --kg-surface: #FFFFFF;
-    --kg-surface-soft: #F7F8FA;
-    --kg-line: #E2E6EE;
-    --kg-line-strong: #C8D0DD;
+    --kg-bg: #eef0f4;
+    --kg-surface: #ffffff;
+    --kg-surface-soft: #f7f8fa;
+    --kg-line: #e2e6ee;
+    --kg-line-strong: #c8d0dd;
     --kg-ink: #151922;
     --kg-muted: #667085;
     --kg-navy: #111827;
-    --kg-teal: #5964E0;
-    --kg-teal-soft: #EEF0FF;
+    --kg-teal: #5964e0;
+    --kg-teal-soft: #eef0ff;
     --kg-gridline: rgba(36, 48, 77, 0.07);
   }
 
   button,
   .file-button {
-    transition-property: background-color, border-color, color, box-shadow, transform, opacity;
+    transition-property:
+      background-color, border-color, color, box-shadow, transform, opacity;
     transition-duration: 160ms;
     transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
   }
@@ -2149,8 +2176,12 @@
     grid-template-columns: 76px minmax(720px, 1fr) 370px;
     grid-template-rows: 68px minmax(0, 1fr) 34px;
     background:
-      radial-gradient(circle at 16% 8%, rgba(89,100,224,0.10), transparent 30%),
-      linear-gradient(180deg, #F7F8FB 0%, var(--kg-bg) 42%, #E9EDF3 100%);
+      radial-gradient(
+        circle at 16% 8%,
+        rgba(89, 100, 224, 0.1),
+        transparent 30%
+      ),
+      linear-gradient(180deg, #f7f8fb 0%, var(--kg-bg) 42%, #e9edf3 100%);
   }
 
   .app.inspector-collapsed {
@@ -2256,11 +2287,18 @@
   .grid-scroll {
     @apply p-8;
     background:
-      radial-gradient(circle at 50% 24%, rgba(89,100,224,0.10), transparent 34%),
+      radial-gradient(
+        circle at 50% 24%,
+        rgba(89, 100, 224, 0.1),
+        transparent 34%
+      ),
       linear-gradient(90deg, var(--kg-gridline) 1px, transparent 1px),
-      linear-gradient(var(--kg-gridline) 1px, transparent 1px),
-      #F8FAFC;
-    background-size: auto, 30px 30px, 30px 30px, auto;
+      linear-gradient(var(--kg-gridline) 1px, transparent 1px), #f8fafc;
+    background-size:
+      auto,
+      30px 30px,
+      30px 30px,
+      auto;
   }
 
   .chart-grid {
@@ -2308,9 +2346,17 @@
   .project-start-page {
     @apply min-h-screen overflow-auto px-8 py-6 text-white;
     background:
-      radial-gradient(circle at 18% 12%, rgba(129,140,248,0.25), transparent 34%),
-      radial-gradient(circle at 92% 8%, rgba(45,212,191,0.12), transparent 30%),
-      linear-gradient(135deg, #0B1020 0%, #111827 52%, #1F2937 100%);
+      radial-gradient(
+        circle at 18% 12%,
+        rgba(129, 140, 248, 0.25),
+        transparent 34%
+      ),
+      radial-gradient(
+        circle at 92% 8%,
+        rgba(45, 212, 191, 0.12),
+        transparent 30%
+      ),
+      linear-gradient(135deg, #0b1020 0%, #111827 52%, #1f2937 100%);
   }
 
   .project-start-header,
@@ -2397,24 +2443,24 @@
 @layer base {
   [data-theme="dark"] {
     color-scheme: dark;
-    --kg-bg: #090A0C;
+    --kg-bg: #090a0c;
     --kg-surface: #111316;
-    --kg-surface-soft: #181B1F;
-    --kg-offwhite: #0D0F12;
-    --kg-line: #24282E;
-    --kg-line-strong: #343A42;
-    --kg-ink: #F3F4F5;
-    --kg-muted: #9A9FA8;
-    --kg-faint: #666C75;
+    --kg-surface-soft: #181b1f;
+    --kg-offwhite: #0d0f12;
+    --kg-line: #24282e;
+    --kg-line-strong: #343a42;
+    --kg-ink: #f3f4f5;
+    --kg-muted: #9a9fa8;
+    --kg-faint: #666c75;
     --kg-navy: #050608;
-    --kg-teal: #A7B0BA;
+    --kg-teal: #a7b0ba;
     --kg-teal-soft: #242930;
-    --kg-coral: #E56B70;
-    --kg-coral-soft: #2D1D20;
-    --kg-saffron: #C99A57;
+    --kg-coral: #e56b70;
+    --kg-coral-soft: #2d1d20;
+    --kg-saffron: #c99a57;
     --kg-saffron-soft: #292316;
-    --kg-green: #78B88A;
-    --kg-green-soft: #17231A;
+    --kg-green: #78b88a;
+    --kg-green-soft: #17231a;
     --kg-gridline: rgba(255, 255, 255, 0.052);
   }
 }
@@ -2423,7 +2469,11 @@
   [data-theme="dark"] .app,
   [data-theme="dark"] .project-start-page {
     background:
-      radial-gradient(circle at 16% 8%, rgba(255,255,255,0.045), transparent 34%),
+      radial-gradient(
+        circle at 16% 8%,
+        rgba(255, 255, 255, 0.045),
+        transparent 34%
+      ),
       linear-gradient(180deg, #101216 0%, var(--kg-bg) 50%, #050608 100%);
   }
 
@@ -2516,11 +2566,18 @@
 
   [data-theme="dark"] .grid-scroll {
     background:
-      radial-gradient(circle at 50% 24%, rgba(255,255,255,0.035), transparent 36%),
+      radial-gradient(
+        circle at 50% 24%,
+        rgba(255, 255, 255, 0.035),
+        transparent 36%
+      ),
       linear-gradient(90deg, var(--kg-gridline) 1px, transparent 1px),
-      linear-gradient(var(--kg-gridline) 1px, transparent 1px),
-      #0C0E11;
-    background-size: auto, 30px 30px, 30px 30px, auto;
+      linear-gradient(var(--kg-gridline) 1px, transparent 1px), #0c0e11;
+    background-size:
+      auto,
+      30px 30px,
+      30px 30px,
+      auto;
   }
 
   [data-theme="dark"] .preview-fullscreen-modal {
@@ -2539,8 +2596,7 @@
   [data-theme="dark"] .preview-fullscreen-stage {
     background:
       linear-gradient(90deg, var(--kg-gridline) 1px, transparent 1px),
-      linear-gradient(var(--kg-gridline) 1px, transparent 1px),
-      #0C0E11;
+      linear-gradient(var(--kg-gridline) 1px, transparent 1px), #0c0e11;
     background-size: 30px 30px;
   }
 
@@ -2573,9 +2629,17 @@
 
   [data-theme="dark"] .project-start-page {
     background:
-      radial-gradient(circle at 14% 10%, rgba(255,255,255,0.04), transparent 34%),
-      radial-gradient(circle at 92% 8%, rgba(255,255,255,0.025), transparent 30%),
-      linear-gradient(135deg, #070809 0%, #0B0D10 48%, #111417 100%);
+      radial-gradient(
+        circle at 14% 10%,
+        rgba(255, 255, 255, 0.04),
+        transparent 34%
+      ),
+      radial-gradient(
+        circle at 92% 8%,
+        rgba(255, 255, 255, 0.025),
+        transparent 30%
+      ),
+      linear-gradient(135deg, #070809 0%, #0b0d10 48%, #111417 100%);
   }
 
   [data-theme="dark"] .project-start-hero,
