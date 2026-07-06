@@ -2064,10 +2064,9 @@
 
   .project-color-card {
     @apply grid min-h-[132px] w-full items-start gap-x-5 border-0 px-7 py-6 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_-12px_28px_rgba(0,0,0,0.08)] transition-transform duration-150;
-    grid-template-columns: 92px minmax(240px, 1fr) minmax(118px, 0.22fr) minmax(
-        118px,
-        0.22fr
-      ) minmax(118px, 0.22fr) minmax(150px, 0.28fr);
+    grid-template-columns:
+      92px minmax(240px, 1fr) minmax(118px, 0.22fr) minmax(118px, 0.22fr)
+      minmax(118px, 0.22fr) minmax(150px, 0.28fr);
     background: var(--project-color);
     color: #ffffff;
   }
