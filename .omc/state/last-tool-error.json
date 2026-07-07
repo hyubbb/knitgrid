@@ -1,7 +1,0 @@
-{
-  "tool_name": "mcp__chrome-devtools__take_snapshot",
-  "tool_input_preview": "{}",
-  "error": "Error: The selected page has been closed. Call list_pages to see open pages.",
-  "timestamp": "2026-07-03T02:38:51.674Z",
-  "retry_count": 1
-}
