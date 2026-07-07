@@ -8,7 +8,6 @@ import {
 } from '../../../../../components/index.js';
 import { Settings2, Sparkles } from 'lucide-react';
 import { PRESETS, clampNumber } from '../../../../../app/model/knitgridModel.js';
-import { InspectorViewControls } from './InspectorViewControls.jsx';
 
 export function InspectorSetupPanel({ editor, action }) {
   const {
@@ -68,7 +67,6 @@ export function InspectorSetupPanel({ editor, action }) {
           <StepperControl label="오른쪽 열" onAdd={() => insertCol('right')} onRemove={() => removeCol('right')} addDisabled={cols >= 200} removeDisabled={cols <= 1 || insertAnchorCell.col >= cols - 1} addTitle="기준 오른쪽에 열 추가" removeTitle="기준 오른쪽 열 제거" />
         </div>
       </div>
-      <InspectorViewControls editor={editor} showDisplayMode={false} />
     </Panel>
   );
 }

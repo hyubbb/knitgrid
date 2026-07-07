@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { loadAppFonts } from '../../shared/lib/fonts.js';
 import { useAtom } from 'jotai';
 import {
   textDraftAtom,
@@ -45,6 +46,17 @@ export function useTextDraftEditor({
 }) {
   const [textDraft, setTextDraft] = useAtom(textDraftAtom);
   const [textOptions, setTextOptions] = useAtom(textOptionsAtom);
+  const [fontLoadVersion, setFontLoadVersion] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadAppFonts().finally(() => {
+      if (!cancelled) setFontLoadVersion((version) => version + 1);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const textPaletteItem = useMemo(
     () => getPaletteItem(palette, textOptions.paletteId) ?? activePalette ?? palette[0] ?? null,
     [activePalette, palette, textOptions.paletteId]
@@ -59,7 +71,7 @@ export function useTextDraftEditor({
       paletteItem: textPaletteItem,
       options: textOptions
     });
-  }, [textDraft, textOptions, textPaletteItem, textTargetCols, textTargetRows]);
+  }, [fontLoadVersion, textDraft, textOptions, textPaletteItem, textTargetCols, textTargetRows]);
 
   const openTextDraft = () => {
     setTextOptions({

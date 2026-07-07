@@ -1,7 +1,7 @@
-import { Eye, EyeOff, Trash2 } from 'lucide-react';
-import { Button } from './Button.jsx';
-import { Select } from './Select.jsx';
-import { Swatch } from './Swatch.jsx';
+import { Eye, EyeOff, Trash2 } from "lucide-react";
+import { Button } from "./Button.jsx";
+import { Select } from "./Select.jsx";
+import { Swatch } from "./Swatch.jsx";
 
 /**
  * 팔레트 한 행: 가시성 토글 + 스와치 + 코드/이름 + 카운트 + (펼침 시) 편집기.
@@ -43,23 +43,24 @@ export function PaletteRow({
   return (
     <div
       data-palette-id={item.id}
-      className={`palette-row ${active ? 'active' : ''} ${expanded ? 'expanded' : ''} ${visible ? '' : 'hidden-color'}`}
+      className={`palette-row ${active ? "active" : ""} ${expanded ? "expanded" : ""} ${visible ? "" : "hidden-color"}`}
       onClick={() => {
         onActivate(item.id);
         onToggleExpand(item.id);
       }}
     >
       <button
-        className={`palette-visibility-toggle ${visible ? '' : 'is-hidden'}`}
+        className={`palette-visibility-toggle ${visible ? "" : "is-hidden"}`}
         onClick={(event) => {
           event.stopPropagation();
           onToggleVisibility(item.id);
         }}
-        title={visible ? `${item.code} 도안에서 숨기기` : `${item.code} 도안에 표시`}
+        title={
+          visible ? `${item.code} 도안에서 숨기기` : `${item.code} 도안에 표시`
+        }
         aria-label={visible ? `${item.code} 숨기기` : `${item.code} 다시 표시`}
       >
         {visible ? <EyeOff size={13} /> : <Eye size={13} />}
-        <span>{visible ? '숨김' : '표시'}</span>
       </button>
       <Swatch
         color={item.color}
@@ -100,13 +101,18 @@ export function PaletteRow({
       />
       <span>{count}</span>
       {expanded ? (
-        <div className="palette-editor" onClick={(event) => event.stopPropagation()}>
+        <div
+          className="palette-editor"
+          onClick={(event) => event.stopPropagation()}
+        >
           <label>
             색상
             <input
               type="color"
               value={item.color}
-              onChange={(event) => onUpdate(item.id, { color: event.target.value })}
+              onChange={(event) =>
+                onUpdate(item.id, { color: event.target.value })
+              }
               aria-label={`${item.code} 색상`}
             />
           </label>
@@ -117,7 +123,8 @@ export function PaletteRow({
               key={`${item.id}-${item.color}`}
               onChange={(event) => {
                 const normalized = normalizeHex(event.target.value);
-                if (normalized && normalized !== item.color) onUpdate(item.id, { color: normalized });
+                if (normalized && normalized !== item.color)
+                  onUpdate(item.id, { color: normalized });
               }}
               onBlur={(event) => {
                 const normalized = normalizeHex(event.target.value);
@@ -125,24 +132,38 @@ export function PaletteRow({
                 else event.target.value = item.color;
               }}
               onKeyDown={(event) => {
-                if (event.key === 'Enter') event.currentTarget.blur();
+                if (event.key === "Enter") event.currentTarget.blur();
               }}
               aria-label="HEX 색상"
             />
           </label>
           <label>
             코드
-            <input value={item.code} onChange={(event) => onUpdate(item.id, { code: event.target.value })} aria-label="확장 코드" />
+            <input
+              value={item.code}
+              onChange={(event) =>
+                onUpdate(item.id, { code: event.target.value })
+              }
+              aria-label="확장 코드"
+            />
           </label>
           <label>
             이름
-            <input value={item.name} onChange={(event) => onUpdate(item.id, { name: event.target.value })} aria-label="확장 이름" />
+            <input
+              value={item.name}
+              onChange={(event) =>
+                onUpdate(item.id, { name: event.target.value })
+              }
+              aria-label="확장 이름"
+            />
           </label>
           <Select
             label="기존 색상으로 병합"
             className="palette-merge-field"
             value=""
-            onChange={(v) => { if (v) onMerge(item.id, v); }}
+            onChange={(v) => {
+              if (v) onMerge(item.id, v);
+            }}
             ariaLabel="기존 색상으로 병합"
           >
             <option value="">대상 선택</option>
@@ -159,13 +180,17 @@ export function PaletteRow({
               <strong>컬러코드 삭제</strong>
               <span>
                 {count}칸에서 사용 중입니다.
-                {count ? ' 삭제하려면 대체 색상을 선택하세요.' : ' 바로 삭제할 수 있습니다.'}
+                {count
+                  ? " 삭제하려면 대체 색상을 선택하세요."
+                  : " 바로 삭제할 수 있습니다."}
               </span>
             </div>
             {count ? (
               <Select
                 value=""
-                onChange={(v) => { if (v) onDelete(item.id, v); }}
+                onChange={(v) => {
+                  if (v) onDelete(item.id, v);
+                }}
                 ariaLabel="삭제하며 대체할 색상"
                 disabled={!canDelete}
               >
@@ -185,7 +210,9 @@ export function PaletteRow({
                 iconSize={14}
                 onClick={() => onDelete(item.id)}
                 disabled={!canDelete}
-              >삭제</Button>
+              >
+                삭제
+              </Button>
             )}
           </div>
         </div>

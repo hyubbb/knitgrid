@@ -569,7 +569,7 @@ export function useKnitGridEditor() {
     })));
     setActivePaletteId(loadedActivePaletteId);
     setExpandedPaletteId('');
-    setDisplayMode(data.displayMode || 'color-code');
+    setDisplayMode(data.displayMode || 'color');
     setGuideColorMode(data.guideColorMode || 'black');
     setGuideCustomColor(normalizeHex(data.guideCustomColor) || '#111827');
     setGridLineColorMode(data.gridLineColorMode || 'default');
@@ -644,7 +644,7 @@ export function useKnitGridEditor() {
     setGrid(createGrid(nextRows, nextCols));
     setActivePaletteId('h7');
     setExpandedPaletteId('');
-    setDisplayMode('color-code');
+    setDisplayMode('color');
     setRowDirection('bottom-up');
     setNumberStart(1);
     setGaugeStitches(0);
@@ -1089,7 +1089,8 @@ export function useKnitGridEditor() {
     [activePalette, cols, grid, mode, pushHistory, rows, tool]
   );
 
-  const handlePointerDown = (row, col) => {
+  // memo된 셀에 내려가는 콜백은 참조가 안정적이어야 스킵이 동작한다 → useCallback 필수.
+  const handlePointerDown = useCallback((row, col) => {
     setCurrentCell({ row, col });
     if (mode === 'progress' && ['pen', 'eraser'].includes(tool)) {
       setIsDragging(true);
@@ -1100,19 +1101,20 @@ export function useKnitGridEditor() {
     setIsDragging(true);
     setInsertAnchorCell({ row, col });
     paintCell(row, col, tool, true);
-  };
+  }, [mode, tool, updateProgressMark, paintCell]);
 
-  const handlePointerEnter = (row, col) => {
-    setCurrentCell({ row, col });
+  const handlePointerEnter = useCallback((row, col) => {
+    // ponytail: hover마다 setCurrentCell 하면 전역 atom→전체 리렌더. 드래그 페인팅 중엔 paintCell이 갱신함.
     if (!isDragging || !['pen', 'eraser'].includes(tool)) return;
+    setCurrentCell({ row, col });
     if (mode === 'progress') {
       updateProgressMark(row, col, tool === 'eraser' ? 'remove' : 'add');
       return;
     }
     paintCell(row, col, tool, false);
-  };
+  }, [isDragging, tool, mode, updateProgressMark, paintCell]);
 
-  const handlePointerUp = () => setIsDragging(false);
+  const handlePointerUp = useCallback(() => setIsDragging(false), []);
 
   const undo = () => {
     setHistory((items) => {
@@ -1293,10 +1295,12 @@ export function useKnitGridEditor() {
     });
   };
 
-  const rowNumber = (rowIndex) =>
-    rowDirection === 'bottom-up' ? rows - rowIndex - 1 + numberStart : rowIndex + numberStart;
+  const rowNumber = useCallback(
+    (rowIndex) => rowDirection === 'bottom-up' ? rows - rowIndex - 1 + numberStart : rowIndex + numberStart,
+    [rowDirection, rows, numberStart]
+  );
 
-  const colNumber = (colIndex) => colIndex + numberStart;
+  const colNumber = useCallback((colIndex) => colIndex + numberStart, [numberStart]);
 
   const buildExportCanvas = ({ includeLegend = true, includeSymbols = true, includeHeaders = true } = {}) => {
     const baseCell = 18;

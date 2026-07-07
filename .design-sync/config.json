@@ -6,7 +6,7 @@
   "buildCmd": "pnpm build && cp dist/assets/index-*.css .design-sync/.cache/compiled-styles.css",
   "cssEntry": ".design-sync/.cache/compiled-styles.css",
   "readmeHeader": ".design-sync/conventions.md",
-  "runtimeFontPrefixes": ["Inter"],
+  "runtimeFontPrefixes": ["Galmuri9"],
   "overrides": {
     "Modal": { "cardMode": "single", "primaryStory": "Confirm", "viewport": "640x420" }
   },

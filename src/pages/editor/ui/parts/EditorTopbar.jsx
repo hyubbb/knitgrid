@@ -184,6 +184,16 @@ export function EditorTopbar({ editor, mobileDrawer, onOpenMobileDrawer }) {
         </Button>
         <DropdownMenu label="가져오기 및 내보내기" icon={MoreVertical} items={fileMenuItems} />
       </Toolbar>
+
+      <button
+        type="button"
+        className={`inspector-drawer-toggle ${mobileDrawer === 'inspector' ? 'active' : ''}`}
+        onClick={() => onOpenMobileDrawer('inspector')}
+        aria-label="설정 열기"
+        title="설정 열기"
+      >
+        <Menu size={18} />
+      </button>
       <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp" onChange={prepareImageDraft} hidden />
       <input ref={projectInputRef} type="file" accept="application/json,.json" onChange={loadProject} hidden />
     </header>

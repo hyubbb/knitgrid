@@ -460,7 +460,7 @@ function ResizeAlignPreview({ curCols, curRows, nextCols, nextRows, alignX, alig
       <span
         style={{
           display: 'inline-block', padding: '3px 8px', borderRadius: 999,
-          background: 'var(--kg-teal-soft)', color: 'var(--kg-teal)', fontSize: 11, fontWeight: 800
+          background: 'var(--kg-teal-soft)', color: 'var(--kg-teal)', fontSize: 10, fontWeight: 800
         }}
       >
         이미지 정렬: 가로 {alignLabel(HORIZONTAL_ALIGNMENTS, alignX)} · 세로 {alignLabel(VERTICAL_ALIGNMENTS, alignY)}
@@ -471,7 +471,7 @@ function ResizeAlignPreview({ curCols, curRows, nextCols, nextRows, alignX, alig
         {keepW > 0 && keepH > 0 ? rect(keepX, keepY, keepW, keepH, { background: 'var(--kg-teal)', opacity: 0.85 }) : null}
         {rect(nextX, nextY, nextCols, nextRows, { border: '2px solid var(--kg-teal)', borderRadius: 2 })}
       </div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 8, fontSize: 11, fontWeight: 700, color: 'var(--kg-muted)' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 8, fontSize: 10, fontWeight: 700, color: 'var(--kg-muted)' }}>
         <span style={legendItem}><span style={{ ...swatch, background: 'var(--kg-teal)', opacity: 0.85 }} />유지</span>
         <span style={legendItem}><span style={{ ...swatch, background: 'var(--kg-coral-soft)' }} />잘림</span>
         <span style={legendItem}><span style={{ ...swatch, backgroundImage: hatch, border: '1px solid var(--kg-line)' }} />빈 칸(비어 있음)</span>

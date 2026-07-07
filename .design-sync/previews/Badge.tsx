@@ -1,4 +1,5 @@
-import { Badge } from 'knitgrid';
+import React from "react";
+import { Badge } from "../../src/components";
 
 export const Saved = () => <Badge state="saved">로컬 저장됨</Badge>;
 

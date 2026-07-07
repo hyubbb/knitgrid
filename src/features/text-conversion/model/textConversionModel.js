@@ -1,4 +1,5 @@
 import { createGrid } from '../../../entities/grid/model/gridModel.js';
+import { GALMURI_FONT_FAMILY } from '../../../shared/lib/fonts.js';
 import { parseNumericInput } from '../../../shared/lib/number.js';
 
 export const TEXT_MAX_CHARS = 80;
@@ -10,8 +11,8 @@ export const TEXT_GRID_MAX_SIZE = 200;
 export const TEXT_FONT_OPTIONS = [
   {
     id: 'sans',
-    label: '고딕',
-    family: 'Inter, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif'
+    label: '갈무리',
+    family: GALMURI_FONT_FAMILY
   },
   {
     id: 'serif',
@@ -21,7 +22,7 @@ export const TEXT_FONT_OPTIONS = [
   {
     id: 'mono',
     label: '모노',
-    family: '"SFMono-Regular", "Cascadia Code", "Noto Sans Mono CJK KR", monospace'
+    family: `${GALMURI_FONT_FAMILY}, "SFMono-Regular", "Cascadia Code", monospace`
   }
 ];
 

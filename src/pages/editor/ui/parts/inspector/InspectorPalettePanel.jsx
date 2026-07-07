@@ -2,10 +2,14 @@ import {
   Button,
   PaletteRow,
   Panel,
-  SegmentedControl
-} from '../../../../../components/index.js';
-import { Palette } from 'lucide-react';
-import { DISPLAY_MODES, isPaletteVisible, normalizeHex } from '../../../../../app/model/knitgridModel.js';
+  SegmentedControl,
+} from "../../../../../components/index.js";
+import { Palette } from "lucide-react";
+import {
+  DISPLAY_MODES,
+  isPaletteVisible,
+  normalizeHex,
+} from "../../../../../app/model/knitgridModel.js";
 
 export function InspectorPalettePanel({ editor, editable = true }) {
   const {
@@ -22,13 +26,25 @@ export function InspectorPalettePanel({ editor, editable = true }) {
     togglePaletteVisibility,
     updatePaletteItem,
     mergePaletteItems,
-    deletePaletteItem
+    deletePaletteItem,
   } = editor;
 
   return (
-    <Panel icon={Palette} title={editable ? '팔레트 / 코드' : '팔레트 / 코드 검수'} action={editable ? <Button onClick={addPaletteColor}>추가</Button> : null}>
-      <SegmentedControl as="div" className="display-tabs" items={DISPLAY_MODES} value={displayMode} onChange={setDisplayMode} />
-      {paletteNotice ? <div className="palette-notice">{paletteNotice}</div> : null}
+    <Panel
+      icon={Palette}
+      title={editable ? "팔레트 / 코드" : "팔레트 / 코드 검수"}
+      action={editable ? <Button onClick={addPaletteColor}>추가</Button> : null}
+    >
+      <SegmentedControl
+        as="div"
+        className="display-tabs"
+        items={DISPLAY_MODES}
+        value={displayMode}
+        onChange={setDisplayMode}
+      />
+      {paletteNotice ? (
+        <div className="palette-notice">{paletteNotice}</div>
+      ) : null}
       {editable ? (
         <div className="palette-list">
           {palette.map((item) => (
@@ -42,11 +58,15 @@ export function InspectorPalettePanel({ editor, editable = true }) {
               palette={palette}
               canDelete={palette.length > 1}
               onActivate={setActivePaletteId}
-              onToggleExpand={(id) => setExpandedPaletteId((current) => (current === id ? '' : id))}
+              onToggleExpand={(id) =>
+                setExpandedPaletteId((current) => (current === id ? "" : id))
+              }
               onExpand={setExpandedPaletteId}
               onToggleVisibility={togglePaletteVisibility}
               onUpdate={updatePaletteItem}
-              onMerge={(sourceId, targetId) => mergePaletteItems({ sourceId, targetId })}
+              onMerge={(sourceId, targetId) =>
+                mergePaletteItems({ sourceId, targetId })
+              }
               onDelete={deletePaletteItem}
               normalizeHex={normalizeHex}
             />
@@ -60,13 +80,13 @@ export function InspectorPalettePanel({ editor, editable = true }) {
             return (
               <div
                 key={item.id}
-                className={`palette-summary-row ${visible ? '' : 'hidden-color'}`.trim()}
-                aria-label={`${item.code} ${item.name}, ${count}칸, ${visible ? '표시됨' : '숨김'}`}
+                className={`palette-summary-row ${visible ? "" : "hidden-color"}`.trim()}
+                aria-label={`${item.code} ${item.name}, ${count}칸, ${visible ? "표시됨" : "숨김"}`}
               >
                 <i style={{ background: item.color }} aria-hidden="true" />
                 <strong>{item.code}</strong>
                 <span>{item.name}</span>
-                <em>{visible ? '표시' : '숨김'}</em>
+                <em>{visible ? "표시" : "숨김"}</em>
                 <b>{count}칸</b>
               </div>
             );

@@ -13,6 +13,38 @@ const ZOOM_PREVIEW_CELL_GAP = 1;
 const clampPreviewCellSize = (value) =>
   Math.min(MAX_ZOOM_PREVIEW_CELL_SIZE, Math.max(MIN_ZOOM_PREVIEW_CELL_SIZE, value));
 
+// ponytail: 편집 중엔 원본 문자열을 보여주고 blur 때 정규화값으로 되돌린다(매 키 clamp 방지)
+function GridSizeInput({ value, ariaLabel, onCommit }) {
+  const [buffer, setBuffer] = useState(String(value));
+  const focusedRef = useRef(false);
+  useEffect(() => {
+    if (!focusedRef.current) setBuffer(String(value));
+  }, [value]);
+  return (
+    <input
+      type="text"
+      inputMode="numeric"
+      pattern="[0-9]*"
+      autoComplete="off"
+      spellCheck={false}
+      value={buffer}
+      onFocus={() => {
+        focusedRef.current = true;
+      }}
+      onChange={(event) => {
+        const raw = event.target.value.replace(/[^0-9]/g, '');
+        setBuffer(raw);
+        onCommit(parseNumericInput(raw, value));
+      }}
+      onBlur={() => {
+        focusedRef.current = false;
+        setBuffer(String(value));
+      }}
+      aria-label={ariaLabel}
+    />
+  );
+}
+
 export function EditorTextDraftModal({ editor }) {
   const {
     textDraft,
@@ -119,29 +151,19 @@ export function EditorTextDraftModal({ editor }) {
               <b>격자</b>
               <label>
                 <span>가로</span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  autoComplete="off"
-                  spellCheck={false}
+                <GridSizeInput
                   value={textTargetCols}
-                  onChange={(event) => updateTextTargetGrid({ targetCols: parseNumericInput(event.target.value, textTargetCols) })}
-                  aria-label="텍스트 격자 가로 칸 수"
+                  ariaLabel="텍스트 격자 가로 칸 수"
+                  onCommit={(next) => updateTextTargetGrid({ targetCols: next })}
                 />
               </label>
               <i aria-hidden="true">x</i>
               <label>
                 <span>세로</span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  autoComplete="off"
-                  spellCheck={false}
+                <GridSizeInput
                   value={textTargetRows}
-                  onChange={(event) => updateTextTargetGrid({ targetRows: parseNumericInput(event.target.value, textTargetRows) })}
-                  aria-label="텍스트 격자 세로 칸 수"
+                  ariaLabel="텍스트 격자 세로 칸 수"
+                  onCommit={(next) => updateTextTargetGrid({ targetRows: next })}
                 />
               </label>
               <button

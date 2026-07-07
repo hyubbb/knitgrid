@@ -1,10 +1,11 @@
 import { Slider, Toolbar } from "../../../../components/index.js";
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import {
   ArrowDown,
   ArrowLeft,
   ArrowRight,
   ArrowUp,
+  ChevronDown,
   X,
   Eye,
   Hand,
@@ -197,18 +198,32 @@ export function EditorCanvas({ editor }) {
     }
   };
 
+  const [isToolbarCollapsed, setIsToolbarCollapsed] = useState(false);
+
   return (
     <main className='workspace'>
       <section className='canvas-panel'>
-        <Toolbar className='canvas-toolbar'>
-          <div>
-            <strong>
-              {cols} x {rows}
-            </strong>
-            <span>
-              {guideEvery > 0 ? `${guideEvery}칸 보조선` : "보조선 없음"} · 최대
-              200 x 200
-            </span>
+        <Toolbar className={`canvas-toolbar ${isToolbarCollapsed ? "is-collapsed" : ""}`}>
+          <div className='canvas-toolbar-summary'>
+            <div>
+              <strong>
+                {cols} x {rows}
+              </strong>
+              <span>
+                {guideEvery > 0 ? `${guideEvery}칸 보조선` : "보조선 없음"} · 최대
+                200 x 200
+              </span>
+            </div>
+            <button
+              type='button'
+              className='canvas-toolbar-toggle'
+              onClick={() => setIsToolbarCollapsed((value) => !value)}
+              aria-expanded={!isToolbarCollapsed}
+              title={isToolbarCollapsed ? "도구 펼치기" : "도구 접기"}
+              aria-label={isToolbarCollapsed ? "도구 펼치기" : "도구 접기"}
+            >
+              <ChevronDown size={16} />
+            </button>
           </div>
           <div className='canvas-zoom-actions'>
             <Slider
@@ -642,7 +657,6 @@ function ChartGrid({
     gridLineColor,
     isAdjustingAppliedSourceOverlay,
   } = editor;
-  const CellElement = readOnly || isPanTool ? "div" : "button";
   const showSourceOverlay =
     includeSourceOverlay && appliedSourceImage && showAppliedSourceOverlay;
 
@@ -702,70 +716,55 @@ function ChartGrid({
           gridTemplateColumns: `repeat(${cols}, var(--cell-w, var(--cell)))`,
         }}
       >
-        {grid.map((row, r) =>
-          row.map((cell, c) => {
-            const actualRowNumber = rowNumber(r);
-            const guideRow =
-              guideEvery > 0 &&
-              (rowDirection === "bottom-up"
-                ? r < rows - 1 && (rows - 1 - r) % guideEvery === 0
-                : (r + 1) % guideEvery === 0);
+        {grid.map((row, r) => {
+          const rowLabel = rowNumber(r);
+          const guideRow =
+            guideEvery > 0 &&
+            (rowDirection === "bottom-up"
+              ? r < rows - 1 && (rows - 1 - r) % guideEvery === 0
+              : (r + 1) % guideEvery === 0);
+          const progress = mode === "progress" && rowLabel === progressRow;
+          const completed =
+            mode === "progress" && completedRows.has(rowLabel);
+          return row.map((cell, c) => {
             const guideCol = guideEvery > 0 && (c + 1) % guideEvery === 0;
-            const progress =
-              mode === "progress" && actualRowNumber === progressRow;
-            const completed =
-              mode === "progress" && completedRows.has(actualRowNumber);
             const progressMark =
               mode === "progress" && progressMarks.has(`${r}:${c}`);
             const stitchHere =
               mode === "progress" &&
-              progressStitchCell &&
+              !!progressStitchCell &&
               progressStitchCell.row === r &&
               progressStitchCell.col === c;
-            const display = resolveCellDisplay(cell, palette);
-            const shouldShowCell = cell.active && display.visible;
             const isInsertAnchor =
               mode === "edit" &&
               insertAnchorCell.row === r &&
               insertAnchorCell.col === c;
-            const cellProps =
-              readOnly || isPanTool
-                ? { role: "gridcell" }
-                : {
-                    onPointerDown: () => handlePointerDown(r, c),
-                    onPointerEnter: () => handlePointerEnter(r, c),
-                  };
 
             return (
-              <CellElement
+              <Cell
                 key={`${r}-${c}`}
-                className={`cell ${cell.active ? "filled" : ""} ${isInsertAnchor ? "insert-anchor" : ""} ${!display.visible ? "palette-hidden" : ""} ${guideRow ? "guide-row" : ""} ${guideCol ? "guide-col" : ""} ${progress ? "progress-row" : ""} ${completed ? "completed-row" : ""} ${progressMark ? "progress-note" : ""} ${stitchHere ? "progress-stitch" : ""}`}
-                style={{
-                  background:
-                    shouldShowCell && displayMode !== "code"
-                      ? display.color
-                      : "#fff",
-                }}
-                title={`${actualRowNumber}행 ${colNumber(c)}열 ${shouldShowCell ? display.symbol || "빈 칸" : `${display.symbol || "색상"} 숨김`}`}
-                {...cellProps}
-              >
-                {shouldShowCell && displayMode !== "color" ? (
-                  <span
-                    style={{
-                      color:
-                        displayMode === "code" ||
-                        luminance(display.color) > 0.55
-                          ? "#172033"
-                          : "#fff",
-                    }}
-                  >
-                    {display.symbol}
-                  </span>
-                ) : null}
-              </CellElement>
+                r={r}
+                c={c}
+                cell={cell}
+                palette={palette}
+                displayMode={displayMode}
+                guideRow={guideRow}
+                guideCol={guideCol}
+                progress={progress}
+                completed={completed}
+                progressMark={progressMark}
+                stitchHere={stitchHere}
+                isInsertAnchor={isInsertAnchor}
+                readOnly={readOnly}
+                isPanTool={isPanTool}
+                onPointerDown={handlePointerDown}
+                onPointerEnter={handlePointerEnter}
+                rowLabel={rowLabel}
+                colLabel={colNumber(c)}
+              />
             );
-          }),
-        )}
+          });
+        })}
       </div>
       {showOppositeHeaders ? (
         <HeaderColumn
@@ -788,6 +787,64 @@ function ChartGrid({
     </div>
   );
 }
+
+// grid/palette가 안 바뀌면 무관한 상태 변화(줌·autosave 등)에 리렌더를 스킵한다.
+// 콜백(onPointerDown/Enter)은 훅에서 useCallback으로 안정화돼 있어야 얕은 비교가 통과한다.
+const Cell = memo(function Cell({
+  r,
+  c,
+  cell,
+  palette,
+  displayMode,
+  guideRow,
+  guideCol,
+  progress,
+  completed,
+  progressMark,
+  stitchHere,
+  isInsertAnchor,
+  readOnly,
+  isPanTool,
+  onPointerDown,
+  onPointerEnter,
+  rowLabel,
+  colLabel,
+}) {
+  const display = resolveCellDisplay(cell, palette);
+  const shouldShowCell = cell.active && display.visible;
+  const CellElement = readOnly || isPanTool ? "div" : "button";
+  const interactive = !(readOnly || isPanTool);
+
+  return (
+    <CellElement
+      className={`cell ${cell.active ? "filled" : ""} ${isInsertAnchor ? "insert-anchor" : ""} ${!display.visible ? "palette-hidden" : ""} ${guideRow ? "guide-row" : ""} ${guideCol ? "guide-col" : ""} ${progress ? "progress-row" : ""} ${completed ? "completed-row" : ""} ${progressMark ? "progress-note" : ""} ${stitchHere ? "progress-stitch" : ""}`}
+      style={{
+        background:
+          shouldShowCell && displayMode !== "code" ? display.color : "#fff",
+      }}
+      title={`${rowLabel}행 ${colLabel}열 ${shouldShowCell ? display.symbol || "빈 칸" : `${display.symbol || "색상"} 숨김`}`}
+      {...(interactive
+        ? {
+            onPointerDown: () => onPointerDown(r, c),
+            onPointerEnter: () => onPointerEnter(r, c),
+          }
+        : { role: "gridcell" })}
+    >
+      {shouldShowCell && displayMode !== "color" ? (
+        <span
+          style={{
+            color:
+              displayMode === "code" || luminance(display.color) > 0.55
+                ? "#172033"
+                : "#fff",
+          }}
+        >
+          {display.symbol}
+        </span>
+      ) : null}
+    </CellElement>
+  );
+});
 
 function HeaderRow({ cols, colNumber, area }) {
   return (

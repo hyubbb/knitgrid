@@ -113,7 +113,7 @@ export function DropdownMenu({ label, icon: Icon, items, className = '' }) {
         aria-expanded={open}
         onClick={toggleMenu}
       >
-        <Icon size={17} aria-hidden="true" />
+        <Icon size={20} aria-hidden="true" />
       </button>
       {open ? (
         <div className="dropdown-menu-content" role="menu" aria-label={label} style={menuPosition} onKeyDown={handleMenuKeyDown}>
