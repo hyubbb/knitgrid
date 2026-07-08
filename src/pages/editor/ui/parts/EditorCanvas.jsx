@@ -788,7 +788,7 @@ function ChartGrid({
   );
 }
 
-// grid/palette가 안 바뀌면 무관한 상태 변화(줌·autosave 등)에 리렌더를 스킵한다.
+// grid/palette가 안 바뀌면 무관한 상태 변화(줌·저장 상태 등)에 리렌더를 스킵한다.
 // 콜백(onPointerDown/Enter)은 훅에서 useCallback으로 안정화돼 있어야 얕은 비교가 통과한다.
 const Cell = memo(function Cell({
   r,

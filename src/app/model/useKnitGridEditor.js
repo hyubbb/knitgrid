@@ -259,7 +259,6 @@ export function useKnitGridEditor() {
   }, [setRouteProject]);
 
   const goToStartScreen = useCallback(() => navigateToProject(null), [navigateToProject]);
-  const autoSaveTimerRef = useRef(null);
   const lastSavedSignatureRef = useRef('');
   const appliedSourceDragRef = useRef(null);
 
@@ -707,16 +706,8 @@ export function useKnitGridEditor() {
     }
     setLocalSaveState('dirty');
     setLocalSaveMessage('미저장 변경사항');
-    window.clearTimeout(autoSaveTimerRef.current);
-    autoSaveTimerRef.current = window.setTimeout(() => {
-      saveCurrentLocalProject();
-    }, 900);
-    return () => window.clearTimeout(autoSaveTimerRef.current);
-  }, [currentLocalProjectId, imageCandidateLoading, imageDraft, saveCurrentLocalProject, serializeCurrentProject]);
-
-  useEffect(() => () => {
-    window.clearTimeout(autoSaveTimerRef.current);
-  }, []);
+    return undefined;
+  }, [currentLocalProjectId, imageCandidateLoading, imageDraft, serializeCurrentProject]);
 
   useEffect(() => {
     if (!imageDraft) {
