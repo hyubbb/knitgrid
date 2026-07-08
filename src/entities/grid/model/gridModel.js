@@ -34,9 +34,16 @@ export const clampCellToGrid = (cell, nextRows, nextCols) => ({
 
 export const hasPaintedCells = (grid) => grid.some((row) => row.some((cell) => cell.active));
 
-const getAlignedResizeWindow = (currentSize, nextSize, alignment) => {
+// 정렬(start/center/end)로부터 유지 영역의 기본 offset(0~delta)을 계산
+export const alignOffset = (currentSize, nextSize, alignment) => {
   const delta = Math.abs(currentSize - nextSize);
-  const offset = alignment === 'end' ? delta : alignment === 'center' ? Math.floor(delta / 2) : 0;
+  return alignment === 'end' ? delta : alignment === 'center' ? Math.floor(delta / 2) : 0;
+};
+
+// offsetOverride가 주어지면 정렬 대신 그 offset(칸 단위)을 delta 범위로 clamp해서 사용
+const getAlignedResizeWindow = (currentSize, nextSize, alignment, offsetOverride) => {
+  const delta = Math.abs(currentSize - nextSize);
+  const offset = clampNumber(offsetOverride ?? alignOffset(currentSize, nextSize, alignment), 0, delta);
   return currentSize > nextSize
     ? { sourceStart: offset, targetStart: 0 }
     : { sourceStart: 0, targetStart: offset };
@@ -45,8 +52,8 @@ const getAlignedResizeWindow = (currentSize, nextSize, alignment) => {
 export const resizeGridKeepingContentAligned = (grid, nextRows, nextCols, options = {}) => {
   const currentRows = grid.length;
   const currentCols = grid[0]?.length ?? 0;
-  const vertical = getAlignedResizeWindow(currentRows, nextRows, options.alignY ?? 'center');
-  const horizontal = getAlignedResizeWindow(currentCols, nextCols, options.alignX ?? 'center');
+  const vertical = getAlignedResizeWindow(currentRows, nextRows, options.alignY ?? 'center', options.offsetY);
+  const horizontal = getAlignedResizeWindow(currentCols, nextCols, options.alignX ?? 'center', options.offsetX);
 
   return Array.from({ length: nextRows }, (_, rowIndex) =>
     Array.from({ length: nextCols }, (_, colIndex) => {

@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import ReactCrop from 'react-image-crop';
 import { Button, Modal } from '../../../../components/index.js';
 import { AlertTriangle, Download, Eye, FileText, RotateCcw, Upload } from 'lucide-react';
@@ -187,6 +188,11 @@ export function EditorModals({ editor }) {
                 nextRows={pendingResize.rows}
                 alignX={appliedSourceImage.imageOptions?.alignX}
                 alignY={appliedSourceImage.imageOptions?.alignY}
+                offsetX={pendingResize.offsetX}
+                offsetY={pendingResize.offsetY}
+                onOffsetChange={(offsetX, offsetY) =>
+                  setPendingResize((previous) => ({ ...previous, offsetX, offsetY }))
+                }
               />
             ) : null}
           </div>
@@ -431,24 +437,53 @@ export function EditorModals({ editor }) {
 
 const alignLabel = (options, id) => options.find((item) => item.id === id)?.label ?? '중앙';
 const resizeAnchor = (id, endId) => (id === endId ? 'end' : id === 'center' ? 'center' : 'start');
-const anchorStart = (unionSize, size, anchor) =>
-  anchor === 'end' ? unionSize - size : anchor === 'center' ? (unionSize - size) / 2 : 0;
+const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+// 정렬(start/center/end)로부터 기본 offset(0~delta) 계산 — gridModel.alignOffset과 동일
+const baseOffset = (delta, anchor) => (anchor === 'end' ? delta : anchor === 'center' ? Math.floor(delta / 2) : 0);
 
-// 리사이즈 시 정렬 기준으로 어디가 유지/잘림/빈칸이 되는지 보여주는 미니 다이어그램
-function ResizeAlignPreview({ curCols, curRows, nextCols, nextRows, alignX, alignY }) {
+// 리사이즈 시 어디가 유지/잘림/빈칸이 되는지 보여주고, 유지 영역을 드래그해 위치를 조정하는 미니 다이어그램
+function ResizeAlignPreview({ curCols, curRows, nextCols, nextRows, alignX, alignY, offsetX, offsetY, onOffsetChange }) {
+  const drag = useRef(null);
   const ax = resizeAnchor(alignX, 'right');
   const ay = resizeAnchor(alignY, 'bottom');
+  const deltaX = Math.abs(curCols - nextCols);
+  const deltaY = Math.abs(curRows - nextRows);
+  const ox = clamp(offsetX ?? baseOffset(deltaX, ax), 0, deltaX);
+  const oy = clamp(offsetY ?? baseOffset(deltaY, ay), 0, deltaY);
   const uW = Math.max(curCols, nextCols);
   const uH = Math.max(curRows, nextRows);
   const cell = Math.max(4, Math.min(12, 116 / Math.max(uW, uH)));
-  const curX = anchorStart(uW, curCols, ax);
-  const nextX = anchorStart(uW, nextCols, ax);
-  const curY = anchorStart(uH, curRows, ay);
-  const nextY = anchorStart(uH, nextRows, ay);
+  // 작은 쪽 축이 offset부터 시작, 큰 쪽은 union 전체를 차지 (0부터)
+  const curX = curCols <= nextCols ? ox : 0;
+  const nextX = nextCols <= curCols ? ox : 0;
+  const curY = curRows <= nextRows ? oy : 0;
+  const nextY = nextRows <= curRows ? oy : 0;
   const keepX = Math.max(curX, nextX);
   const keepY = Math.max(curY, nextY);
   const keepW = Math.max(0, Math.min(curX + curCols, nextX + nextCols) - keepX);
   const keepH = Math.max(0, Math.min(curY + curRows, nextY + nextRows) - keepY);
+  const draggable = deltaX > 0 || deltaY > 0;
+
+  const onPointerDown = (event) => {
+    if (!draggable) return;
+    event.preventDefault();
+    drag.current = { startX: event.clientX, startY: event.clientY, ox, oy };
+    const onMove = (moveEvent) => {
+      const start = drag.current;
+      if (!start) return;
+      const nx = deltaX === 0 ? start.ox : clamp(Math.round(start.ox + (moveEvent.clientX - start.startX) / cell), 0, deltaX);
+      const ny = deltaY === 0 ? start.oy : clamp(Math.round(start.oy + (moveEvent.clientY - start.startY) / cell), 0, deltaY);
+      onOffsetChange(nx, ny);
+    };
+    const onUp = () => {
+      drag.current = null;
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  };
+
   const rect = (x, y, w, h, extra) => (
     <span aria-hidden style={{ position: 'absolute', left: x * cell, top: y * cell, width: w * cell, height: h * cell, ...extra }} />
   );
@@ -468,9 +503,30 @@ function ResizeAlignPreview({ curCols, curRows, nextCols, nextRows, alignX, alig
       <div style={{ position: 'relative', width: uW * cell, height: uH * cell, marginTop: 8 }}>
         {rect(curX, curY, curCols, curRows, { background: 'var(--kg-coral-soft)' })}
         {rect(nextX, nextY, nextCols, nextRows, { backgroundImage: hatch })}
-        {keepW > 0 && keepH > 0 ? rect(keepX, keepY, keepW, keepH, { background: 'var(--kg-teal)', opacity: 0.85 }) : null}
+        {keepW > 0 && keepH > 0
+          ? rect(keepX, keepY, keepW, keepH, {
+              background: 'var(--kg-teal)', opacity: 0.85,
+              cursor: draggable ? 'move' : 'default', touchAction: 'none', pointerEvents: 'auto'
+            })
+          : null}
+        {keepW > 0 && keepH > 0 && draggable ? (
+          <span
+            onPointerDown={onPointerDown}
+            title="드래그해서 유지 영역 위치 조정"
+            style={{
+              position: 'absolute', left: keepX * cell, top: keepY * cell,
+              width: keepW * cell, height: keepH * cell,
+              cursor: 'move', touchAction: 'none'
+            }}
+          />
+        ) : null}
         {rect(nextX, nextY, nextCols, nextRows, { border: '2px solid var(--kg-teal)', borderRadius: 2 })}
       </div>
+      {draggable ? (
+        <p style={{ margin: '6px 0 0', fontSize: 10, fontWeight: 700, color: 'var(--kg-teal)' }}>
+          파란 영역을 드래그해 유지할 위치를 조정하세요.
+        </p>
+      ) : null}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 8, fontSize: 10, fontWeight: 700, color: 'var(--kg-muted)' }}>
         <span style={legendItem}><span style={{ ...swatch, background: 'var(--kg-teal)', opacity: 0.85 }} />유지</span>
         <span style={legendItem}><span style={{ ...swatch, background: 'var(--kg-coral-soft)' }} />잘림</span>
