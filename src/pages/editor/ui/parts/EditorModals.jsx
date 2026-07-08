@@ -198,16 +198,17 @@ export function EditorModals({ editor }) {
             <p>
               {appliedSourceImage
                 ? '이미지 도안은 현재 이미지 정렬 기준으로 보존됩니다. 줄어들면 그 기준의 바깥쪽부터 잘리고, 늘어나면 반대쪽에 빈 칸이 생깁니다.'
-                : '그림을 유지하면 좌상단 기준으로 보존되고, 줄어드는 영역의 오른쪽/아래 칸은 잘립니다.'}
+                : '그림을 유지하면 아래 미리보기 기준으로 보존됩니다. 줄어들면 바깥쪽이 잘리고, 늘어나면 반대쪽에 빈 칸이 생깁니다.'}
             </p>
-            {appliedSourceImage && pendingResize ? (
+            {pendingResize ? (
               <ResizeAlignPreview
                 curCols={cols}
                 curRows={rows}
                 nextCols={pendingResize.cols}
                 nextRows={pendingResize.rows}
-                alignX={appliedSourceImage.imageOptions?.alignX}
-                alignY={appliedSourceImage.imageOptions?.alignY}
+                alignX={appliedSourceImage?.imageOptions?.alignX}
+                alignY={appliedSourceImage?.imageOptions?.alignY}
+                isImage={Boolean(appliedSourceImage)}
                 offsetX={pendingResize.offsetX}
                 offsetY={pendingResize.offsetY}
                 onOffsetChange={(offsetX, offsetY) =>
@@ -497,7 +498,7 @@ const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 const baseOffset = (delta, anchor) => (anchor === 'end' ? delta : anchor === 'center' ? Math.floor(delta / 2) : 0);
 
 // 리사이즈 시 어디가 유지/잘림/빈칸이 되는지 보여주고, 유지 영역을 드래그해 위치를 조정하는 미니 다이어그램
-function ResizeAlignPreview({ curCols, curRows, nextCols, nextRows, alignX, alignY, offsetX, offsetY, onOffsetChange }) {
+function ResizeAlignPreview({ curCols, curRows, nextCols, nextRows, alignX, alignY, isImage, offsetX, offsetY, onOffsetChange }) {
   const drag = useRef(null);
   const ax = resizeAnchor(alignX, 'right');
   const ay = resizeAnchor(alignY, 'bottom');
@@ -539,30 +540,30 @@ function ResizeAlignPreview({ curCols, curRows, nextCols, nextRows, alignX, alig
     window.addEventListener('pointerup', onUp);
   };
 
+  // 장식용 rect는 pointerEvents none — 위에 그려져도 드래그 핸들의 pointerdown을 가로채지 않게
   const rect = (x, y, w, h, extra) => (
-    <span aria-hidden style={{ position: 'absolute', left: x * cell, top: y * cell, width: w * cell, height: h * cell, ...extra }} />
+    <span aria-hidden style={{ position: 'absolute', left: x * cell, top: y * cell, width: w * cell, height: h * cell, pointerEvents: 'none', ...extra }} />
   );
   const hatch = 'repeating-linear-gradient(45deg, transparent 0 2px, var(--kg-line) 2px 3px)';
   const swatch = { width: 10, height: 10, borderRadius: 2, display: 'inline-block' };
   const legendItem = { display: 'inline-flex', alignItems: 'center', gap: 4 };
   return (
     <div style={{ marginTop: 10 }}>
-      <span
-        style={{
-          display: 'inline-block', padding: '3px 8px', borderRadius: 999,
-          background: 'var(--kg-teal-soft)', color: 'var(--kg-teal)', fontSize: 10, fontWeight: 800
-        }}
-      >
-        이미지 정렬: 가로 {alignLabel(HORIZONTAL_ALIGNMENTS, alignX)} · 세로 {alignLabel(VERTICAL_ALIGNMENTS, alignY)}
-      </span>
+      {isImage ? (
+        <span
+          style={{
+            display: 'inline-block', padding: '3px 8px', borderRadius: 999,
+            background: 'var(--kg-teal-soft)', color: 'var(--kg-teal)', fontSize: 10, fontWeight: 800
+          }}
+        >
+          이미지 정렬: 가로 {alignLabel(HORIZONTAL_ALIGNMENTS, alignX)} · 세로 {alignLabel(VERTICAL_ALIGNMENTS, alignY)}
+        </span>
+      ) : null}
       <div style={{ position: 'relative', width: uW * cell, height: uH * cell, marginTop: 8 }}>
         {rect(curX, curY, curCols, curRows, { background: 'var(--kg-coral-soft)' })}
         {rect(nextX, nextY, nextCols, nextRows, { backgroundImage: hatch })}
         {keepW > 0 && keepH > 0
-          ? rect(keepX, keepY, keepW, keepH, {
-              background: 'var(--kg-teal)', opacity: 0.85,
-              cursor: draggable ? 'move' : 'default', touchAction: 'none', pointerEvents: 'auto'
-            })
+          ? rect(keepX, keepY, keepW, keepH, { background: 'var(--kg-teal)', opacity: 0.85 })
           : null}
         {keepW > 0 && keepH > 0 && draggable ? (
           <span

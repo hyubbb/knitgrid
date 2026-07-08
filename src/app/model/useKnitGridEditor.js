@@ -111,7 +111,6 @@ import {
   clampFiniteNumber,
   clampCellToGrid,
   hasPaintedCells,
-  resizeGridKeepingContent,
   resizeGridKeepingContentAligned,
   moveGridContent,
   insertGridRow,
@@ -1167,14 +1166,13 @@ export function useKnitGridEditor() {
     const safeCols = Math.min(200, Math.max(1, Number(nextCols) || cols));
     pushHistory();
     const nextGrid = mode === 'keep'
-      ? appliedSourceImage
-        ? resizeGridKeepingContentAligned(grid, safeRows, safeCols, {
-            alignX: imageAlignmentToResizeAnchor(appliedSourceImage.imageOptions?.alignX, 'left', 'right'),
-            alignY: imageAlignmentToResizeAnchor(appliedSourceImage.imageOptions?.alignY, 'top', 'bottom'),
-            offsetX: pendingResize?.offsetX,
-            offsetY: pendingResize?.offsetY
-          })
-        : resizeGridKeepingContent(grid, safeRows, safeCols)
+      ? resizeGridKeepingContentAligned(grid, safeRows, safeCols, {
+          // 이미지 도안은 이미지 정렬 기준, 손그림은 좌상단(start) 기준. offset이 있으면 드래그로 조정한 위치 사용
+          alignX: appliedSourceImage ? imageAlignmentToResizeAnchor(appliedSourceImage.imageOptions?.alignX, 'left', 'right') : 'start',
+          alignY: appliedSourceImage ? imageAlignmentToResizeAnchor(appliedSourceImage.imageOptions?.alignY, 'top', 'bottom') : 'start',
+          offsetX: pendingResize?.offsetX,
+          offsetY: pendingResize?.offsetY
+        })
       : createGrid(safeRows, safeCols);
     applyGridStructure(nextGrid, safeRows, safeCols);
     setPendingResize(null);
