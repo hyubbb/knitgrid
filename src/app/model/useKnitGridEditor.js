@@ -1164,7 +1164,9 @@ export function useKnitGridEditor() {
       ? appliedSourceImage
         ? resizeGridKeepingContentAligned(grid, safeRows, safeCols, {
             alignX: imageAlignmentToResizeAnchor(appliedSourceImage.imageOptions?.alignX, 'left', 'right'),
-            alignY: imageAlignmentToResizeAnchor(appliedSourceImage.imageOptions?.alignY, 'top', 'bottom')
+            alignY: imageAlignmentToResizeAnchor(appliedSourceImage.imageOptions?.alignY, 'top', 'bottom'),
+            offsetX: pendingResize?.offsetX,
+            offsetY: pendingResize?.offsetY
           })
         : resizeGridKeepingContent(grid, safeRows, safeCols)
       : createGrid(safeRows, safeCols);
