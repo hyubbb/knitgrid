@@ -9,6 +9,7 @@ import {
   FolderOpen,
   Grid3X3,
   ImagePlus,
+  Layers,
   Menu,
   MoreVertical,
   PenLine,
@@ -46,6 +47,8 @@ export function EditorTopbar({ editor, mobileDrawer, onOpenMobileDrawer }) {
     fileInputRef,
     projectInputRef,
     prepareImageDraft,
+    referenceInputRef,
+    loadReferenceImage,
     openTextDraft,
     loadProject,
     exportPng,
@@ -82,6 +85,7 @@ export function EditorTopbar({ editor, mobileDrawer, onOpenMobileDrawer }) {
 
   const fileMenuItems = [
     { id: 'image-draft', label: '이미지로 초안 생성', icon: ImagePlus, onSelect: () => fileInputRef.current?.click() },
+    { id: 'reference-image', label: '레퍼런스 이미지 깔기(따라 그리기)', icon: Layers, onSelect: () => referenceInputRef.current?.click() },
     { id: 'text-draft', label: '텍스트로 초안 생성', icon: Type, onSelect: openTextDraft },
     { id: 'open-json', label: '프로젝트 JSON 열기', icon: FolderOpen, onSelect: () => projectInputRef.current?.click() },
     { id: 'export-png', label: 'PNG 내보내기', icon: FileImage, onSelect: exportPng },
@@ -195,6 +199,7 @@ export function EditorTopbar({ editor, mobileDrawer, onOpenMobileDrawer }) {
         <Menu size={18} />
       </button>
       <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp" onChange={prepareImageDraft} hidden />
+      <input ref={referenceInputRef} type="file" accept="image/png,image/jpeg,image/webp" onChange={loadReferenceImage} hidden />
       <input ref={projectInputRef} type="file" accept="application/json,.json" onChange={loadProject} hidden />
     </header>
   );

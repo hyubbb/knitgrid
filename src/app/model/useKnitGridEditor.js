@@ -158,6 +158,7 @@ import {
   HORIZONTAL_ALIGNMENTS,
   VERTICAL_ALIGNMENTS,
   getImagePlacement,
+  getImageAspectGridSize,
   buildWrittenPatternLines,
   buildWrittenPatternText,
   buildWrittenPatternCanvases,
@@ -242,6 +243,7 @@ export function useKnitGridEditor() {
   const [startScreenDismissed, setStartScreenDismissed] = useAtom(startScreenDismissedAtom);
   const [routeProject, setRouteProject] = useAtom(routeProjectAtom);
   const fileInputRef = useRef(null);
+  const referenceInputRef = useRef(null);
   const projectInputRef = useRef(null);
   const backupInputRef = useRef(null);
 
@@ -279,8 +281,28 @@ export function useKnitGridEditor() {
     return counts;
   }, [grid]);
 
+  // 이미지 변환에 실제로 쓰는 격자 크기. '이미지 비율로 맞추기'가 켜지면 이미지 비율로 재계산.
+  const imageConversionSize = useMemo(() => {
+    if (!imageDraft || !imageOptions.matchImageAspect) return { rows, cols };
+    return getImageAspectGridSize({
+      imageWidth: imageDraft.width,
+      imageHeight: imageDraft.height,
+      rows,
+      cols,
+      crop: imageOptions.crop
+    });
+  }, [imageDraft, imageOptions, rows, cols]);
+
   const imageWarnings = useMemo(() => {
     if (!imageDraft) return [];
+    if (imageOptions.matchImageAspect) {
+      const { rows: tRows, cols: tCols } = imageConversionSize;
+      const warnings = [`격자를 이미지 비율에 맞춰 ${tCols} x ${tRows}칸으로 변환합니다. 잘리는 부분은 없습니다.`];
+      if (imageDraft.width > tCols * 4 || imageDraft.height > tRows * 4) {
+        warnings.push(`원본 ${imageDraft.width} x ${imageDraft.height}px을 ${tCols} x ${tRows}칸으로 줄입니다. 세부 묘사가 많이 뭉개질 수 있습니다.`);
+      }
+      return warnings;
+    }
     const warnings = [];
     const imageRatio = imageDraft.width / imageDraft.height;
     const gridRatio = cols / rows;
@@ -318,7 +340,7 @@ export function useKnitGridEditor() {
     }
 
     return warnings;
-  }, [cols, imageDraft, imageOptions, rows]);
+  }, [cols, imageConversionSize, imageDraft, imageOptions, rows]);
 
   const imagePreviewCounts = useMemo(() => {
     const counts = new Map();
@@ -723,8 +745,8 @@ export function useKnitGridEditor() {
     image.onload = async () => {
       const candidates = await buildImageConversionCandidates({
         image,
-        rows,
-        cols,
+        rows: imageConversionSize.rows,
+        cols: imageConversionSize.cols,
         basePalette: palette,
         paletteMode: imagePaletteMode,
         imageOptions,
@@ -750,7 +772,7 @@ export function useKnitGridEditor() {
     return () => {
       cancelled = true;
     };
-  }, [cols, imageCandidateSeed, imageColorCount, imageGrayscale, imageDraft, imageOptions, imagePaletteMode, palette, rows]);
+  }, [cols, imageCandidateSeed, imageColorCount, imageConversionSize, imageGrayscale, imageDraft, imageOptions, imagePaletteMode, palette, rows]);
 
   const paintedCellCount = useMemo(
     () => grid.reduce((sum, row) => sum + row.filter((cell) => cell.active).length, 0),
@@ -1569,6 +1591,61 @@ export function useKnitGridEditor() {
     }
   }, [refreshLocalProjects]);
 
+  // 레퍼런스 이미지도 변환 흐름과 동일한 크롭 모달을 거친다(mode: 'reference'로 구분).
+  const loadReferenceImage = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const src = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      setCropDraft({
+        src,
+        name: file.name,
+        width: image.naturalWidth,
+        height: image.naturalHeight,
+        mode: 'reference',
+        cropSelection: INITIAL_CROP_SELECTION,
+        cropArea: convertPercentCropToImageCrop(INITIAL_CROP_SELECTION)
+      });
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(src);
+    };
+    image.src = src;
+    event.target.value = '';
+  };
+
+  // 크롭 영역만 잘라내 변환 없이 트레이싱 레이어로 격자 위에 올린다(격자/팔레트는 그대로, 세션 한정).
+  const applyReferenceCrop = (draft, crop) => {
+    const image = new Image();
+    image.onload = () => {
+      const sw = Math.max(1, Math.round(crop.width * image.naturalWidth));
+      const sh = Math.max(1, Math.round(crop.height * image.naturalHeight));
+      const sx = Math.round(crop.x * image.naturalWidth);
+      const sy = Math.round(crop.y * image.naturalHeight);
+      const canvas = document.createElement('canvas');
+      canvas.width = sw;
+      canvas.height = sh;
+      canvas.getContext('2d').drawImage(image, sx, sy, sw, sh, 0, 0, sw, sh);
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const croppedSrc = URL.createObjectURL(blob);
+        URL.revokeObjectURL(draft.src);
+        replaceAppliedSourceImageFromDraft(
+          { src: croppedSrc, name: draft.name, width: sw, height: sh },
+          { ...INITIAL_IMAGE_OPTIONS, fit: 'contain' },
+          rows,
+          cols
+        );
+        setMode('edit');
+        setShowAppliedSourceOverlay(true);
+        setIsAdjustingAppliedSourceOverlay(true);
+      }, 'image/png');
+    };
+    image.src = draft.src;
+    setCropDraft(null);
+  };
+
   const prepareImageDraft = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -1607,6 +1684,10 @@ export function useKnitGridEditor() {
   const completeCropDraft = () => {
     if (!cropDraft?.cropArea) return;
     const crop = normalizeCrop(cropDraft.cropArea);
+    if (cropDraft.mode === 'reference') {
+      applyReferenceCrop(cropDraft, crop);
+      return;
+    }
     setImageOptions({
       ...INITIAL_IMAGE_OPTIONS,
       fit: 'stretch',
@@ -1636,9 +1717,14 @@ export function useKnitGridEditor() {
   const applyImageDraft = () => {
     if (!imageDraft || !selectedImageCandidate) return;
     pushHistory();
+    const { rows: appliedRows, cols: appliedCols } = imageConversionSize;
+    if (imageOptions.matchImageAspect) {
+      setRows(appliedRows);
+      setCols(appliedCols);
+    }
     setGrid(cloneGrid(selectedImageCandidate.grid));
     setProgressMarks(new Set());
-    replaceAppliedSourceImageFromDraft(imageDraft, imageOptions, rows, cols);
+    replaceAppliedSourceImageFromDraft(imageDraft, imageOptions, appliedRows, appliedCols);
     if (imagePaletteMode === 'extract') {
       const nextPalette = clonePalette(selectedImageCandidate.palette);
       setPalette(nextPalette);
@@ -1718,7 +1804,8 @@ export function useKnitGridEditor() {
     );
   };
 
-  const updatePaletteItem = (id, patch, options = { autoMerge: true }) => {
+  // ponytail: 조정 중 값이 우연히 겹쳐도 자동 병합하지 않는다. 병합은 "기존 색상으로 병합" 수동 UI로만.
+  const updatePaletteItem = (id, patch) => {
     const currentItem = getPaletteItem(palette, id);
     if (!currentItem) return;
 
@@ -1730,21 +1817,8 @@ export function useKnitGridEditor() {
     }
 
     const nextItem = { ...currentItem, ...normalizedPatch };
-    const duplicate = normalizedPatch.color && options.autoMerge
-      ? palette.find((item) => item.id !== id && normalizeHex(item.color) === nextItem.color)
-      : null;
 
     pushHistory();
-
-    if (duplicate) {
-      setPalette((items) => items.filter((item) => item.id !== id));
-      setGrid((previous) => syncCellsForPaletteMerge(previous, currentItem, duplicate));
-      if (activePaletteId === id) setActivePaletteId(duplicate.id);
-      if (expandedPaletteId === id) setExpandedPaletteId(duplicate.id);
-      setPaletteNotice(`${currentItem.code}가 ${duplicate.code}로 병합되었습니다.`);
-      return;
-    }
-
     setPalette((items) => items.map((item) => (item.id === id ? nextItem : item)));
     setGrid((previous) => syncCellsForPaletteChange(previous, nextItem));
     setPaletteNotice('');
@@ -1995,6 +2069,8 @@ export function useKnitGridEditor() {
     backupAllLocalProjects,
     restoreAllLocalProjects,
     prepareImageDraft,
+    referenceInputRef,
+    loadReferenceImage,
     closeCropDraft,
     completeCropDraft,
     closeImageDraft,

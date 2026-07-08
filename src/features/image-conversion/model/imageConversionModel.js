@@ -88,6 +88,8 @@ export const INITIAL_IMAGE_OPTIONS = {
   fit: 'cover',
   alignX: 'center',
   alignY: 'center',
+  matchImageAspect: false,
+  pixelArt: false,
   crop: {
     enabled: false,
     x: 0,
@@ -313,6 +315,33 @@ export const getCellSampleColor = (pixels, canvasWidth, row, col, options = {}) 
   const inset = IMAGE_SAMPLE_SCALE > 2 ? 1 : 0;
   const offsetX = sampleOffset % 2;
   const offsetY = Math.floor(sampleOffset / 2) % 2;
+
+  // 차트/픽셀아트: 셀 안에서 가장 많은(최빈) 색으로 스냅. 격자선·경계의 소수 픽셀을 무시해
+  // 하드엣지를 보존한다(평균처럼 중간색으로 뭉개지지 않음). 아티팩트 필터는 쓰지 않는다.
+  if (options.pixelArt) {
+    const buckets = new Map();
+    let best = null;
+    for (let y = yStart + inset + offsetY; y < yStart + IMAGE_SAMPLE_SCALE - inset; y += 1) {
+      for (let x = xStart + inset + offsetX; x < xStart + IMAGE_SAMPLE_SCALE - inset; x += 1) {
+        const index = (y * canvasWidth + x) * 4;
+        if (pixels[index + 3] < 32) continue;
+        const r = pixels[index];
+        const g = pixels[index + 1];
+        const b = pixels[index + 2];
+        const key = ((r >> 4) << 8) | ((g >> 4) << 4) | (b >> 4);
+        const bucket = buckets.get(key) || { count: 0, r: 0, g: 0, b: 0 };
+        bucket.count += 1;
+        bucket.r += r;
+        bucket.g += g;
+        bucket.b += b;
+        buckets.set(key, bucket);
+        if (!best || bucket.count > best.count) best = bucket;
+      }
+    }
+    if (!best) return null;
+    return rgbToHex(best.r / best.count, best.g / best.count, best.b / best.count);
+  }
+
   let totalWeight = 0;
   let totalR = 0;
   let totalG = 0;
@@ -345,7 +374,8 @@ export const drawImageToAnalysisCanvas = ({ image, rows, cols, imageOptions }) =
   canvas.width = cols * IMAGE_SAMPLE_SCALE;
   canvas.height = rows * IMAGE_SAMPLE_SCALE;
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  ctx.imageSmoothingEnabled = true;
+  // 차트/픽셀아트 모드에서는 nearest(스무딩 OFF)로 그려 하드엣지·격자선이 뭉개지지 않게 한다.
+  ctx.imageSmoothingEnabled = !imageOptions.pixelArt;
   ctx.imageSmoothingQuality = 'high';
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -552,7 +582,7 @@ export const buildConvertedImageGrid = ({ image, rows, cols, basePalette, palett
     cols,
     basePalette,
     paletteMode,
-    config: withColorCount(IMAGE_CANDIDATE_CONFIGS[0], colorCount),
+    config: { ...withColorCount(IMAGE_CANDIDATE_CONFIGS[0], colorCount), pixelArt: Boolean(imageOptions.pixelArt) },
     seed: 0
   });
 };
@@ -568,7 +598,7 @@ export const buildImageConversionCandidates = async ({ image, rows, cols, basePa
       cols,
       basePalette,
       paletteMode,
-      config: withColorCount(config, colorCount),
+      config: { ...withColorCount(config, colorCount), pixelArt: Boolean(imageOptions.pixelArt) },
       seed
     }));
     await new Promise((resolve) => window.setTimeout(resolve, 0));
@@ -593,6 +623,21 @@ export const VERTICAL_ALIGNMENTS = [
   { id: 'center', label: '중앙' },
   { id: 'bottom', label: '하단' }
 ];
+
+// 업로드 이미지 비율(크롭 반영)에 맞춰 격자 칸 수를 정한다.
+// 긴 변에 현재 격자의 최대 칸 수(=규모 예산)를 배정하고 짧은 변은 비율대로. 최대 200칸.
+export const getImageAspectGridSize = ({ imageWidth, imageHeight, rows, cols, crop }) => {
+  const normalized = normalizeCrop(crop);
+  const effWidth = (normalized.enabled ? normalized.width : 1) * imageWidth;
+  const effHeight = (normalized.enabled ? normalized.height : 1) * imageHeight;
+  if (!(effWidth > 0 && effHeight > 0)) return { rows, cols };
+  const budget = Math.max(rows, cols);
+  const longSide = Math.max(effWidth, effHeight);
+  return {
+    cols: clampNumber(Math.round(budget * (effWidth / longSide)), 1, 200),
+    rows: clampNumber(Math.round(budget * (effHeight / longSide)), 1, 200)
+  };
+};
 
 export const getImagePlacement = ({ imageWidth, imageHeight, targetWidth, targetHeight, fit, alignX, alignY }) => {
   if (fit === 'stretch') {

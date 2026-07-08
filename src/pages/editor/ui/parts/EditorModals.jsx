@@ -421,10 +421,38 @@ export function EditorModals({ editor }) {
             </div>
 
             <div className="setting-block">
+              <strong>격자 크기</strong>
+              <div className="option-stack">
+                <button className={!imageOptions.matchImageAspect ? 'active' : ''} onClick={() => setImageOptions((previous) => ({ ...previous, matchImageAspect: false }))}>
+                  <span>현재 격자 유지</span>
+                  <small>지금 설정한 칸 수에 이미지를 맞춰 넣습니다(넘치면 잘림).</small>
+                </button>
+                <button className={imageOptions.matchImageAspect ? 'active' : ''} onClick={() => setImageOptions((previous) => ({ ...previous, matchImageAspect: true }))}>
+                  <span>이미지 비율로 맞추기</span>
+                  <small>격자를 이미지 비율에 맞춰 다시 잡습니다. 잘림 없이 전체가 들어갑니다.</small>
+                </button>
+              </div>
+            </div>
+
+            <div className="setting-block">
+              <strong>변환 정밀도</strong>
+              <div className="option-stack">
+                <button className={!imageOptions.pixelArt ? 'active' : ''} onClick={() => setImageOptions((previous) => ({ ...previous, pixelArt: false }))}>
+                  <span>사진용(부드럽게)</span>
+                  <small>주변 색을 평균 내 자연스럽게. 일반 사진·그림에 적합.</small>
+                </button>
+                <button className={imageOptions.pixelArt ? 'active' : ''} onClick={() => setImageOptions((previous) => ({ ...previous, pixelArt: true }))}>
+                  <span>차트·픽셀아트(선명)</span>
+                  <small>칸마다 가장 많은 색으로 스냅하고 격자선을 무시합니다. 이미 격자로 만들어진 도안·픽셀아트에 적합. 출력 칸 수를 원본 칸 수와 같게 맞추면 가장 깔끔합니다.</small>
+                </button>
+              </div>
+            </div>
+
+            <div className="setting-block">
               <strong>맞춤 방식</strong>
               <div className="option-stack">
                 {FIT_OPTIONS.map((item) => (
-                  <button key={item.id} className={imageOptions.fit === item.id ? 'active' : ''} onClick={() => setImageOptions((previous) => ({ ...previous, fit: item.id }))}>
+                  <button key={item.id} className={imageOptions.fit === item.id ? 'active' : ''} disabled={imageOptions.matchImageAspect} onClick={() => setImageOptions((previous) => ({ ...previous, fit: item.id }))}>
                     <span>{item.label}</span>
                     <small>{item.description}</small>
                   </button>
@@ -436,7 +464,7 @@ export function EditorModals({ editor }) {
               <strong>가로 정렬</strong>
               <div className="segmented">
                 {HORIZONTAL_ALIGNMENTS.map((item) => (
-                  <button key={item.id} className={imageOptions.alignX === item.id ? 'active' : ''} disabled={imageOptions.fit === 'stretch'} onClick={() => setImageOptions((previous) => ({ ...previous, alignX: item.id }))}>
+                  <button key={item.id} className={imageOptions.alignX === item.id ? 'active' : ''} disabled={imageOptions.matchImageAspect || imageOptions.fit === 'stretch'} onClick={() => setImageOptions((previous) => ({ ...previous, alignX: item.id }))}>
                     {item.label}
                   </button>
                 ))}
@@ -447,7 +475,7 @@ export function EditorModals({ editor }) {
               <strong>세로 정렬</strong>
               <div className="segmented">
                 {VERTICAL_ALIGNMENTS.map((item) => (
-                  <button key={item.id} className={imageOptions.alignY === item.id ? 'active' : ''} disabled={imageOptions.fit === 'stretch'} onClick={() => setImageOptions((previous) => ({ ...previous, alignY: item.id }))}>
+                  <button key={item.id} className={imageOptions.alignY === item.id ? 'active' : ''} disabled={imageOptions.matchImageAspect || imageOptions.fit === 'stretch'} onClick={() => setImageOptions((previous) => ({ ...previous, alignY: item.id }))}>
                     {item.label}
                   </button>
                 ))}
