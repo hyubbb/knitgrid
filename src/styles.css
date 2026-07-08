@@ -1330,7 +1330,7 @@
   }
 
   .image-preview-panel {
-    @apply grid min-w-0 content-start gap-3;
+    @apply grid min-h-0 min-w-0 content-start gap-3;
   }
 
   .image-preview-tools {
@@ -1390,6 +1390,12 @@
     @apply relative grid min-h-[260px] max-h-[520px] overflow-hidden rounded-lg border border-[var(--kg-line-strong)] bg-[var(--kg-surface)] shadow-inner;
   }
 
+  .image-preview-panel > .image-preview-frame {
+    @apply min-h-0 w-full max-w-full self-start;
+    max-height: min(420px, 46vh);
+    contain: layout paint;
+  }
+
   .image-preview-frame img {
     @apply size-full;
   }
@@ -1407,9 +1413,17 @@
     @apply grid size-full min-h-[260px] place-items-center bg-[var(--kg-surface-soft)] text-[11px] font-extrabold text-[var(--kg-muted)];
   }
 
+  .image-preview-panel > .image-preview-frame .image-preview-loading {
+    @apply min-h-0;
+  }
+
   .converted-preview-grid {
     @apply grid size-full min-h-[260px] bg-[var(--kg-surface)];
     grid-template-rows: repeat(var(--preview-rows), minmax(0, 1fr));
+  }
+
+  .image-preview-panel > .image-preview-frame .converted-preview-grid {
+    @apply min-h-0;
   }
 
   .converted-preview-grid span {
