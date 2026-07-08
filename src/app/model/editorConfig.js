@@ -17,13 +17,13 @@ export const PRESETS = [
 ];
 
 export const TOOLS = [
-  { id: 'select', label: '선택', icon: MousePointer2 },
-  { id: 'pan', label: '이동', icon: Hand },
-  { id: 'pen', label: '펜', icon: PenLine },
-  { id: 'eraser', label: '지우개', icon: Eraser },
-  { id: 'fill', label: '채우기', icon: PaintBucket },
-  { id: 'picker', label: '스포이드', icon: Pipette },
-  { id: 'mirror', label: '좌우 반전', icon: Maximize2 }
+  { id: 'select', label: '선택', icon: MousePointer2, shortcut: 'v' },
+  { id: 'pan', label: '이동', icon: Hand, shortcut: 'h' },
+  { id: 'pen', label: '펜', icon: PenLine, shortcut: 'p' },
+  { id: 'eraser', label: '지우개', icon: Eraser, shortcut: 'e' },
+  { id: 'fill', label: '채우기', icon: PaintBucket, shortcut: 'f' },
+  { id: 'picker', label: '스포이드', icon: Pipette, shortcut: 's' },
+  { id: 'mirror', label: '좌우 반전', icon: Maximize2, shortcut: 'm' }
 ];
 
 export const DISPLAY_MODES = [

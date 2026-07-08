@@ -13,10 +13,18 @@ export function ToolRail({ items, value, onSelect, iconSize = 20, ariaLabel, chi
     <aside className="tool-rail" aria-label={ariaLabel}>
       {items.map((item) => {
         const Icon = item.icon;
+        const shortcut = item.shortcut?.toUpperCase();
         return (
-          <button key={item.id} className={value === item.id ? 'active' : ''} onClick={() => onSelect(item.id)} title={item.label}>
+          <button
+            key={item.id}
+            className={value === item.id ? 'active' : ''}
+            onClick={() => onSelect(item.id)}
+            title={shortcut ? `${item.label} (${shortcut})` : item.label}
+            aria-keyshortcuts={shortcut}
+          >
             <Icon size={iconSize} />
             <span>{item.label}</span>
+            {shortcut ? <kbd aria-hidden="true">{shortcut}</kbd> : null}
           </button>
         );
       })}

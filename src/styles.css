@@ -261,6 +261,10 @@
     @apply max-w-[42px] overflow-hidden text-ellipsis whitespace-nowrap text-[9px] font-bold leading-none;
   }
 
+  .tool-rail button kbd {
+    @apply inline-flex min-w-[16px] items-center justify-center rounded border border-[var(--kg-line)] bg-[var(--kg-surface)] px-1 text-[8px] font-extrabold uppercase leading-none text-[var(--kg-muted)];
+  }
+
   .tool-rail button.active {
     @apply border-[var(--kg-teal)] bg-[var(--kg-teal-soft)] text-[var(--kg-teal)];
   }

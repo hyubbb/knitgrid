@@ -166,6 +166,7 @@ import {
 } from './knitgridModel.js';
 
 const progressMarkKey = (row, col) => `${row}:${col}`;
+const TOOL_SHORTCUTS = new Map(TOOLS.flatMap((tool) => (tool.shortcut ? [[tool.shortcut, tool.id]] : [])));
 
 const imageAlignmentToResizeAnchor = (alignment, startValue, endValue) => {
   if (alignment === startValue) return 'start';
@@ -1269,6 +1270,26 @@ export function useKnitGridEditor() {
     setCurrentCell((cell) => ({ ...cell, col: cols - 1 - cell.col }));
     setInsertAnchorCell((cell) => ({ ...cell, col: cols - 1 - cell.col }));
   };
+
+  useEffect(() => {
+    if (mode !== 'edit') return undefined;
+    const handleKeyDown = (event) => {
+      if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
+      const target = event.target;
+      const tag = target?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable) return;
+      const nextTool = TOOL_SHORTCUTS.get(event.key.toLowerCase());
+      if (!nextTool) return;
+      event.preventDefault();
+      if (nextTool === 'mirror') {
+        mirrorGrid();
+      } else {
+        setTool(nextTool);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mode, mirrorGrid, setTool]);
 
   const rotateGrid = () => {
     pushHistory();
