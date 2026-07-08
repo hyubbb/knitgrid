@@ -44,6 +44,8 @@ import {
   imageDraftAtom,
   imageOptionsAtom,
   imagePaletteModeAtom,
+  imageColorCountAtom,
+  imageGrayscaleAtom,
   imageCandidatesAtom,
   selectedImageCandidateIdAtom,
   imageCandidateSeedAtom,
@@ -213,6 +215,8 @@ export function useKnitGridEditor() {
   const [imageDraft, setImageDraft] = useAtom(imageDraftAtom);
   const [imageOptions, setImageOptions] = useAtom(imageOptionsAtom);
   const [imagePaletteMode, setImagePaletteMode] = useAtom(imagePaletteModeAtom);
+  const [imageColorCount, setImageColorCount] = useAtom(imageColorCountAtom);
+  const [imageGrayscale, setImageGrayscale] = useAtom(imageGrayscaleAtom);
   const [imageCandidates, setImageCandidates] = useAtom(imageCandidatesAtom);
   const [selectedImageCandidateId, setSelectedImageCandidateId] = useAtom(selectedImageCandidateIdAtom);
   const [imageCandidateSeed, setImageCandidateSeed] = useAtom(imageCandidateSeedAtom);
@@ -734,7 +738,9 @@ export function useKnitGridEditor() {
         basePalette: palette,
         paletteMode: imagePaletteMode,
         imageOptions,
-        seed: imageCandidateSeed
+        seed: imageCandidateSeed,
+        colorCount: imageColorCount,
+        grayscale: imageGrayscale
       });
       if (!cancelled) {
         setImageCandidates(candidates);
@@ -754,7 +760,7 @@ export function useKnitGridEditor() {
     return () => {
       cancelled = true;
     };
-  }, [cols, imageCandidateSeed, imageDraft, imageOptions, imagePaletteMode, palette, rows]);
+  }, [cols, imageCandidateSeed, imageColorCount, imageGrayscale, imageDraft, imageOptions, imagePaletteMode, palette, rows]);
 
   const paintedCellCount = useMemo(
     () => grid.reduce((sum, row) => sum + row.filter((cell) => cell.active).length, 0),
@@ -1875,6 +1881,10 @@ export function useKnitGridEditor() {
     setImageOptions,
     imagePaletteMode,
     setImagePaletteMode,
+    imageColorCount,
+    setImageColorCount,
+    imageGrayscale,
+    setImageGrayscale,
     imageCandidates,
     setImageCandidates,
     selectedImageCandidateId,

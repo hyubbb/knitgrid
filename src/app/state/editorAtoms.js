@@ -56,6 +56,10 @@ export const textDraftAtom = atom(null);
 export const imageOptionsAtom = atom(INITIAL_IMAGE_OPTIONS);
 export const textOptionsAtom = atom(INITIAL_TEXT_OPTIONS);
 export const imagePaletteModeAtom = atom('extract');
+// 미리보기 팔레트 색상 수: null = 프리셋 자율(기존 동작), 숫자 = 전 프리셋 오버라이드(2~8)
+export const imageColorCountAtom = atom(null);
+// 흑백(무채색) 모드: 채도를 제거한 뒤 색상 수만큼 회색 계조로 변환
+export const imageGrayscaleAtom = atom(false);
 export const imageCandidatesAtom = atom([]);
 export const selectedImageCandidateIdAtom = atom('');
 export const imageCandidateSeedAtom = atom(0);
