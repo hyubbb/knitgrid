@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1783391963565,
+  "lastScanned": 1783488502472,
   "projectRoot": "/Users/benji/Desktop/questi/dev/knitgrid",
   "techStack": {
     "languages": [
@@ -55,19 +55,25 @@
     "workspaces": [],
     "mainDirectories": [
       "docs",
+      "public",
       "src",
       "tests"
     ],
-    "gitBranches": null
+    "gitBranches": {
+      "defaultBranch": "main",
+      "branchingStrategy": null
+    }
   },
   "customNotes": [],
   "directoryMap": {
     "dist": {
       "path": "dist",
       "purpose": "Distribution/build output",
-      "fileCount": 1,
-      "lastAccessed": 1783391963530,
+      "fileCount": 3,
+      "lastAccessed": 1783488502445,
       "keyFiles": [
+        "Galmuri11.ttf",
+        "Galmuri9.ttf",
         "index.html"
       ]
     },
@@ -75,21 +81,31 @@
       "path": "docs",
       "purpose": "Documentation",
       "fileCount": 0,
-      "lastAccessed": 1783391963537,
+      "lastAccessed": 1783488502445,
       "keyFiles": []
     },
     "insane-design": {
       "path": "insane-design",
       "purpose": null,
       "fileCount": 0,
-      "lastAccessed": 1783391963538,
+      "lastAccessed": 1783488502445,
       "keyFiles": []
+    },
+    "public": {
+      "path": "public",
+      "purpose": "Public files",
+      "fileCount": 2,
+      "lastAccessed": 1783488502446,
+      "keyFiles": [
+        "Galmuri11.ttf",
+        "Galmuri9.ttf"
+      ]
     },
     "src": {
       "path": "src",
       "purpose": "Source code",
       "fileCount": 3,
-      "lastAccessed": 1783391963539,
+      "lastAccessed": 1783488502446,
       "keyFiles": [
         "App.jsx",
         "main.jsx",
@@ -100,7 +116,7 @@
       "path": "tests",
       "purpose": "Test files",
       "fileCount": 2,
-      "lastAccessed": 1783391963539,
+      "lastAccessed": 1783488502447,
       "keyFiles": [
         "imageConversion.test.js",
         "number.test.js"
@@ -110,25 +126,25 @@
       "path": "dist/assets",
       "purpose": "Static assets",
       "fileCount": 7,
-      "lastAccessed": 1783391963539,
+      "lastAccessed": 1783488502447,
       "keyFiles": [
-        "html2canvas-J97Cfq3C.js",
-        "index-C9B9MWKd.js",
-        "index-Dx_FA_qH.css"
+        "html2canvas-CWcLjWWi.js",
+        "index-BcfVze2k.css",
+        "index-DvaORQLE.js"
       ]
     },
     "src/app": {
       "path": "src/app",
       "purpose": "Application code",
       "fileCount": 0,
-      "lastAccessed": 1783391963540,
+      "lastAccessed": 1783488502448,
       "keyFiles": []
     },
     "src/components": {
       "path": "src/components",
       "purpose": "UI components",
       "fileCount": 23,
-      "lastAccessed": 1783391963540,
+      "lastAccessed": 1783488502448,
       "keyFiles": [
         "Badge.jsx",
         "Button.jsx",
@@ -139,7 +155,7 @@
       "path": "src/pages",
       "purpose": "Page components",
       "fileCount": 0,
-      "lastAccessed": 1783391963541,
+      "lastAccessed": 1783488502448,
       "keyFiles": []
     }
   },
@@ -152,14 +168,32 @@
     },
     {
       "path": "src/app/model/useKnitGridEditor.js",
-      "accessCount": 86,
-      "lastAccessed": 1783403923875,
+      "accessCount": 115,
+      "lastAccessed": 1783494972154,
       "type": "file"
     },
     {
       "path": "src/pages/editor/ui/parts/EditorCanvas.jsx",
-      "accessCount": 43,
-      "lastAccessed": 1783403668776,
+      "accessCount": 47,
+      "lastAccessed": 1783493729991,
+      "type": "file"
+    },
+    {
+      "path": "src/features/image-conversion/model/imageConversionModel.js",
+      "accessCount": 25,
+      "lastAccessed": 1783498696085,
+      "type": "file"
+    },
+    {
+      "path": "src/pages/editor/ui/parts/EditorModals.jsx",
+      "accessCount": 24,
+      "lastAccessed": 1783498710247,
+      "type": "file"
+    },
+    {
+      "path": "src/pages/editor/ui/parts/EditorTopbar.jsx",
+      "accessCount": 21,
+      "lastAccessed": 1783494021208,
       "type": "file"
     },
     {
@@ -169,27 +203,9 @@
       "type": "file"
     },
     {
-      "path": "src/pages/editor/ui/parts/EditorModals.jsx",
-      "accessCount": 19,
-      "lastAccessed": 1783403145228,
-      "type": "file"
-    },
-    {
-      "path": "src/pages/editor/ui/parts/EditorTopbar.jsx",
-      "accessCount": 14,
-      "lastAccessed": 1783394295303,
-      "type": "file"
-    },
-    {
       "path": "src/app/state/editorAtoms.js",
-      "accessCount": 11,
-      "lastAccessed": 1783403904963,
-      "type": "file"
-    },
-    {
-      "path": "src/features/image-conversion/model/imageConversionModel.js",
-      "accessCount": 10,
-      "lastAccessed": 1782969425591,
+      "accessCount": 12,
+      "lastAccessed": 1783493447188,
       "type": "file"
     },
     {
@@ -217,15 +233,15 @@
       "type": "file"
     },
     {
-      "path": "src/components/index.js",
-      "accessCount": 4,
-      "lastAccessed": 1783045337537,
+      "path": "src/features/local-projects/model/localProjectModel.js",
+      "accessCount": 5,
+      "lastAccessed": 1783493480231,
       "type": "file"
     },
     {
-      "path": "src/features/local-projects/model/localProjectModel.js",
+      "path": "src/components/index.js",
       "accessCount": 4,
-      "lastAccessed": 1783045849357,
+      "lastAccessed": 1783045337537,
       "type": "file"
     },
     {
@@ -247,6 +263,12 @@
       "type": "file"
     },
     {
+      "path": "src/app/model/editorConfig.js",
+      "accessCount": 4,
+      "lastAccessed": 1783493511479,
+      "type": "file"
+    },
+    {
       "path": "src/components/Modal.jsx",
       "accessCount": 3,
       "lastAccessed": 1783045337044,
@@ -262,12 +284,6 @@
       "path": "src/app/model/knitgridModel.js",
       "accessCount": 3,
       "lastAccessed": 1783045465458,
-      "type": "file"
-    },
-    {
-      "path": "src/app/model/editorConfig.js",
-      "accessCount": 3,
-      "lastAccessed": 1783403900782,
       "type": "file"
     },
     {
@@ -310,6 +326,12 @@
       "path": "src/pages/editor/ui/parts/inspector/InspectorViewControls.jsx",
       "accessCount": 2,
       "lastAccessed": 1783392276387,
+      "type": "file"
+    },
+    {
+      "path": "src/entities/palette/model/paletteModel.js",
+      "accessCount": 2,
+      "lastAccessed": 1783488834873,
       "type": "file"
     },
     {
@@ -430,12 +452,6 @@
       "path": "src/pages/editor/ui/parts/inspector/InspectorViewPanel.jsx",
       "accessCount": 1,
       "lastAccessed": 1783044514034,
-      "type": "file"
-    },
-    {
-      "path": "src/entities/palette/model/paletteModel.js",
-      "accessCount": 1,
-      "lastAccessed": 1783045330917,
       "type": "file"
     },
     {
