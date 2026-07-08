@@ -155,6 +155,12 @@ export const IMAGE_PALETTE_MODES = [
 
 export const IMAGE_SAMPLE_SCALE = 6;
 export const IMAGE_EXTRACT_COLOR_LIMIT = 6;
+// 사용자가 미리보기에서 지정할 수 있는 색상 수 범위. 하한 2(1색은 도안이 아님), 상한 8.
+export const IMAGE_COLOR_COUNT_MIN = 2;
+export const IMAGE_COLOR_COUNT_MAX = 8;
+export const IMAGE_COLOR_COUNT_WARN = 6; // 초과 시 실 관리 난이도 안내
+export const clampImageColorCount = (value) =>
+  clampNumber(Math.round(value), IMAGE_COLOR_COUNT_MIN, IMAGE_COLOR_COUNT_MAX);
 export const IMAGE_COLOR_WARNING_DISTANCE = 24;
 export const IMAGE_CANDIDATE_CONFIGS = [
   {
@@ -381,6 +387,19 @@ export const drawImageToAnalysisCanvas = ({ image, rows, cols, imageOptions }) =
   };
 };
 
+// 채도를 제거해 무채색(흑백)으로 만든다. 이후 양자화하면 검정~흰색 계조만 남는다.
+// BT.709 luma로 r=g=b 대입. imageData를 제자리에서 수정한다.
+export const applyGrayscaleToImageData = (imageData) => {
+  const { data } = imageData;
+  for (let i = 0; i < data.length; i += 4) {
+    const luma = Math.round(data[i] * 0.2126 + data[i + 1] * 0.7152 + data[i + 2] * 0.0722);
+    data[i] = luma;
+    data[i + 1] = luma;
+    data[i + 2] = luma;
+  }
+  return imageData;
+};
+
 export const pointContainerToCellColors = ({ pointContainer, rows, cols, config }) => {
   const pixels = pointContainer.toUint8Array();
   const width = pointContainer.getWidth();
@@ -520,21 +539,27 @@ export const buildImageCandidateWithImageQ = ({ imageData, rows, cols, basePalet
   };
 };
 
-export const buildConvertedImageGrid = ({ image, rows, cols, basePalette, paletteMode, imageOptions }) => {
+// colorCount(2~8)가 있으면 프리셋의 고정 색상 수를 오버라이드한다. null이면 기존 동작 유지.
+const withColorCount = (config, colorCount) =>
+  colorCount ? { ...config, colors: clampImageColorCount(colorCount) } : config;
+
+export const buildConvertedImageGrid = ({ image, rows, cols, basePalette, paletteMode, imageOptions, colorCount = null, grayscale = false }) => {
   const { imageData } = drawImageToAnalysisCanvas({ image, rows, cols, imageOptions });
+  if (grayscale) applyGrayscaleToImageData(imageData);
   return buildImageCandidateWithImageQ({
     imageData,
     rows,
     cols,
     basePalette,
     paletteMode,
-    config: IMAGE_CANDIDATE_CONFIGS[0],
+    config: withColorCount(IMAGE_CANDIDATE_CONFIGS[0], colorCount),
     seed: 0
   });
 };
 
-export const buildImageConversionCandidates = async ({ image, rows, cols, basePalette, paletteMode, imageOptions, seed }) => {
+export const buildImageConversionCandidates = async ({ image, rows, cols, basePalette, paletteMode, imageOptions, seed, colorCount = null, grayscale = false }) => {
   const { imageData } = drawImageToAnalysisCanvas({ image, rows, cols, imageOptions });
+  if (grayscale) applyGrayscaleToImageData(imageData);
   const candidates = [];
   for (const config of IMAGE_CANDIDATE_CONFIGS) {
     candidates.push(buildImageCandidateWithImageQ({
@@ -543,7 +568,7 @@ export const buildImageConversionCandidates = async ({ image, rows, cols, basePa
       cols,
       basePalette,
       paletteMode,
-      config,
+      config: withColorCount(config, colorCount),
       seed
     }));
     await new Promise((resolve) => window.setTimeout(resolve, 0));

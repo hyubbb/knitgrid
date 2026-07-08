@@ -6,6 +6,10 @@ import {
   FIT_OPTIONS,
   HORIZONTAL_ALIGNMENTS,
   IMAGE_PALETTE_MODES,
+  IMAGE_COLOR_COUNT_MIN,
+  IMAGE_COLOR_COUNT_MAX,
+  IMAGE_COLOR_COUNT_WARN,
+  clampImageColorCount,
   VERTICAL_ALIGNMENTS,
   countPaintedCells,
   formatProjectDate
@@ -62,8 +66,24 @@ export function EditorModals({ editor }) {
     imagePreviewCounts,
     imagePaletteMode,
     setImagePaletteMode,
+    imageColorCount,
+    setImageColorCount,
+    imageGrayscale,
+    setImageGrayscale,
     imageWarnings
   } = editor;
+
+  // 색상 수 조절: match 모드에선 색상 수가 최종 팔레트를 바꾸지 못하므로 비활성.
+  const colorCountDisabled = imagePaletteMode !== 'extract';
+  // 자동(null)일 때 스텝퍼의 기준값은 프리셋 상한(가장 색이 많은 후보 기준).
+  const effectiveColorCount = imageColorCount ?? IMAGE_COLOR_COUNT_MAX;
+  const setColorCount = (value) => setImageColorCount(clampImageColorCount(value));
+  const applyColorPreset = ({ count = null, grayscale = false }) => {
+    setImageGrayscale(grayscale);
+    setImageColorCount(count);
+  };
+  const isPreset = (count, grayscale) =>
+    imageGrayscale === grayscale && imageColorCount === count;
 
   return (
     <>
@@ -350,6 +370,41 @@ export function EditorModals({ editor }) {
           </div>
 
           <div className="image-settings-panel">
+            <div className="setting-block">
+              <strong>색상 수</strong>
+              <div className="color-count-stepper" role="group" aria-label="색상 수 조절">
+                <button
+                  type="button"
+                  aria-label="색상 줄이기"
+                  disabled={colorCountDisabled || effectiveColorCount <= IMAGE_COLOR_COUNT_MIN}
+                  onClick={() => setColorCount(effectiveColorCount - 1)}
+                >−</button>
+                <span aria-live="polite">
+                  {imageColorCount === null ? '자동' : `${imageColorCount}색`}
+                  {imageGrayscale ? ' · 흑백' : ''}
+                </span>
+                <button
+                  type="button"
+                  aria-label="색상 늘리기"
+                  disabled={colorCountDisabled || effectiveColorCount >= IMAGE_COLOR_COUNT_MAX}
+                  onClick={() => setColorCount(effectiveColorCount + 1)}
+                >+</button>
+              </div>
+              <div className="segmented four">
+                <button className={imageGrayscale ? 'active' : ''} disabled={colorCountDisabled} onClick={() => applyColorPreset({ count: IMAGE_COLOR_COUNT_MIN, grayscale: true })} aria-pressed={imageGrayscale}>흑백</button>
+                <button className={isPreset(2, false) ? 'active' : ''} disabled={colorCountDisabled} onClick={() => applyColorPreset({ count: 2 })} aria-pressed={isPreset(2, false)}>2색</button>
+                <button className={isPreset(4, false) ? 'active' : ''} disabled={colorCountDisabled} onClick={() => applyColorPreset({ count: 4 })} aria-pressed={isPreset(4, false)}>4색</button>
+                <button className={isPreset(null, false) ? 'active' : ''} disabled={colorCountDisabled} onClick={() => applyColorPreset({ count: null })} aria-pressed={isPreset(null, false)}>자동</button>
+              </div>
+              {colorCountDisabled ? (
+                <small className="setting-hint">‘현재 팔레트에 맞춤’에서는 색상 수가 적용되지 않습니다. ‘이미지 색상 자동 추출’로 바꿔 주세요.</small>
+              ) : imageGrayscale ? (
+                <small className="setting-hint">채도를 없애 검정~흰색 계조로만 변환합니다. 스텝퍼로 회색 단계를 늘릴 수 있어요.</small>
+              ) : imageColorCount && imageColorCount > IMAGE_COLOR_COUNT_WARN ? (
+                <small className="setting-hint">실 {imageColorCount}볼은 색 교체 관리가 어려워요. 실제 색 수는 후보 카드에서 확인하세요.</small>
+              ) : null}
+            </div>
+
             <div className="setting-block">
               <strong>변환 방식</strong>
               <div className="option-stack">
