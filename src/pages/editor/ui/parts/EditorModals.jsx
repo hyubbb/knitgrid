@@ -39,6 +39,7 @@ export function EditorModals({ editor }) {
     setPendingResize,
     cols,
     rows,
+    grid,
     commitGridResize,
     paintedCellCount,
     appliedSourceImage,
@@ -202,6 +203,7 @@ export function EditorModals({ editor }) {
             </p>
             {pendingResize ? (
               <ResizeAlignPreview
+                grid={grid}
                 curCols={cols}
                 curRows={rows}
                 nextCols={pendingResize.cols}
@@ -498,7 +500,7 @@ const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 const baseOffset = (delta, anchor) => (anchor === 'end' ? delta : anchor === 'center' ? Math.floor(delta / 2) : 0);
 
 // 리사이즈 시 어디가 유지/잘림/빈칸이 되는지 보여주고, 유지 영역을 드래그해 위치를 조정하는 미니 다이어그램
-function ResizeAlignPreview({ curCols, curRows, nextCols, nextRows, alignX, alignY, isImage, offsetX, offsetY, onOffsetChange }) {
+function ResizeAlignPreview({ grid, curCols, curRows, nextCols, nextRows, alignX, alignY, isImage, offsetX, offsetY, onOffsetChange }) {
   const drag = useRef(null);
   const ax = resizeAnchor(alignX, 'right');
   const ay = resizeAnchor(alignY, 'bottom');
@@ -519,6 +521,28 @@ function ResizeAlignPreview({ curCols, curRows, nextCols, nextRows, alignX, alig
   const keepW = Math.max(0, Math.min(curX + curCols, nextX + nextCols) - keepX);
   const keepH = Math.max(0, Math.min(curY + curRows, nextY + nextRows) - keepY);
   const draggable = deltaX > 0 || deltaY > 0;
+
+  // 실제 그려진 칸이 유지 영역에 들어오는지 계산 (유지 범위 밖 active 칸 = 잘림)
+  const keepSrcCol = keepX - curX;
+  const keepSrcRow = keepY - curY;
+  let paintedTotal = 0;
+  let clipped = 0;
+  let minR = Infinity, maxR = -Infinity, minC = Infinity, maxC = -Infinity;
+  (grid ?? []).forEach((row, r) =>
+    row.forEach((cellData, c) => {
+      if (!cellData.active) return;
+      paintedTotal += 1;
+      if (r < minR) minR = r;
+      if (r > maxR) maxR = r;
+      if (c < minC) minC = c;
+      if (c > maxC) maxC = c;
+      const kept = keepW > 0 && keepH > 0
+        && r >= keepSrcRow && r < keepSrcRow + keepH
+        && c >= keepSrcCol && c < keepSrcCol + keepW;
+      if (!kept) clipped += 1;
+    })
+  );
+  const hasPainted = paintedTotal > 0;
 
   const onPointerDown = (event) => {
     if (!draggable) return;
@@ -565,6 +589,11 @@ function ResizeAlignPreview({ curCols, curRows, nextCols, nextRows, alignX, alig
         {keepW > 0 && keepH > 0
           ? rect(keepX, keepY, keepW, keepH, { background: 'var(--kg-teal)', opacity: 0.85 })
           : null}
+        {hasPainted
+          ? rect(curX + minC, curY + minR, maxC - minC + 1, maxR - minR + 1, {
+              border: '1.5px dashed var(--kg-ink, #111)', borderRadius: 2, boxSizing: 'border-box'
+            })
+          : null}
         {keepW > 0 && keepH > 0 && draggable ? (
           <span
             onPointerDown={onPointerDown}
@@ -580,7 +609,12 @@ function ResizeAlignPreview({ curCols, curRows, nextCols, nextRows, alignX, alig
       </div>
       {draggable ? (
         <p style={{ margin: '6px 0 0', fontSize: 10, fontWeight: 700, color: 'var(--kg-teal)' }}>
-          파란 영역을 드래그해 유지할 위치를 조정하세요.
+          파란 영역을 드래그해 유지할 위치를 조정하세요. 점선은 그림 범위입니다.
+        </p>
+      ) : null}
+      {hasPainted ? (
+        <p style={{ margin: '4px 0 0', fontSize: 11, fontWeight: 800, color: clipped > 0 ? 'var(--kg-coral)' : 'var(--kg-teal)' }}>
+          {clipped > 0 ? `그려진 ${paintedTotal}칸 중 ${clipped}칸이 잘립니다` : `그려진 ${paintedTotal}칸이 모두 유지됩니다`}
         </p>
       ) : null}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 8, fontSize: 10, fontWeight: 700, color: 'var(--kg-muted)' }}>
