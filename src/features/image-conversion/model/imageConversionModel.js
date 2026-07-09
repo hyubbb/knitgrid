@@ -89,6 +89,7 @@ export const INITIAL_IMAGE_OPTIONS = {
   alignX: 'center',
   alignY: 'center',
   matchImageAspect: false,
+  matchPixelGrid: false,
   pixelArt: false,
   crop: {
     enabled: false,
@@ -623,6 +624,84 @@ export const VERTICAL_ALIGNMENTS = [
   { id: 'center', label: '중앙' },
   { id: 'bottom', label: '하단' }
 ];
+
+// 픽셀아트의 논리 픽셀 격자(칸 크기·위상·논리 칸 수)를 감지한다.
+// 방식: 각 축에서 인접 라인 색 차이 합 → 경계 위치 → 간격 히스토그램의 최빈 주기.
+// 신뢰 조건(간격의 80% 이상이 주기의 배수, 주기 ≥ 4px)을 못 채우면 null(일반 사진).
+export const detectPixelGrid = (imageData) => {
+  const { data, width, height } = imageData;
+  const px = (x, y) => {
+    const i = (y * width + x) * 4;
+    return [data[i], data[i + 1], data[i + 2]];
+  };
+
+  const analyzeAxis = (N, M, sample) => {
+    const stride = Math.max(1, Math.floor(M / 400)); // 큰 이미지 비용 상한
+    const diff = new Array(N - 1).fill(0);
+    for (let i = 0; i < N - 1; i += 1) {
+      let sum = 0;
+      for (let j = 0; j < M; j += stride) {
+        const a = sample(i, j);
+        const b = sample(i + 1, j);
+        sum += Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]);
+      }
+      diff[i] = sum;
+    }
+    const max = Math.max(...diff);
+    if (!max) return null;
+    const threshold = max * 0.3;
+    const bounds = [];
+    let prev = -10;
+    for (let i = 0; i < diff.length; i += 1) {
+      if (diff[i] > threshold) {
+        if (i - prev > 3) bounds.push(i);
+        prev = i;
+      }
+    }
+    if (bounds.length < 3) return null;
+
+    const gaps = new Map();
+    for (let i = 1; i < bounds.length; i += 1) {
+      const gap = bounds[i] - bounds[i - 1];
+      gaps.set(gap, (gaps.get(gap) || 0) + 1);
+    }
+    let size = 0;
+    let best = 0;
+    for (const [gap, count] of gaps) {
+      if (count > best || (count === best && gap < size)) {
+        best = count;
+        size = gap;
+      }
+    }
+    if (size < 4) return null;
+    let aligned = 0;
+    let total = 0;
+    for (const [gap, count] of gaps) {
+      total += count;
+      const multiple = Math.round(gap / size);
+      if (multiple >= 1 && Math.abs(gap - multiple * size) <= 1) aligned += count;
+    }
+    if (aligned / total < 0.8) return null;
+
+    // diff[i]는 라인 i|i+1 사이 경계 → 셀 시작 = 경계 + 1
+    const offset = (bounds[0] + 1) % size;
+    const logical = Math.floor((N - offset) / size);
+    if (logical < 2 || logical > 200) return null;
+    return { size, offset, logical };
+  };
+
+  const vertical = analyzeAxis(width, height, (i, j) => px(i, j));
+  const horizontal = analyzeAxis(height, width, (i, j) => px(j, i));
+  if (!vertical || !horizontal) return null;
+  return {
+    cellWidth: vertical.size,
+    cellHeight: horizontal.size,
+    offsetX: vertical.offset,
+    offsetY: horizontal.offset,
+    logicalCols: vertical.logical,
+    logicalRows: horizontal.logical
+  };
+};
 
 // 업로드 이미지 비율(크롭 반영)에 맞춰 격자 칸 수를 정한다.
 // 긴 변에 현재 격자의 최대 칸 수(=규모 예산)를 배정하고 짧은 변은 비율대로. 최대 200칸.

@@ -1,6 +1,55 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { IMAGE_SAMPLE_SCALE, getCellSampleColor, luminance, clampImageColorCount, applyGrayscaleToImageData, getImageAspectGridSize } from '../src/features/image-conversion/model/imageConversionModel.js';
+import { IMAGE_SAMPLE_SCALE, getCellSampleColor, luminance, clampImageColorCount, applyGrayscaleToImageData, getImageAspectGridSize, detectPixelGrid } from '../src/features/image-conversion/model/imageConversionModel.js';
+
+// 체커보드 픽셀아트 합성: 논리 (lw x lh)를 cell px로 확대, offset px 여백(흰색)
+const makePixelArt = ({ lw, lh, cell, offsetX = 0, offsetY = 0 }) => {
+  const width = offsetX + lw * cell;
+  const height = offsetY + lh * cell;
+  const data = new Uint8ClampedArray(width * height * 4).fill(255);
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const lx = Math.floor((x - offsetX) / cell);
+      const ly = Math.floor((y - offsetY) / cell);
+      if (x < offsetX || y < offsetY) continue;
+      const v = (lx + ly) % 2 === 0 ? 40 : 220;
+      const i = (y * width + x) * 4;
+      data[i] = v; data[i + 1] = v; data[i + 2] = v;
+    }
+  }
+  return { data, width, height };
+};
+
+test('detectPixelGrid finds cell size and logical dimensions of upscaled pixel art', () => {
+  const result = detectPixelGrid(makePixelArt({ lw: 6, lh: 5, cell: 8 }));
+  assert.ok(result);
+  assert.equal(result.cellWidth, 8);
+  assert.equal(result.cellHeight, 8);
+  assert.equal(result.logicalCols, 6);
+  assert.equal(result.logicalRows, 5);
+  assert.equal(result.offsetX, 0);
+});
+
+test('detectPixelGrid reports grid phase offset', () => {
+  const result = detectPixelGrid(makePixelArt({ lw: 6, lh: 6, cell: 8, offsetX: 3, offsetY: 5 }));
+  assert.ok(result);
+  assert.equal(result.cellWidth, 8);
+  assert.equal(result.offsetX, 3);
+  assert.equal(result.offsetY, 5);
+});
+
+test('detectPixelGrid returns null for noise (no regular grid)', () => {
+  const width = 64;
+  const height = 64;
+  const data = new Uint8ClampedArray(width * height * 4);
+  let seed = 7;
+  for (let i = 0; i < data.length; i += 4) {
+    seed = (seed * 1103515245 + 12345) % 2147483648; // 결정적 의사난수
+    const v = seed % 256;
+    data[i] = v; data[i + 1] = (v * 7) % 256; data[i + 2] = (v * 13) % 256; data[i + 3] = 255;
+  }
+  assert.equal(detectPixelGrid({ data, width, height }), null);
+});
 
 test('getCellSampleColor pixelArt mode snaps a cell to its majority color, ignoring minority noise', () => {
   // 한 셀(6x6) 안: 다수는 검정, 소수(격자선/노이즈)는 흰색

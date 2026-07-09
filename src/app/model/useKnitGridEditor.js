@@ -168,6 +168,7 @@ import {
   VERTICAL_ALIGNMENTS,
   getImagePlacement,
   getImageAspectGridSize,
+  detectPixelGrid,
   buildWrittenPatternLines,
   buildWrittenPatternText,
   buildWrittenPatternCanvases,
@@ -295,8 +296,58 @@ export function useKnitGridEditor() {
     return counts;
   }, [grid]);
 
-  // 이미지 변환에 실제로 쓰는 격자 크기. '이미지 비율로 맞추기'가 켜지면 이미지 비율로 재계산.
+  // 업로드 이미지의 픽셀아트 논리 격자 감지 결과({cellWidth,offsetX,logicalCols,...} | null)
+  const [detectedPixelGrid, setDetectedPixelGrid] = useState(null);
+  useEffect(() => {
+    if (!imageDraft) {
+      setDetectedPixelGrid(null);
+      return undefined;
+    }
+    let cancelled = false;
+    const image = new Image();
+    image.onload = () => {
+      if (cancelled) return;
+      const canvas = document.createElement('canvas');
+      canvas.width = image.naturalWidth;
+      canvas.height = image.naturalHeight;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      ctx.drawImage(image, 0, 0);
+      setDetectedPixelGrid(detectPixelGrid(ctx.getImageData(0, 0, canvas.width, canvas.height)));
+    };
+    image.onerror = () => {
+      if (!cancelled) setDetectedPixelGrid(null);
+    };
+    image.src = imageDraft.src;
+    return () => {
+      cancelled = true;
+    };
+  }, [imageDraft]);
+
+  const pixelGridActive = Boolean(imageOptions.matchPixelGrid && detectedPixelGrid && imageDraft);
+
+  // '원본 픽셀 그대로': 크롭을 감지된 격자 위상에 스냅 + pixelArt(nearest·최빈색) 강제
+  const effectiveImageOptions = useMemo(() => {
+    if (!pixelGridActive) return imageOptions;
+    const { cellWidth, cellHeight, offsetX, offsetY, logicalCols, logicalRows } = detectedPixelGrid;
+    return {
+      ...imageOptions,
+      pixelArt: true,
+      fit: 'stretch',
+      crop: {
+        enabled: true,
+        x: offsetX / imageDraft.width,
+        y: offsetY / imageDraft.height,
+        width: (logicalCols * cellWidth) / imageDraft.width,
+        height: (logicalRows * cellHeight) / imageDraft.height
+      }
+    };
+  }, [pixelGridActive, imageOptions, detectedPixelGrid, imageDraft]);
+
+  // 이미지 변환에 실제로 쓰는 격자 크기. '이미지 비율로 맞추기'/'원본 픽셀 그대로'가 켜지면 재계산.
   const imageConversionSize = useMemo(() => {
+    if (pixelGridActive) {
+      return { rows: detectedPixelGrid.logicalRows, cols: detectedPixelGrid.logicalCols };
+    }
     if (!imageDraft || !imageOptions.matchImageAspect) return { rows, cols };
     return getImageAspectGridSize({
       imageWidth: imageDraft.width,
@@ -305,10 +356,14 @@ export function useKnitGridEditor() {
       cols,
       crop: imageOptions.crop
     });
-  }, [imageDraft, imageOptions, rows, cols]);
+  }, [pixelGridActive, detectedPixelGrid, imageDraft, imageOptions, rows, cols]);
 
   const imageWarnings = useMemo(() => {
     if (!imageDraft) return [];
+    if (pixelGridActive) {
+      const { rows: tRows, cols: tCols } = imageConversionSize;
+      return [`원본 픽셀 격자를 감지했습니다: 픽셀당 ${detectedPixelGrid.cellWidth}px → ${tCols} x ${tRows}칸으로 1:1 변환됩니다.`];
+    }
     if (imageOptions.matchImageAspect) {
       const { rows: tRows, cols: tCols } = imageConversionSize;
       const warnings = [`격자를 이미지 비율에 맞춰 ${tCols} x ${tRows}칸으로 변환합니다. 잘리는 부분은 없습니다.`];
@@ -354,7 +409,7 @@ export function useKnitGridEditor() {
     }
 
     return warnings;
-  }, [cols, imageConversionSize, imageDraft, imageOptions, rows]);
+  }, [cols, detectedPixelGrid, imageConversionSize, imageDraft, imageOptions, pixelGridActive, rows]);
 
   const imagePreviewCounts = useMemo(() => {
     const counts = new Map();
@@ -763,7 +818,7 @@ export function useKnitGridEditor() {
         cols: imageConversionSize.cols,
         basePalette: palette,
         paletteMode: imagePaletteMode,
-        imageOptions,
+        imageOptions: effectiveImageOptions,
         seed: imageCandidateSeed,
         colorCount: imageColorCount,
         grayscale: imageGrayscale
@@ -786,7 +841,7 @@ export function useKnitGridEditor() {
     return () => {
       cancelled = true;
     };
-  }, [cols, imageCandidateSeed, imageColorCount, imageConversionSize, imageGrayscale, imageDraft, imageOptions, imagePaletteMode, palette, rows]);
+  }, [cols, effectiveImageOptions, imageCandidateSeed, imageColorCount, imageConversionSize, imageGrayscale, imageDraft, imagePaletteMode, palette, rows]);
 
   const paintedCellCount = useMemo(
     () => grid.reduce((sum, row) => sum + row.filter((cell) => cell.active).length, 0),
@@ -1936,13 +1991,13 @@ export function useKnitGridEditor() {
     if (!imageDraft || !selectedImageCandidate) return;
     pushHistory();
     const { rows: appliedRows, cols: appliedCols } = imageConversionSize;
-    if (imageOptions.matchImageAspect) {
+    if (imageOptions.matchImageAspect || pixelGridActive) {
       setRows(appliedRows);
       setCols(appliedCols);
     }
     setGrid(cloneGrid(selectedImageCandidate.grid));
     setProgressMarks(new Set());
-    replaceAppliedSourceImageFromDraft(imageDraft, imageOptions, appliedRows, appliedCols);
+    replaceAppliedSourceImageFromDraft(imageDraft, effectiveImageOptions, appliedRows, appliedCols);
     if (imagePaletteMode === 'extract') {
       const nextPalette = clonePalette(selectedImageCandidate.palette);
       setPalette(nextPalette);
@@ -2227,6 +2282,7 @@ export function useKnitGridEditor() {
     imageWarnings,
     imagePreviewCounts,
     selectedImageCandidate,
+    detectedPixelGrid,
     ...textDraftEditor,
     updateCropDraftSelection,
     completeCropDraftSelection,

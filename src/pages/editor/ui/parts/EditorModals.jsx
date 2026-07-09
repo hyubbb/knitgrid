@@ -71,7 +71,8 @@ export function EditorModals({ editor }) {
     setImageColorCount,
     imageGrayscale,
     setImageGrayscale,
-    imageWarnings
+    imageWarnings,
+    detectedPixelGrid
   } = editor;
 
   // 색상 수 조절: match 모드에선 색상 수가 최종 팔레트를 바꾸지 못하므로 비활성.
@@ -423,27 +424,33 @@ export function EditorModals({ editor }) {
             <div className="setting-block">
               <strong>격자 크기</strong>
               <div className="option-stack">
-                <button className={!imageOptions.matchImageAspect ? 'active' : ''} onClick={() => setImageOptions((previous) => ({ ...previous, matchImageAspect: false }))}>
+                <button className={!imageOptions.matchImageAspect && !imageOptions.matchPixelGrid ? 'active' : ''} onClick={() => setImageOptions((previous) => ({ ...previous, matchImageAspect: false, matchPixelGrid: false }))}>
                   <span>현재 격자 유지</span>
                   <small>지금 설정한 칸 수에 이미지를 맞춰 넣습니다(넘치면 잘림).</small>
                 </button>
-                <button className={imageOptions.matchImageAspect ? 'active' : ''} onClick={() => setImageOptions((previous) => ({ ...previous, matchImageAspect: true }))}>
+                <button className={imageOptions.matchImageAspect ? 'active' : ''} onClick={() => setImageOptions((previous) => ({ ...previous, matchImageAspect: true, matchPixelGrid: false }))}>
                   <span>이미지 비율로 맞추기</span>
                   <small>격자를 이미지 비율에 맞춰 다시 잡습니다. 잘림 없이 전체가 들어갑니다.</small>
                 </button>
+                {detectedPixelGrid ? (
+                  <button className={imageOptions.matchPixelGrid ? 'active' : ''} onClick={() => setImageOptions((previous) => ({ ...previous, matchPixelGrid: true, matchImageAspect: false }))}>
+                    <span>원본 픽셀 그대로 ({detectedPixelGrid.logicalCols} x {detectedPixelGrid.logicalRows})</span>
+                    <small>픽셀아트 격자를 자동 감지했습니다. 원본과 같은 칸 수로 1:1 변환됩니다(크롭·맞춤 방식 무시).</small>
+                  </button>
+                ) : null}
               </div>
             </div>
 
             <div className="setting-block">
               <strong>변환 정밀도</strong>
               <div className="option-stack">
-                <button className={!imageOptions.pixelArt ? 'active' : ''} onClick={() => setImageOptions((previous) => ({ ...previous, pixelArt: false }))}>
+                <button className={!imageOptions.pixelArt && !imageOptions.matchPixelGrid ? 'active' : ''} disabled={imageOptions.matchPixelGrid} onClick={() => setImageOptions((previous) => ({ ...previous, pixelArt: false }))}>
                   <span>사진용(부드럽게)</span>
                   <small>주변 색을 평균 내 자연스럽게. 일반 사진·그림에 적합.</small>
                 </button>
-                <button className={imageOptions.pixelArt ? 'active' : ''} onClick={() => setImageOptions((previous) => ({ ...previous, pixelArt: true }))}>
+                <button className={imageOptions.pixelArt || imageOptions.matchPixelGrid ? 'active' : ''} disabled={imageOptions.matchPixelGrid} onClick={() => setImageOptions((previous) => ({ ...previous, pixelArt: true }))}>
                   <span>차트·픽셀아트(선명)</span>
-                  <small>칸마다 가장 많은 색으로 스냅하고 격자선을 무시합니다. 이미 격자로 만들어진 도안·픽셀아트에 적합. 출력 칸 수를 원본 칸 수와 같게 맞추면 가장 깔끔합니다.</small>
+                  <small>칸마다 가장 많은 색으로 스냅하고 격자선을 무시합니다. '원본 픽셀 그대로' 선택 시 자동 적용됩니다.</small>
                 </button>
               </div>
             </div>
@@ -452,7 +459,7 @@ export function EditorModals({ editor }) {
               <strong>맞춤 방식</strong>
               <div className="option-stack">
                 {FIT_OPTIONS.map((item) => (
-                  <button key={item.id} className={imageOptions.fit === item.id ? 'active' : ''} disabled={imageOptions.matchImageAspect} onClick={() => setImageOptions((previous) => ({ ...previous, fit: item.id }))}>
+                  <button key={item.id} className={imageOptions.fit === item.id ? 'active' : ''} disabled={imageOptions.matchImageAspect || imageOptions.matchPixelGrid} onClick={() => setImageOptions((previous) => ({ ...previous, fit: item.id }))}>
                     <span>{item.label}</span>
                     <small>{item.description}</small>
                   </button>
@@ -464,7 +471,7 @@ export function EditorModals({ editor }) {
               <strong>가로 정렬</strong>
               <div className="segmented">
                 {HORIZONTAL_ALIGNMENTS.map((item) => (
-                  <button key={item.id} className={imageOptions.alignX === item.id ? 'active' : ''} disabled={imageOptions.matchImageAspect || imageOptions.fit === 'stretch'} onClick={() => setImageOptions((previous) => ({ ...previous, alignX: item.id }))}>
+                  <button key={item.id} className={imageOptions.alignX === item.id ? 'active' : ''} disabled={imageOptions.matchImageAspect || imageOptions.matchPixelGrid || imageOptions.fit === 'stretch'} onClick={() => setImageOptions((previous) => ({ ...previous, alignX: item.id }))}>
                     {item.label}
                   </button>
                 ))}
@@ -475,7 +482,7 @@ export function EditorModals({ editor }) {
               <strong>세로 정렬</strong>
               <div className="segmented">
                 {VERTICAL_ALIGNMENTS.map((item) => (
-                  <button key={item.id} className={imageOptions.alignY === item.id ? 'active' : ''} disabled={imageOptions.matchImageAspect || imageOptions.fit === 'stretch'} onClick={() => setImageOptions((previous) => ({ ...previous, alignY: item.id }))}>
+                  <button key={item.id} className={imageOptions.alignY === item.id ? 'active' : ''} disabled={imageOptions.matchImageAspect || imageOptions.matchPixelGrid || imageOptions.fit === 'stretch'} onClick={() => setImageOptions((previous) => ({ ...previous, alignY: item.id }))}>
                     {item.label}
                   </button>
                 ))}
