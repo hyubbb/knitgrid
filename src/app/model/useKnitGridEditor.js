@@ -2283,6 +2283,7 @@ export function useKnitGridEditor() {
     imagePreviewCounts,
     selectedImageCandidate,
     detectedPixelGrid,
+    imageConversionSize,
     ...textDraftEditor,
     updateCropDraftSelection,
     completeCropDraftSelection,

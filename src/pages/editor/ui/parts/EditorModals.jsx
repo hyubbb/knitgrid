@@ -72,8 +72,12 @@ export function EditorModals({ editor }) {
     imageGrayscale,
     setImageGrayscale,
     imageWarnings,
-    detectedPixelGrid
+    detectedPixelGrid,
+    imageConversionSize
   } = editor;
+  // 미리보기 격자는 실제 변환 크기 기준(현재 격자 유지가 아니면 cols/rows와 다를 수 있음)
+  const previewCols = selectedImageCandidate?.grid[0]?.length ?? imageConversionSize?.cols ?? cols;
+  const previewRows = selectedImageCandidate?.grid.length ?? imageConversionSize?.rows ?? rows;
 
   // 색상 수 조절: match 모드에선 색상 수가 최종 팔레트를 바꾸지 못하므로 비활성.
   const colorCountDisabled = imagePaletteMode !== 'extract';
@@ -262,7 +266,7 @@ export function EditorModals({ editor }) {
         <Modal
           open={Boolean(imageDraft)}
           title="이미지 변환 미리보기"
-          subtitle={imageDraft ? `${imageDraft.name} · 원본 ${imageDraft.width} x ${imageDraft.height}px → 격자 ${cols} x ${rows}칸` : undefined}
+          subtitle={imageDraft ? `${imageDraft.name} · 원본 ${imageDraft.width} x ${imageDraft.height}px → 격자 ${previewCols} x ${previewRows}칸` : undefined}
           onClose={closeImageDraft}
           variant=""
           bodyClassName="image-modal-body"
@@ -321,11 +325,11 @@ export function EditorModals({ editor }) {
                 </button>
               ))}
             </div>
-            <div className="image-preview-frame" style={{ aspectRatio: `${cols} / ${rows}`, '--preview-cols': cols, '--preview-rows': rows }}>
+            <div className="image-preview-frame" style={{ aspectRatio: `${previewCols} / ${previewRows}`, '--preview-cols': previewCols, '--preview-rows': previewRows }}>
               {imageCandidateLoading && !selectedImageCandidate ? (
                 <div className="image-preview-loading">변환 후보 계산 중</div>
               ) : selectedImageCandidate ? (
-                <div className="converted-preview-grid" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }} aria-label="실제 변환 결과 미리보기">
+                <div className="converted-preview-grid" style={{ gridTemplateColumns: `repeat(${previewCols}, minmax(0, 1fr))` }} aria-label="실제 변환 결과 미리보기">
                   {selectedImageCandidate.grid.map((row, rowIndex) =>
                     row.map((cell, colIndex) => (
                       <span key={`${rowIndex}-${colIndex}`} style={{ background: cell.active ? cell.color : '#ffffff' }} />
