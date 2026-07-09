@@ -348,7 +348,14 @@ export function useKnitGridEditor() {
     if (pixelGridActive) {
       return { rows: detectedPixelGrid.logicalRows, cols: detectedPixelGrid.logicalCols };
     }
-    if (!imageDraft || !imageOptions.matchImageAspect) return { rows, cols };
+    if (!imageDraft) return { rows, cols };
+    if (!imageOptions.matchImageAspect) {
+      // '현재 격자 유지': 사용자가 모달에서 직접 지정한 대상 칸 수(없으면 현재 격자)
+      return {
+        rows: clampNumber(imageOptions.targetRows ?? rows, 1, 200),
+        cols: clampNumber(imageOptions.targetCols ?? cols, 1, 200)
+      };
+    }
     return getImageAspectGridSize({
       imageWidth: imageDraft.width,
       imageHeight: imageDraft.height,
@@ -1990,11 +1997,10 @@ export function useKnitGridEditor() {
   const applyImageDraft = () => {
     if (!imageDraft || !selectedImageCandidate) return;
     pushHistory();
+    // 변환 후보는 imageConversionSize 크기로 만들어지므로 격자 칸 수도 항상 그에 맞춘다.
     const { rows: appliedRows, cols: appliedCols } = imageConversionSize;
-    if (imageOptions.matchImageAspect || pixelGridActive) {
-      setRows(appliedRows);
-      setCols(appliedCols);
-    }
+    setRows(appliedRows);
+    setCols(appliedCols);
     setGrid(cloneGrid(selectedImageCandidate.grid));
     setProgressMarks(new Set());
     replaceAppliedSourceImageFromDraft(imageDraft, effectiveImageOptions, appliedRows, appliedCols);

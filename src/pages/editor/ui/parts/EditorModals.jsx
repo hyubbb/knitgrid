@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import ReactCrop from 'react-image-crop';
-import { Button, Modal } from '../../../../components/index.js';
+import { Button, Modal, NumberField } from '../../../../components/index.js';
 import { AlertTriangle, Download, Eye, FileText, RotateCcw, Upload } from 'lucide-react';
 import {
   FIT_OPTIONS,
@@ -443,6 +443,12 @@ export function EditorModals({ editor }) {
                   </button>
                 ) : null}
               </div>
+              {!imageOptions.matchImageAspect && !imageOptions.matchPixelGrid ? (
+                <div className="two-cols">
+                  <NumberField label="가로 칸" min={1} max={200} value={imageOptions.targetCols ?? cols} onChange={(value) => setImageOptions((previous) => ({ ...previous, targetCols: Math.min(200, Math.max(1, value)) }))} />
+                  <NumberField label="세로 칸" min={1} max={200} value={imageOptions.targetRows ?? rows} onChange={(value) => setImageOptions((previous) => ({ ...previous, targetRows: Math.min(200, Math.max(1, value)) }))} />
+                </div>
+              ) : null}
             </div>
 
             <div className="setting-block">

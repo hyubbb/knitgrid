@@ -91,6 +91,9 @@ export const INITIAL_IMAGE_OPTIONS = {
   matchImageAspect: false,
   matchPixelGrid: false,
   pixelArt: false,
+  // '현재 격자 유지'에서 변환 대상 칸 수(null이면 현재 격자 크기 사용)
+  targetRows: null,
+  targetCols: null,
   crop: {
     enabled: false,
     x: 0,
