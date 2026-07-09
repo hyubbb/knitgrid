@@ -16,6 +16,9 @@ export const PRESETS = [
   { label: '96 x 120', cols: 96, rows: 120 }
 ];
 
+export const CANVAS_MIN_ZOOM = 4;
+export const CANVAS_MAX_ZOOM = 132;
+
 export const TOOLS = [
   { id: 'select', label: '선택', icon: MousePointer2, shortcut: 'v' },
   { id: 'pan', label: '이동', icon: Hand, shortcut: 'h' },

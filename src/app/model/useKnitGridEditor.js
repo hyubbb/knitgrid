@@ -77,6 +77,8 @@ import {
   PRESETS,
   INITIAL_PALETTE,
   TOOLS,
+  CANVAS_MIN_ZOOM,
+  CANVAS_MAX_ZOOM,
   DISPLAY_MODES,
   PROJECT_DB_NAME,
   PROJECT_DB_VERSION,
@@ -1416,6 +1418,38 @@ export function useKnitGridEditor() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [mode, mirrorGrid, setTool]);
+
+  // 전역 단축키: mod+Z 되돌리기, mod+Shift+Z 다시실행, mod+S 저장, +/- 줌. 물리 키(code) 기반이라 한/영 무관.
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      const target = event.target;
+      const tag = target?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable) return;
+
+      const mod = event.metaKey || event.ctrlKey;
+      if (mod && !event.altKey && event.code === 'KeyZ') {
+        event.preventDefault();
+        if (event.shiftKey) redo();
+        else undo();
+        return;
+      }
+      if (mod && !event.altKey && !event.shiftKey && event.code === 'KeyS') {
+        event.preventDefault();
+        saveCurrentLocalProject();
+        return;
+      }
+      if (mod || event.altKey) return;
+      if (event.code === 'Equal' || event.code === 'NumpadAdd') {
+        event.preventDefault();
+        setZoom((value) => clampNumber(value + 8, CANVAS_MIN_ZOOM, CANVAS_MAX_ZOOM));
+      } else if (event.code === 'Minus' || event.code === 'NumpadSubtract') {
+        event.preventDefault();
+        setZoom((value) => clampNumber(value - 8, CANVAS_MIN_ZOOM, CANVAS_MAX_ZOOM));
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [undo, redo, saveCurrentLocalProject, setZoom]);
 
   const rotateGrid = () => {
     pushHistory();

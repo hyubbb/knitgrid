@@ -19,12 +19,12 @@ import {
   clampFiniteNumber,
   luminance,
   resolveCellDisplay,
+  CANVAS_MIN_ZOOM,
+  CANVAS_MAX_ZOOM,
 } from "../../../../app/model/knitgridModel.js";
 import { parseNumericInput } from "../../../../shared/lib/number.js";
 
 const CANVAS_BASE_CELL_SIZE = 24;
-const CANVAS_MIN_ZOOM = 4;
-const CANVAS_MAX_ZOOM = 132;
 const CHART_FIXED_WIDTH = 76;
 const CHART_FIXED_HEIGHT = 64;
 const FULLSCREEN_MAX_CELL_SIZE = 34;
