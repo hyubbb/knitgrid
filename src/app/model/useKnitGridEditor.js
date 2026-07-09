@@ -1400,7 +1400,11 @@ export function useKnitGridEditor() {
       const target = event.target;
       const tag = target?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable) return;
-      const nextTool = TOOL_SHORTCUTS.get(event.key.toLowerCase());
+      // 한/영 IME 상태와 무관하게 물리 키로 매칭(예: 'ㄴ'이어도 code는 KeyS)
+      const key = event.code?.startsWith('Key')
+        ? event.code.slice(3).toLowerCase()
+        : event.key.toLowerCase();
+      const nextTool = TOOL_SHORTCUTS.get(key);
       if (!nextTool) return;
       event.preventDefault();
       if (nextTool === 'mirror') {
