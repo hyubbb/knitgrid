@@ -1,5 +1,5 @@
 import { ToolRail } from '../../../../components/index.js';
-import { Copy, Eye, RotateCcw, Trash2 } from 'lucide-react';
+import { Copy, Eye, RotateCcw, Trash2, ZoomIn, ZoomOut } from 'lucide-react';
 import { TOOLS } from '../../../../app/model/knitgridModel.js';
 
 export function EditorToolRail({ editor, onMobileAction }) {
@@ -10,6 +10,11 @@ export function EditorToolRail({ editor, onMobileAction }) {
     rotateGrid,
     copyRepeat,
     clearProgressMarks,
+    clearGrid,
+    scalePattern,
+    rows,
+    cols,
+    paintedCellCount,
     progressMarks,
     mode
   } = editor;
@@ -53,6 +58,28 @@ export function EditorToolRail({ editor, onMobileAction }) {
         <Copy size={20} />
         <span>반복</span>
       </button>
+      <button
+        onClick={() => {
+          scalePattern('up');
+          onMobileAction?.();
+        }}
+        disabled={rows * 2 > 200 || cols * 2 > 200}
+        title="도안 2배 확대(1칸 → 2x2칸)"
+      >
+        <ZoomIn size={20} />
+        <span>×2 확대</span>
+      </button>
+      <button
+        onClick={() => {
+          scalePattern('down');
+          onMobileAction?.();
+        }}
+        disabled={rows < 2 && cols < 2}
+        title="도안 1/2 축소(2x2칸 → 1칸)"
+      >
+        <ZoomOut size={20} />
+        <span>÷2 축소</span>
+      </button>
       {mode === 'progress' ? (
         <button
           onClick={() => {
@@ -65,7 +92,19 @@ export function EditorToolRail({ editor, onMobileAction }) {
           <Trash2 size={20} />
           <span>전체 지우기</span>
         </button>
-      ) : null}
+      ) : (
+        <button
+          onClick={() => {
+            clearGrid();
+            onMobileAction?.();
+          }}
+          disabled={!paintedCellCount}
+          title="칠한 칸 전체 지우기(실행취소 가능)"
+        >
+          <Trash2 size={20} />
+          <span>전체 지우기</span>
+        </button>
+      )}
     </ToolRail>
   );
 }

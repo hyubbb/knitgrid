@@ -76,6 +76,9 @@ export function EditorCanvas({ editor }) {
     colNumber,
     handlePointerDown,
     handlePointerEnter,
+    gridSelection,
+    deleteSelection,
+    clearSelection,
   } = editor;
   const canEditSourceOverlay = mode === "edit";
   const canFitWholePreview = mode === "preview";
@@ -509,6 +512,20 @@ export function EditorCanvas({ editor }) {
               </>
             ) : null}
           </div>
+          {mode === 'edit' && gridSelection ? (
+            <div className='source-overlay-control selection-actions'>
+              <span>
+                선택 {gridSelection.c1 - gridSelection.c0 + 1} x {gridSelection.r1 - gridSelection.r0 + 1}칸 · 드래그로 이동
+              </span>
+              <button onClick={deleteSelection} title='선택 영역 지우기 (Delete)'>
+                <Trash2 size={14} />
+                선택 지우기
+              </button>
+              <button onClick={clearSelection} title='선택 해제 (Esc)'>
+                해제
+              </button>
+            </div>
+          ) : null}
         </Toolbar>
         {appliedSourceImage && appliedSourceSizeChanged ? (
           <div className='source-overlay-note'>
@@ -656,6 +673,7 @@ function ChartGrid({
     guideLineColor,
     gridLineColor,
     isAdjustingAppliedSourceOverlay,
+    selectionRect,
   } = editor;
   const showSourceOverlay =
     includeSourceOverlay && appliedSourceImage && showAppliedSourceOverlay;
@@ -739,6 +757,11 @@ function ChartGrid({
               mode === "edit" &&
               insertAnchorCell.row === r &&
               insertAnchorCell.col === c;
+            const selected =
+              mode === "edit" &&
+              !!selectionRect &&
+              r >= selectionRect.r0 && r <= selectionRect.r1 &&
+              c >= selectionRect.c0 && c <= selectionRect.c1;
 
             return (
               <Cell
@@ -755,6 +778,7 @@ function ChartGrid({
                 progressMark={progressMark}
                 stitchHere={stitchHere}
                 isInsertAnchor={isInsertAnchor}
+                selected={selected}
                 readOnly={readOnly}
                 isPanTool={isPanTool}
                 onPointerDown={handlePointerDown}
@@ -803,6 +827,7 @@ const Cell = memo(function Cell({
   progressMark,
   stitchHere,
   isInsertAnchor,
+  selected,
   readOnly,
   isPanTool,
   onPointerDown,
@@ -817,7 +842,7 @@ const Cell = memo(function Cell({
 
   return (
     <CellElement
-      className={`cell ${cell.active ? "filled" : ""} ${isInsertAnchor ? "insert-anchor" : ""} ${!display.visible ? "palette-hidden" : ""} ${guideRow ? "guide-row" : ""} ${guideCol ? "guide-col" : ""} ${progress ? "progress-row" : ""} ${completed ? "completed-row" : ""} ${progressMark ? "progress-note" : ""} ${stitchHere ? "progress-stitch" : ""}`}
+      className={`cell ${cell.active ? "filled" : ""} ${isInsertAnchor ? "insert-anchor" : ""} ${selected ? "region-selected" : ""} ${!display.visible ? "palette-hidden" : ""} ${guideRow ? "guide-row" : ""} ${guideCol ? "guide-col" : ""} ${progress ? "progress-row" : ""} ${completed ? "completed-row" : ""} ${progressMark ? "progress-note" : ""} ${stitchHere ? "progress-stitch" : ""}`}
       style={{
         background:
           shouldShowCell && displayMode !== "code" ? display.color : "#fff",

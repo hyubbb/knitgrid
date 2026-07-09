@@ -16,6 +16,8 @@ export const paletteAtom = atom(INITIAL_PALETTE);
 export const activePaletteIdAtom = atom('h7');
 export const toolAtom = atom('pen');
 export const modeAtom = atom('edit');
+// 선택 도구의 사각 영역 {r0,c0,r1,c1}(정규화) | null
+export const gridSelectionAtom = atom(null);
 export const displayModeAtom = atom('color');
 export const zoomAtom = atom(86);
 export const guideEveryAtom = atom(10);

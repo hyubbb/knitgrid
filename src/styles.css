@@ -557,6 +557,15 @@
     @apply z-[3] outline outline-2 outline-offset-[-2px] outline-[var(--kg-coral)];
   }
 
+  /* 선택 도구의 사각 영역 하이라이트 */
+  .cell.region-selected {
+    @apply z-[2] outline outline-1 outline-offset-[-1px] outline-[var(--kg-teal)];
+  }
+
+  .cell.region-selected::after {
+    @apply pointer-events-none absolute inset-0 bg-[var(--kg-teal)]/20 content-[""];
+  }
+
   .mode-preview .cell:not(.filled) {
     background: var(--kg-surface-soft) !important;
   }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAtom } from 'jotai';
 import { useTextDraftEditor } from './useTextDraftEditor.js';
 import { useWakeLock } from './useWakeLock.js';
@@ -39,6 +39,7 @@ import {
   historyAtom,
   futureAtom,
   isDraggingAtom,
+  gridSelectionAtom,
   projectNameAtom,
   cropDraftAtom,
   imageDraftAtom,
@@ -113,6 +114,10 @@ import {
   hasPaintedCells,
   resizeGridKeepingContentAligned,
   moveGridContent,
+  scaleGridUp,
+  scaleGridDown,
+  clearGridRegion,
+  moveGridRegion,
   insertGridRow,
   insertGridCol,
   removeGridRow,
@@ -211,6 +216,10 @@ export function useKnitGridEditor() {
   const [history, setHistory] = useAtom(historyAtom);
   const [future, setFuture] = useAtom(futureAtom);
   const [isDragging, setIsDragging] = useAtom(isDraggingAtom);
+  const [gridSelection, setGridSelection] = useAtom(gridSelectionAtom);
+  // 이동 드래그 미리보기 델타 {dRow,dCol}. 커밋은 pointerup에서.
+  const [selectionMoveDelta, setSelectionMoveDelta] = useState(null);
+  const selectionDragRef = useRef(null);
   const [projectName, setProjectName] = useAtom(projectNameAtom);
   const [cropDraft, setCropDraft] = useAtom(cropDraftAtom);
   const [imageDraft, setImageDraft] = useAtom(imageDraftAtom);
@@ -955,6 +964,72 @@ export function useKnitGridEditor() {
     setProgressMarks(new Set());
   }, [setProgressMarks]);
 
+  // 칠해진 칸 전체 지우기(실행취소 가능). 격자 크기·팔레트는 그대로.
+  const clearGrid = () => {
+    pushHistory();
+    setGrid(createGrid(rows, cols));
+    setProgressMarks(new Set());
+  };
+
+  const clearSelection = useCallback(() => {
+    setGridSelection(null);
+    setSelectionMoveDelta(null);
+    selectionDragRef.current = null;
+  }, [setGridSelection]);
+
+  // 선택 영역만 지우기(실행취소 가능)
+  const deleteSelection = useCallback(() => {
+    if (!gridSelection) return;
+    pushHistory();
+    setGrid((previous) => clearGridRegion(previous, gridSelection));
+  }, [gridSelection, pushHistory, setGrid]);
+
+  // 도구/모드가 바뀌면 선택 해제
+  useEffect(() => {
+    if (tool !== 'select' || mode !== 'edit') clearSelection();
+  }, [tool, mode, clearSelection]);
+
+  // 선택 도구: Delete/Backspace = 선택 영역 지우기, Escape = 해제
+  useEffect(() => {
+    if (mode !== 'edit' || tool !== 'select') return undefined;
+    const handleKeyDown = (event) => {
+      if (event.target?.closest?.('input, textarea, [contenteditable="true"]')) return;
+      if (event.key === 'Delete' || event.key === 'Backspace') {
+        event.preventDefault();
+        deleteSelection();
+      } else if (event.key === 'Escape') {
+        clearSelection();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mode, tool, deleteSelection, clearSelection]);
+
+  // 화면에 표시할 선택 사각형(이동 드래그 중엔 델타 반영 미리보기)
+  const selectionRect = useMemo(() => {
+    if (!gridSelection) return null;
+    if (!selectionMoveDelta) return gridSelection;
+    return {
+      r0: gridSelection.r0 + selectionMoveDelta.dRow,
+      c0: gridSelection.c0 + selectionMoveDelta.dCol,
+      r1: gridSelection.r1 + selectionMoveDelta.dRow,
+      c1: gridSelection.c1 + selectionMoveDelta.dCol
+    };
+  }, [gridSelection, selectionMoveDelta]);
+
+  // 도안 배율: 'up' = 1칸→2x2(그림 2배), 'down' = 2x2→1칸. 최대 200, 최소 1.
+  const scalePattern = (direction) => {
+    if (direction === 'up') {
+      if (rows * 2 > 200 || cols * 2 > 200) return;
+      pushHistory();
+      applyGridStructure(scaleGridUp(grid), rows * 2, cols * 2);
+      return;
+    }
+    if (rows < 2 && cols < 2) return;
+    pushHistory();
+    applyGridStructure(scaleGridDown(grid), Math.max(1, Math.ceil(rows / 2)), Math.max(1, Math.ceil(cols / 2)));
+  };
+
   const progressRowMin = numberStart;
   const progressRowMax = numberStart + rows - 1;
 
@@ -1118,11 +1193,41 @@ export function useKnitGridEditor() {
     }
     if (mode !== 'edit') return;
     setIsDragging(true);
+    if (tool === 'select') {
+      const inside = gridSelection
+        && row >= gridSelection.r0 && row <= gridSelection.r1
+        && col >= gridSelection.c0 && col <= gridSelection.c1;
+      if (inside) {
+        selectionDragRef.current = { type: 'move', start: { row, col }, base: gridSelection, delta: { dRow: 0, dCol: 0 } };
+        setSelectionMoveDelta({ dRow: 0, dCol: 0 });
+      } else {
+        selectionDragRef.current = { type: 'select', anchor: { row, col } };
+        setGridSelection({ r0: row, c0: col, r1: row, c1: col });
+      }
+      return;
+    }
     setInsertAnchorCell({ row, col });
     paintCell(row, col, tool, true);
-  }, [mode, tool, updateProgressMark, paintCell]);
+  }, [mode, tool, gridSelection, setGridSelection, updateProgressMark, paintCell]);
 
   const handlePointerEnter = useCallback((row, col) => {
+    // isDragging(atom)은 같은 tick의 후속 이벤트에 반영이 늦다 → 드래그 여부는 ref로 판단(pointerup에서 해제됨).
+    if (tool === 'select' && selectionDragRef.current) {
+      const drag = selectionDragRef.current;
+      if (drag.type === 'select') {
+        const { anchor } = drag;
+        setGridSelection({
+          r0: Math.min(anchor.row, row),
+          c0: Math.min(anchor.col, col),
+          r1: Math.max(anchor.row, row),
+          c1: Math.max(anchor.col, col)
+        });
+      } else {
+        drag.delta = { dRow: row - drag.start.row, dCol: col - drag.start.col };
+        setSelectionMoveDelta(drag.delta);
+      }
+      return;
+    }
     // ponytail: hover마다 setCurrentCell 하면 전역 atom→전체 리렌더. 드래그 페인팅 중엔 paintCell이 갱신함.
     if (!isDragging || !['pen', 'eraser'].includes(tool)) return;
     setCurrentCell({ row, col });
@@ -1131,9 +1236,26 @@ export function useKnitGridEditor() {
       return;
     }
     paintCell(row, col, tool, false);
-  }, [isDragging, tool, mode, updateProgressMark, paintCell]);
+  }, [isDragging, tool, mode, setGridSelection, updateProgressMark, paintCell]);
 
-  const handlePointerUp = useCallback(() => setIsDragging(false), []);
+  const handlePointerUp = useCallback(() => {
+    setIsDragging(false);
+    const drag = selectionDragRef.current;
+    selectionDragRef.current = null;
+    // 커밋은 ref 기준(같은 tick의 state 지연과 무관하게 정확)
+    if (drag?.type === 'move' && drag.base && (drag.delta.dRow || drag.delta.dCol)) {
+      const { dRow, dCol } = drag.delta;
+      pushHistory();
+      setGrid((previous) => moveGridRegion(previous, drag.base, dRow, dCol));
+      setGridSelection({
+        r0: clampNumber(drag.base.r0 + dRow, 0, rows - 1),
+        c0: clampNumber(drag.base.c0 + dCol, 0, cols - 1),
+        r1: clampNumber(drag.base.r1 + dRow, 0, rows - 1),
+        c1: clampNumber(drag.base.c1 + dCol, 0, cols - 1)
+      });
+    }
+    setSelectionMoveDelta(null);
+  }, [pushHistory, setGrid, setGridSelection, rows, cols]);
 
   const undo = () => {
     setHistory((items) => {
@@ -2064,6 +2186,12 @@ export function useKnitGridEditor() {
     applyGridStructure,
     paintCell,
     clearProgressMarks,
+    clearGrid,
+    gridSelection,
+    selectionRect,
+    clearSelection,
+    deleteSelection,
+    scalePattern,
     handlePointerDown,
     handlePointerEnter,
     handlePointerUp,

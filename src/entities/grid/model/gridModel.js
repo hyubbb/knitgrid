@@ -84,6 +84,46 @@ export const moveGridContent = (grid, rowDelta, colDelta) => {
   return next;
 };
 
+// 도안 정수 배율 확대: 각 칸이 factor x factor 블록으로 갈라진다(nearest-neighbor).
+export const scaleGridUp = (grid, factor = 2) => {
+  const rows = grid.length;
+  const cols = grid[0]?.length ?? 0;
+  return Array.from({ length: rows * factor }, (_, r) =>
+    Array.from({ length: cols * factor }, (_, c) => ({ ...grid[Math.floor(r / factor)][Math.floor(c / factor)] }))
+  );
+};
+
+// 도안 축소: factor x factor 블록의 좌상단 칸으로 대표. 홀수 크기는 ceil로 가장자리 보존.
+export const scaleGridDown = (grid, factor = 2) => {
+  const rows = grid.length;
+  const cols = grid[0]?.length ?? 0;
+  return Array.from({ length: Math.max(1, Math.ceil(rows / factor)) }, (_, r) =>
+    Array.from({ length: Math.max(1, Math.ceil(cols / factor)) }, (_, c) => ({ ...grid[r * factor][c * factor] }))
+  );
+};
+
+const inRegion = (sel, r, c) => r >= sel.r0 && r <= sel.r1 && c >= sel.c0 && c <= sel.c1;
+
+// 선택 영역의 칸만 빈 칸으로.
+export const clearGridRegion = (grid, sel) =>
+  grid.map((row, r) => row.map((cell, c) => (inRegion(sel, r, c) ? makeCell() : { ...cell })));
+
+// 선택 영역을 잘라내 delta 위치에 붙여넣는다. 원위치는 빈 칸, 목적지는 덮어씀, 격자 밖은 클리핑.
+export const moveGridRegion = (grid, sel, dRow, dCol) => {
+  const rows = grid.length;
+  const cols = grid[0]?.length ?? 0;
+  const next = grid.map((row, r) => row.map((cell, c) => (inRegion(sel, r, c) ? makeCell() : { ...cell })));
+  for (let r = sel.r0; r <= sel.r1; r += 1) {
+    for (let c = sel.c0; c <= sel.c1; c += 1) {
+      const tr = r + dRow;
+      const tc = c + dCol;
+      if (tr < 0 || tr >= rows || tc < 0 || tc >= cols) continue;
+      next[tr][tc] = { ...grid[r][c] };
+    }
+  }
+  return next;
+};
+
 export const insertGridRow = (grid, index) => {
   const cols = grid[0]?.length ?? 0;
   const safeIndex = clampNumber(index, 0, grid.length);
