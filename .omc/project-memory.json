@@ -161,21 +161,21 @@
   },
   "hotPaths": [
     {
-      "path": "src/styles.css",
-      "accessCount": 121,
-      "lastAccessed": 1783403263298,
+      "path": "src/app/model/useKnitGridEditor.js",
+      "accessCount": 134,
+      "lastAccessed": 1783566567653,
       "type": "file"
     },
     {
-      "path": "src/app/model/useKnitGridEditor.js",
-      "accessCount": 115,
-      "lastAccessed": 1783494972154,
+      "path": "src/styles.css",
+      "accessCount": 123,
+      "lastAccessed": 1783566346578,
       "type": "file"
     },
     {
       "path": "src/pages/editor/ui/parts/EditorCanvas.jsx",
-      "accessCount": 47,
-      "lastAccessed": 1783493729991,
+      "accessCount": 57,
+      "lastAccessed": 1783566278372,
       "type": "file"
     },
     {
@@ -204,14 +204,20 @@
     },
     {
       "path": "src/app/state/editorAtoms.js",
-      "accessCount": 12,
-      "lastAccessed": 1783493447188,
+      "accessCount": 14,
+      "lastAccessed": 1783565980879,
       "type": "file"
     },
     {
       "path": "src/entities/grid/model/gridModel.js",
-      "accessCount": 7,
-      "lastAccessed": 1782968902203,
+      "accessCount": 9,
+      "lastAccessed": 1783565951651,
+      "type": "file"
+    },
+    {
+      "path": "src/pages/editor/ui/parts/EditorToolRail.jsx",
+      "accessCount": 8,
+      "lastAccessed": 1783566306045,
       "type": "file"
     },
     {
@@ -308,12 +314,6 @@
       "path": "src/components/SegmentedControl.jsx",
       "accessCount": 2,
       "lastAccessed": 1783045402755,
-      "type": "file"
-    },
-    {
-      "path": "src/pages/editor/ui/parts/EditorToolRail.jsx",
-      "accessCount": 2,
-      "lastAccessed": 1783045777912,
       "type": "file"
     },
     {
