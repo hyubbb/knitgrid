@@ -28,8 +28,13 @@ export function InspectorSetupPanel({ editor, action }) {
     insertRow,
     removeRow,
     insertCol,
-    removeCol
+    removeCol,
+    gridSelection,
+    removeSelectedRows,
+    removeSelectedCols
   } = editor;
+  const selectedRowSpan = gridSelection ? gridSelection.r1 - gridSelection.r0 + 1 : 0;
+  const selectedColSpan = gridSelection ? gridSelection.c1 - gridSelection.c0 + 1 : 0;
 
   return (
     <Panel className="setup-panel" icon={Settings2} title="격자 설정" action={action}>
@@ -58,7 +63,11 @@ export function InspectorSetupPanel({ editor, action }) {
       <div className="structure-panel">
         <div className="structure-title">
           <strong>행/열 추가</strong>
-          <span>삽입 기준: {rowNumber(insertAnchorCell.row)}행 {colNumber(insertAnchorCell.col)}열</span>
+          <span>
+            {gridSelection
+              ? `기준: 선택 영역 ${selectedColSpan} x ${selectedRowSpan}칸`
+              : `삽입 기준: ${rowNumber(insertAnchorCell.row)}행 ${colNumber(insertAnchorCell.col)}열`}
+          </span>
         </div>
         <div className="insert-grid">
           <StepperControl label="위 행" onAdd={() => insertRow('above')} onRemove={() => removeRow('above')} addDisabled={rows >= 200} removeDisabled={rows <= 1 || insertAnchorCell.row === 0} addTitle="기준 위에 행 추가" removeTitle="기준 위 행 제거" />
@@ -66,6 +75,16 @@ export function InspectorSetupPanel({ editor, action }) {
           <StepperControl label="왼쪽 열" onAdd={() => insertCol('left')} onRemove={() => removeCol('left')} addDisabled={cols >= 200} removeDisabled={cols <= 1 || insertAnchorCell.col === 0} addTitle="기준 왼쪽에 열 추가" removeTitle="기준 왼쪽 열 제거" />
           <StepperControl label="오른쪽 열" onAdd={() => insertCol('right')} onRemove={() => removeCol('right')} addDisabled={cols >= 200} removeDisabled={cols <= 1 || insertAnchorCell.col >= cols - 1} addTitle="기준 오른쪽에 열 추가" removeTitle="기준 오른쪽 열 제거" />
         </div>
+        {gridSelection ? (
+          <div className="two-cols">
+            <Button wide onClick={removeSelectedRows} disabled={selectedRowSpan >= rows} title="선택된 행 범위를 통째로 제거">
+              선택 {selectedRowSpan}행 제거
+            </Button>
+            <Button wide onClick={removeSelectedCols} disabled={selectedColSpan >= cols} title="선택된 열 범위를 통째로 제거">
+              선택 {selectedColSpan}열 제거
+            </Button>
+          </div>
+        ) : null}
       </div>
     </Panel>
   );

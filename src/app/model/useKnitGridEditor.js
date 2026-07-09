@@ -120,6 +120,8 @@ import {
   scaleGridDown,
   clearGridRegion,
   moveGridRegion,
+  removeGridRowRange,
+  removeGridColRange,
   insertGridRow,
   insertGridCol,
   removeGridRow,
@@ -991,6 +993,30 @@ export function useKnitGridEditor() {
     if (tool !== 'select' || mode !== 'edit') clearSelection();
   }, [tool, mode, clearSelection]);
 
+  // 선택이 생기면 행/열 삽입 기준(anchor)도 선택 좌상단으로 동기화 — 브러시 기준점과 따로 놀지 않게
+  useEffect(() => {
+    if (gridSelection) setInsertAnchorCell({ row: gridSelection.r0, col: gridSelection.c0 });
+  }, [gridSelection, setInsertAnchorCell]);
+
+  // 선택된 행/열 범위를 통째로 제거(전체 제거는 방지, 실행취소 가능)
+  const removeSelectedRows = () => {
+    if (!gridSelection) return;
+    const span = gridSelection.r1 - gridSelection.r0 + 1;
+    if (span >= rows) return;
+    pushHistory();
+    applyGridStructure(removeGridRowRange(grid, gridSelection.r0, gridSelection.r1), rows - span, cols);
+    clearSelection();
+  };
+
+  const removeSelectedCols = () => {
+    if (!gridSelection) return;
+    const span = gridSelection.c1 - gridSelection.c0 + 1;
+    if (span >= cols) return;
+    pushHistory();
+    applyGridStructure(removeGridColRange(grid, gridSelection.c0, gridSelection.c1), rows, cols - span);
+    clearSelection();
+  };
+
   // 선택 도구: Delete/Backspace = 선택 영역 지우기, Escape = 해제
   useEffect(() => {
     if (mode !== 'edit' || tool !== 'select') return undefined;
@@ -1340,24 +1366,35 @@ export function useKnitGridEditor() {
 
   const insertRow = (placement) => {
     if (rows >= 200) return;
-    const insertIndex = placement === 'above' ? insertAnchorCell.row : insertAnchorCell.row + 1;
+    // 선택 영역이 있으면 선택 경계 기준(위=선택 첫 행 앞, 아래=선택 마지막 행 뒤)
+    const insertIndex = gridSelection
+      ? (placement === 'above' ? gridSelection.r0 : gridSelection.r1 + 1)
+      : (placement === 'above' ? insertAnchorCell.row : insertAnchorCell.row + 1);
     const nextRows = rows + 1;
     const nextAnchorCell = placement === 'above'
       ? { ...insertAnchorCell, row: insertAnchorCell.row + 1 }
       : insertAnchorCell;
     pushHistory();
     applyGridStructure(insertGridRow(grid, insertIndex), nextRows, cols, currentCell, nextAnchorCell);
+    if (gridSelection && placement === 'above') {
+      setGridSelection({ ...gridSelection, r0: gridSelection.r0 + 1, r1: gridSelection.r1 + 1 });
+    }
   };
 
   const insertCol = (placement) => {
     if (cols >= 200) return;
-    const insertIndex = placement === 'left' ? insertAnchorCell.col : insertAnchorCell.col + 1;
+    const insertIndex = gridSelection
+      ? (placement === 'left' ? gridSelection.c0 : gridSelection.c1 + 1)
+      : (placement === 'left' ? insertAnchorCell.col : insertAnchorCell.col + 1);
     const nextCols = cols + 1;
     const nextAnchorCell = placement === 'left'
       ? { ...insertAnchorCell, col: insertAnchorCell.col + 1 }
       : insertAnchorCell;
     pushHistory();
     applyGridStructure(insertGridCol(grid, insertIndex), rows, nextCols, currentCell, nextAnchorCell);
+    if (gridSelection && placement === 'left') {
+      setGridSelection({ ...gridSelection, c0: gridSelection.c0 + 1, c1: gridSelection.c1 + 1 });
+    }
   };
 
   const removeRow = (placement) => {
@@ -2229,6 +2266,8 @@ export function useKnitGridEditor() {
     selectionRect,
     clearSelection,
     deleteSelection,
+    removeSelectedRows,
+    removeSelectedCols,
     scalePattern,
     handlePointerDown,
     handlePointerEnter,

@@ -1,6 +1,24 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createGrid, scaleGridUp, scaleGridDown, clearGridRegion, moveGridRegion } from '../src/entities/grid/model/gridModel.js';
+import { createGrid, scaleGridUp, scaleGridDown, clearGridRegion, moveGridRegion, removeGridRowRange, removeGridColRange } from '../src/entities/grid/model/gridModel.js';
+
+test('removeGridRowRange/ColRange remove the whole selected span', () => {
+  const grid = createGrid(5, 5);
+  grid[0][0] = { ...grid[0][0], active: true, paletteId: 'top' };
+  grid[4][4] = { ...grid[4][4], active: true, paletteId: 'bottom' };
+
+  // 1~3행 제거 → 5행 → 2행, top(0행)과 bottom(4→1행) 보존
+  const rowsRemoved = removeGridRowRange(grid, 1, 3);
+  assert.equal(rowsRemoved.length, 2);
+  assert.equal(rowsRemoved[0][0].paletteId, 'top');
+  assert.equal(rowsRemoved[1][4].paletteId, 'bottom');
+
+  // 1~3열 제거 → 5열 → 2열
+  const colsRemoved = removeGridColRange(grid, 1, 3);
+  assert.equal(colsRemoved[0].length, 2);
+  assert.equal(colsRemoved[0][0].paletteId, 'top');
+  assert.equal(colsRemoved[4][1].paletteId, 'bottom');
+});
 
 const paint = (grid, r, c, id) => {
   grid[r][c] = { active: true, color: '#123456', symbol: id, label: id, note: '', paletteId: id };

@@ -143,6 +143,19 @@ export const insertGridCol = (grid, index) => {
   ]);
 };
 
+// 선택 영역용: 행/열 범위를 통째로 제거(최소 1행/1열은 남긴다는 보장은 호출부 책임)
+export const removeGridRowRange = (grid, start, end) =>
+  grid
+    .filter((_, rowIndex) => rowIndex < start || rowIndex > end)
+    .map((row) => row.map((cell) => ({ ...cell })));
+
+export const removeGridColRange = (grid, start, end) =>
+  grid.map((row) =>
+    row
+      .filter((_, colIndex) => colIndex < start || colIndex > end)
+      .map((cell) => ({ ...cell }))
+  );
+
 export const removeGridRow = (grid, index) => {
   const safeIndex = clampNumber(index, 0, grid.length - 1);
   return grid
