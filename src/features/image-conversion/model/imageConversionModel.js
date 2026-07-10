@@ -163,7 +163,7 @@ export const IMAGE_SAMPLE_SCALE = 6;
 export const IMAGE_EXTRACT_COLOR_LIMIT = 6;
 // 사용자가 미리보기에서 지정할 수 있는 색상 수 범위. 하한 2(1색은 도안이 아님), 상한 8.
 export const IMAGE_COLOR_COUNT_MIN = 2;
-export const IMAGE_COLOR_COUNT_MAX = 8;
+export const IMAGE_COLOR_COUNT_MAX = 10;
 export const IMAGE_COLOR_COUNT_WARN = 6; // 초과 시 실 관리 난이도 안내
 export const clampImageColorCount = (value) =>
   clampNumber(Math.round(value), IMAGE_COLOR_COUNT_MIN, IMAGE_COLOR_COUNT_MAX);
