@@ -50,8 +50,8 @@ export const INITIAL_TEXT_OPTIONS = {
   paletteId: '',
   targetRows: 64,
   targetCols: 48,
-  padding: 0.08,
-  coverageThreshold: 0.18
+  padding: 0.05,
+  coverageThreshold: 0.15
 };
 
 export const sanitizeTextDraftValue = (value) => {
@@ -143,15 +143,16 @@ const createTextCanvas = ({ rows, cols, options }) => {
   if (!ctx || !lines.length) return { canvas, lines, fontSize: 0 };
 
   const bounds = getTextCanvasBounds(canvas, options);
-  const fontSize = resolveFontSize(ctx, lines, bounds, options);
+  // 픽셀 폰트는 정수 크기·정수 위치로 그려야 안티에일리어싱 뭉개짐 없이 또렷하게 샘플링된다.
+  const fontSize = Math.max(4, Math.floor(resolveFontSize(ctx, lines, bounds, options)));
   const measured = measureTextBlock(ctx, lines, fontSize, options);
   const textAlign = options.align;
-  const x = textAlign === 'left'
+  const x = Math.round(textAlign === 'left'
     ? bounds.x
     : textAlign === 'right'
       ? bounds.x + bounds.width
-      : bounds.x + bounds.width / 2;
-  const y = bounds.y + Math.max(0, (bounds.height - measured.height) / 2);
+      : bounds.x + bounds.width / 2);
+  const y = Math.round(bounds.y + Math.max(0, (bounds.height - measured.height) / 2));
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = '#000000';
@@ -159,7 +160,7 @@ const createTextCanvas = ({ rows, cols, options }) => {
   ctx.textBaseline = 'top';
   ctx.font = `${options.fontWeight} ${fontSize}px ${getFontFamily(options.fontFamily)}`;
   lines.forEach((line, index) => {
-    ctx.fillText(line, x, y + index * measured.lineHeight);
+    ctx.fillText(line, x, Math.round(y + index * measured.lineHeight));
   });
 
   return { canvas, lines, fontSize };
