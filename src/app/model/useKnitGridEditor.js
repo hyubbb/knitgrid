@@ -172,6 +172,7 @@ import {
   analyzeProgressRow
 } from './knitgridModel.js';
 import { useExport } from './hooks/useExport.js';
+import { useAppliedSourceOverlay } from './hooks/useAppliedSourceOverlay.js';
 
 const progressMarkKey = (row, col) => `${row}:${col}`;
 const TOOL_SHORTCUTS = new Map(TOOLS.flatMap((tool) => (tool.shortcut ? [[tool.shortcut, tool.id]] : [])));
@@ -275,7 +276,6 @@ export function useKnitGridEditor() {
 
   const goToStartScreen = useCallback(() => navigateToProject(null), [navigateToProject]);
   const lastSavedSignatureRef = useRef('');
-  const appliedSourceDragRef = useRef(null);
 
   const activePalette = useMemo(
     () => palette.find((item) => item.id === activePaletteId) ?? palette[0],
@@ -470,9 +470,6 @@ export function useKnitGridEditor() {
   const appliedSourceSizeChanged = Boolean(
     appliedSourceImage && (appliedSourceImage.rows !== rows || appliedSourceImage.cols !== cols)
   );
-  const appliedSourceTransformCss = appliedSourceOverlayTransform.scaleMode === 'free'
-    ? `translate(calc(${appliedSourceOverlayTransform.offsetX} * var(--cell)), calc(${appliedSourceOverlayTransform.offsetY} * var(--cell))) scale(${appliedSourceOverlayTransform.scaleX / 100}, ${appliedSourceOverlayTransform.scaleY / 100})`
-    : `translate(calc(${appliedSourceOverlayTransform.offsetX} * var(--cell)), calc(${appliedSourceOverlayTransform.offsetY} * var(--cell))) scale(${appliedSourceOverlayTransform.scale / 100})`;
   const guideLineColor = guideColorMode === 'white'
     ? '#ffffff'
     : guideColorMode === 'custom'
@@ -517,104 +514,27 @@ export function useKnitGridEditor() {
     [gaugeRows, gaugeStitches, hasGauge]
   );
 
-  const resetAppliedSourceOverlayTransform = useCallback(() => {
-    setAppliedSourceOverlayTransform(DEFAULT_APPLIED_SOURCE_OVERLAY_TRANSFORM);
-    setAppliedSourceOverlayMoveStep(1);
-  }, []);
-
-  const updateAppliedSourceOverlayTransform = useCallback((patch) => {
-    setAppliedSourceOverlayTransform((previous) => {
-      const next = { ...previous, ...patch };
-      return {
-        offsetX: clampFiniteNumber(next.offsetX, -200, 200),
-        offsetY: clampFiniteNumber(next.offsetY, -200, 200),
-        scaleMode: next.scaleMode === 'free' ? 'free' : 'uniform',
-        scale: clampFiniteNumber(next.scale, 50, 250),
-        scaleX: clampFiniteNumber(next.scaleX, 50, 250),
-        scaleY: clampFiniteNumber(next.scaleY, 50, 250)
-      };
-    });
-  }, []);
-
-  const moveAppliedSourceOverlay = useCallback((colDelta, rowDelta) => {
-    const step = clampFiniteNumber(appliedSourceOverlayMoveStep, 0.1, 200);
-    setAppliedSourceOverlayMoveStep(step);
-    setAppliedSourceOverlayTransform((previous) => ({
-      ...previous,
-      offsetX: clampFiniteNumber(previous.offsetX + colDelta * step, -200, 200),
-      offsetY: clampFiniteNumber(previous.offsetY + rowDelta * step, -200, 200)
-    }));
-  }, [appliedSourceOverlayMoveStep]);
-
-  const handleAppliedSourceOverlayPointerDown = (event) => {
-    if (!isAdjustingAppliedSourceOverlay) return;
-    event.preventDefault();
-    event.stopPropagation();
-    const cellSize = parseFloat(getComputedStyle(event.currentTarget).getPropertyValue('--cell')) || 24;
-    appliedSourceDragRef.current = {
-      pointerId: event.pointerId,
-      startX: event.clientX,
-      startY: event.clientY,
-      offsetX: appliedSourceOverlayTransform.offsetX,
-      offsetY: appliedSourceOverlayTransform.offsetY,
-      cellSize
-    };
-    event.currentTarget.setPointerCapture(event.pointerId);
-  };
-
-  const handleAppliedSourceOverlayPointerMove = (event) => {
-    const drag = appliedSourceDragRef.current;
-    if (!drag || drag.pointerId !== event.pointerId) return;
-    event.preventDefault();
-    event.stopPropagation();
-    setAppliedSourceOverlayTransform((previous) => ({
-      ...previous,
-      offsetX: clampFiniteNumber(drag.offsetX + (event.clientX - drag.startX) / drag.cellSize, -200, 200),
-      offsetY: clampFiniteNumber(drag.offsetY + (event.clientY - drag.startY) / drag.cellSize, -200, 200)
-    }));
-  };
-
-  const handleAppliedSourceOverlayPointerUp = (event) => {
-    const drag = appliedSourceDragRef.current;
-    if (!drag || drag.pointerId !== event.pointerId) return;
-    event.preventDefault();
-    event.stopPropagation();
-    appliedSourceDragRef.current = null;
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-  };
-
-  const clearAppliedSourceImage = useCallback(() => {
-    setAppliedSourceImage((previous) => {
-      if (previous?.src) URL.revokeObjectURL(previous.src);
-      return null;
-    });
-    setShowAppliedSourceOverlay(false);
-    setAppliedSourceOverlayOpacity(45);
-    setIsAdjustingAppliedSourceOverlay(false);
-    resetAppliedSourceOverlayTransform();
-  }, [resetAppliedSourceOverlayTransform]);
-
-  const replaceAppliedSourceImageFromDraft = useCallback((draft, options, nextRows, nextCols) => {
-    if (!draft?.src) return;
-    setAppliedSourceImage((previous) => {
-      if (previous?.src && previous.src !== draft.src) URL.revokeObjectURL(previous.src);
-      return {
-        src: draft.src,
-        name: draft.name,
-        width: draft.width,
-        height: draft.height,
-        imageOptions: { ...options },
-        rows: nextRows,
-        cols: nextCols
-      };
-    });
-    setShowAppliedSourceOverlay(false);
-    setAppliedSourceOverlayOpacity(45);
-    setIsAdjustingAppliedSourceOverlay(false);
-    resetAppliedSourceOverlayTransform();
-  }, [resetAppliedSourceOverlayTransform]);
+  const {
+    appliedSourceTransformCss,
+    resetAppliedSourceOverlayTransform,
+    updateAppliedSourceOverlayTransform,
+    moveAppliedSourceOverlay,
+    handleAppliedSourceOverlayPointerDown,
+    handleAppliedSourceOverlayPointerMove,
+    handleAppliedSourceOverlayPointerUp,
+    clearAppliedSourceImage,
+    replaceAppliedSourceImageFromDraft
+  } = useAppliedSourceOverlay({
+    appliedSourceOverlayTransform,
+    setAppliedSourceOverlayTransform,
+    appliedSourceOverlayMoveStep,
+    setAppliedSourceOverlayMoveStep,
+    isAdjustingAppliedSourceOverlay,
+    setAppliedSourceImage,
+    setShowAppliedSourceOverlay,
+    setAppliedSourceOverlayOpacity,
+    setIsAdjustingAppliedSourceOverlay
+  });
 
   const serializeCurrentProject = useCallback(() => ({
     version: 2,
