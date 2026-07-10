@@ -117,10 +117,10 @@ export const normalizeCrop = (crop = INITIAL_IMAGE_OPTIONS.crop) => {
 
 export const INITIAL_CROP_SELECTION = {
   unit: '%',
-  x: 10,
-  y: 10,
-  width: 80,
-  height: 80
+  x: 0,
+  y: 0,
+  width: 100,
+  height: 100
 };
 
 export const normalizePercentCrop = (crop = INITIAL_CROP_SELECTION) => {
