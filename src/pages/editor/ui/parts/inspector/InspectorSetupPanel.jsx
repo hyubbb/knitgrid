@@ -46,7 +46,7 @@ export function InspectorSetupPanel({ editor, action }) {
       <Button wide icon={Sparkles} onClick={() => requestGridResize(draftRows, draftCols)}>격자 크기 적용</Button>
       <div className="structure-panel">
         <div className="structure-title">
-          <strong>도안 이동</strong>
+          <strong>{gridSelection ? '선택 영역 이동' : '도안 이동'}</strong>
           <label>
             <span>칸</span>
             <NumberField
@@ -58,7 +58,11 @@ export function InspectorSetupPanel({ editor, action }) {
             />
           </label>
         </div>
-        <MovePad onMove={movePattern} centerLabel={`${paintedCellCount}칸`} disabled={!paintedCellCount} />
+        <MovePad
+          onMove={movePattern}
+          centerLabel={gridSelection ? `${selectedColSpan}x${selectedRowSpan}` : `${paintedCellCount}칸`}
+          disabled={gridSelection ? false : !paintedCellCount}
+        />
       </div>
       <div className="structure-panel">
         <div className="structure-title">

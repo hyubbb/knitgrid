@@ -118,12 +118,12 @@ test('getCellSampleColor keeps a dark cell when the center is noisy', () => {
   assert.ok(luminance(sample) < 0.55);
 });
 
-test('clampImageColorCount keeps values within 2..8 and rounds', () => {
-  assert.equal(clampImageColorCount(1), 2);   // 하한
+test('clampImageColorCount keeps values within 2..10 and rounds', () => {
+  assert.equal(clampImageColorCount(1), 2);    // 하한
   assert.equal(clampImageColorCount(0), 2);
-  assert.equal(clampImageColorCount(9), 8);   // 상한
-  assert.equal(clampImageColorCount(4.6), 5); // 반올림
-  assert.equal(clampImageColorCount(3), 3);
+  assert.equal(clampImageColorCount(11), 10);  // 상한
+  assert.equal(clampImageColorCount(4.6), 5);  // 반올림
+  assert.equal(clampImageColorCount(9), 9);
 });
 
 test('applyGrayscaleToImageData makes every pixel achromatic (r=g=b)', () => {

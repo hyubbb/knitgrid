@@ -515,7 +515,7 @@ export function EditorCanvas({ editor }) {
           {mode === 'edit' && gridSelection ? (
             <div className='source-overlay-control selection-actions'>
               <span>
-                선택 {gridSelection.c1 - gridSelection.c0 + 1} x {gridSelection.r1 - gridSelection.r0 + 1}칸 · 드래그로 이동
+                선택 {gridSelection.c1 - gridSelection.c0 + 1} x {gridSelection.r1 - gridSelection.r0 + 1}칸 · 드래그·방향키로 이동
               </span>
               <button onClick={deleteSelection} title='선택 영역 지우기 (Delete)'>
                 <Trash2 size={14} />

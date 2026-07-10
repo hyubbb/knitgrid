@@ -1079,9 +1079,23 @@ export function useKnitGridEditor() {
     clearSelection();
   };
 
-  // 선택 도구: Delete/Backspace = 선택 영역 지우기, Escape = 해제
+  // 선택 영역만 delta 방향으로 이동(격자 밖은 클리핑). 선택도 함께 이동.
+  const moveSelection = useCallback((rowDelta, colDelta) => {
+    if (!gridSelection) return;
+    pushHistory();
+    setGrid((previous) => moveGridRegion(previous, gridSelection, rowDelta, colDelta));
+    setGridSelection((sel) => (sel ? {
+      r0: clampNumber(sel.r0 + rowDelta, 0, rows - 1),
+      c0: clampNumber(sel.c0 + colDelta, 0, cols - 1),
+      r1: clampNumber(sel.r1 + rowDelta, 0, rows - 1),
+      c1: clampNumber(sel.c1 + colDelta, 0, cols - 1)
+    } : sel));
+  }, [gridSelection, pushHistory, setGrid, setGridSelection, rows, cols]);
+
+  // 선택 도구: Delete/Backspace = 선택 영역 지우기, Escape = 해제, 방향키 = 선택 영역 1칸 이동
   useEffect(() => {
     if (mode !== 'edit' || tool !== 'select') return undefined;
+    const arrows = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };
     const handleKeyDown = (event) => {
       if (event.target?.closest?.('input, textarea, [contenteditable="true"]')) return;
       if (event.key === 'Delete' || event.key === 'Backspace') {
@@ -1089,11 +1103,14 @@ export function useKnitGridEditor() {
         deleteSelection();
       } else if (event.key === 'Escape') {
         clearSelection();
+      } else if (arrows[event.key] && gridSelection) {
+        event.preventDefault();
+        moveSelection(arrows[event.key][0], arrows[event.key][1]);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [mode, tool, deleteSelection, clearSelection]);
+  }, [mode, tool, deleteSelection, clearSelection, gridSelection, moveSelection]);
 
   // 화면에 표시할 선택 사각형(이동 드래그 중엔 델타 반영 미리보기)
   const selectionRect = useMemo(() => {
@@ -1419,8 +1436,14 @@ export function useKnitGridEditor() {
   };
 
   const movePattern = (rowDelta, colDelta) => {
-    if (!paintedCellCount) return;
     const steps = clampNumber(moveSteps, 1, 200);
+    // 선택 영역이 있으면 그 영역만 이동, 없으면 도안 전체 이동
+    if (gridSelection) {
+      setMoveSteps(steps);
+      moveSelection(rowDelta * steps, colDelta * steps);
+      return;
+    }
+    if (!paintedCellCount) return;
     pushHistory();
     setMoveSteps(steps);
     setGrid((previous) => moveGridContent(previous, rowDelta * steps, colDelta * steps));
