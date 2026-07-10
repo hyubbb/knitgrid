@@ -1,5 +1,5 @@
 import { createGrid } from '../../../entities/grid/model/gridModel.js';
-import { GALMURI_FONT_FAMILY } from '../../../shared/lib/fonts.js';
+import { GALMURI_FONT_FAMILY, BESTTEN_FONT_FAMILY } from '../../../shared/lib/fonts.js';
 import { parseNumericInput } from '../../../shared/lib/number.js';
 
 export const TEXT_MAX_CHARS = 80;
@@ -23,6 +23,11 @@ export const TEXT_FONT_OPTIONS = [
     id: 'mono',
     label: '모노',
     family: `${GALMURI_FONT_FAMILY}, "SFMono-Regular", "Cascadia Code", monospace`
+  },
+  {
+    id: 'dot',
+    label: '베스트텐',
+    family: BESTTEN_FONT_FAMILY
   }
 ];
 
