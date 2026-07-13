@@ -444,6 +444,14 @@
     @apply h-8 w-[38px] border-[var(--kg-line-strong)] bg-[var(--kg-bg)];
   }
 
+  /* 번호 여백(헤더/모서리)은 드래그로 화면 이동 — grab 커서로 안내 */
+  .chart-grid .header-row,
+  .chart-grid .header-column,
+  .chart-grid .corner {
+    cursor: grab;
+    touch-action: none;
+  }
+
   .top-left {
     @apply sticky left-0 top-0 z-[5] border-b border-r border-[var(--kg-line-strong)];
   }

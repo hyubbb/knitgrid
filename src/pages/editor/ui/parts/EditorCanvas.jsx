@@ -125,9 +125,13 @@ export function EditorCanvas({ editor }) {
   }, [isPanTool]);
 
   const handleGridPointerDownCapture = (event) => {
-    if (!isPanTool || event.button !== 0) return;
+    if (event.button !== 0) return;
     const target = event.target;
+    // 번호 여백(헤더/모서리)에서 시작한 드래그는 도구와 무관하게 화면 이동. 그 외엔 화면 이동 도구일 때만.
+    const onHeader = !!target?.closest(".header-row, .header-column, .corner");
+    if (!isPanTool && !onHeader) return;
     if (
+      !onHeader &&
       target?.closest(
         'button, input, select, textarea, a, [role="button"], [contenteditable="true"]',
       )
