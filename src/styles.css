@@ -452,6 +452,12 @@
     touch-action: none;
   }
 
+  .chart-grid .header-row:active,
+  .chart-grid .header-column:active,
+  .chart-grid .corner:active {
+    cursor: grabbing;
+  }
+
   .top-left {
     @apply sticky left-0 top-0 z-[5] border-b border-r border-[var(--kg-line-strong)];
   }

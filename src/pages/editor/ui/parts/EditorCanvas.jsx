@@ -146,6 +146,8 @@ export function EditorCanvas({ editor }) {
       panX: gridPan.x,
       panY: gridPan.y,
     };
+    // 드래그하는 동안 전역 커서를 '쥔 손'으로 — 포인터 캡처 대상과 무관하게 명확히 표시
+    document.body.style.cursor = "grabbing";
     event.currentTarget.setPointerCapture(event.pointerId);
   };
 
@@ -164,6 +166,7 @@ export function EditorCanvas({ editor }) {
     if (!drag || drag.pointerId !== event.pointerId) return;
     event.preventDefault();
     panDragRef.current = null;
+    document.body.style.cursor = "";
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
