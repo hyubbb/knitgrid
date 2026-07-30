@@ -54,7 +54,7 @@ export function EditorCanvas({ editor }) {
   const [fullscreenCellSize, setFullscreenCellSize] = useState(() =>
     getFullscreenPreviewCellSize(rows, cols),
   );
-  const [gridPan, setGridPan] = useState({ x: 0, y: 0 });
+  const gridScrollRef = useRef(null);
   const fullscreenCloseButtonRef = useRef(null);
   const panDragRef = useRef(null);
   const previousToolRef = useRef(tool);
@@ -125,6 +125,8 @@ export function EditorCanvas({ editor }) {
   }, [isPanTool]);
 
   const handleGridPointerDownCapture = (event) => {
+    const container = gridScrollRef.current;
+    if (!container) return;
     if (event.button !== 0) return;
     const target = event.target;
     // 번호 여백(헤더/모서리)에서 시작한 드래그는 도구와 무관하게 화면 이동. 그 외엔 화면 이동 도구일 때만.
@@ -143,8 +145,8 @@ export function EditorCanvas({ editor }) {
       pointerId: event.pointerId,
       startX: event.clientX,
       startY: event.clientY,
-      panX: gridPan.x,
-      panY: gridPan.y,
+      scrollLeft: container.scrollLeft,
+      scrollTop: container.scrollTop,
     };
     // 드래그하는 동안 전역 커서를 '쥔 손'으로 — 포인터 캡처 대상과 무관하게 명확히 표시
     document.body.style.cursor = "grabbing";
@@ -152,13 +154,14 @@ export function EditorCanvas({ editor }) {
   };
 
   const handleGridPointerMove = (event) => {
+    const container = gridScrollRef.current;
+    if (!container) return;
     const drag = panDragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
     event.preventDefault();
-    setGridPan({
-      x: drag.panX + (event.clientX - drag.startX),
-      y: drag.panY + (event.clientY - drag.startY),
-    });
+    // 스크롤 위치를 직접 옮긴다(transform 이동은 스크롤 영역 밖으로 도안을 밀어내 되돌아올 수 없다).
+    container.scrollLeft = drag.scrollLeft - (event.clientX - drag.startX);
+    container.scrollTop = drag.scrollTop - (event.clientY - drag.startY);
   };
 
   const handleGridPointerUp = (event) => {
@@ -272,6 +275,7 @@ export function EditorCanvas({ editor }) {
         ) : null}
 
         <div
+          ref={gridScrollRef}
           className={`grid-scroll mode-${mode} ${isPanTool ? "tool-pan" : ""}`}
           onPointerDownCapture={handleGridPointerDownCapture}
           onPointerMove={handleGridPointerMove}
@@ -284,7 +288,6 @@ export function EditorCanvas({ editor }) {
             canEditSourceOverlay={canEditSourceOverlay}
             cellWScale={cellWScale}
             cellHScale={cellHScale}
-            panOffset={gridPan}
             isPanTool={isPanTool}
           />
         </div>

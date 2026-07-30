@@ -415,7 +415,11 @@
 
   .grid-scroll {
     @apply grid min-h-0 overflow-auto p-7;
+    /* safe: 도안이 화면보다 클 때 중앙 정렬이 왼쪽/위 넘침을 스크롤로 닿을 수 없게 만드는 것을 막는다. */
     place-items: center;
+    place-items: safe center;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     grid-row: 3;
     background:
       linear-gradient(90deg, var(--kg-gridline) 1px, transparent 1px),
@@ -434,8 +438,6 @@
 
   .chart-grid {
     @apply relative grid w-max items-start overflow-visible rounded-md border border-[var(--kg-line-strong)] bg-[var(--kg-surface)] shadow-[0_18px_45px_rgba(0,0,0,0.13)];
-    margin: auto;
-    will-change: transform;
     grid-template-columns: 38px max-content 38px;
     grid-template-rows: 32px max-content 32px;
   }
@@ -1273,6 +1275,8 @@
 
   .preview-fullscreen-stage .chart-grid {
     @apply self-center justify-self-center rounded-lg shadow-[0_26px_72px_rgba(0,0,0,0.22)];
+    align-self: safe center;
+    justify-self: safe center;
   }
 
   .preview-fullscreen-stage .cell {

@@ -8,7 +8,6 @@ export function ChartGrid({
   includeSourceOverlay = true,
   cellWScale = 1,
   cellHScale = 1,
-  panOffset = { x: 0, y: 0 },
   isPanTool = false,
   readOnly = false,
 }) {
@@ -58,7 +57,6 @@ export function ChartGrid({
         "--cell-h": `${cellSize * cellHScale}px`,
         "--guide-color": guideLineColor,
         "--grid-line": gridLineColor || undefined,
-        transform: `translate3d(${panOffset.x}px, ${panOffset.y}px, 0)`,
       }}
     >
       {showSourceOverlay ? (
