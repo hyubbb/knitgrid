@@ -32,6 +32,8 @@ export const Cell = memo(function Cell({
   return (
     <CellElement
       className={`cell ${cell.active ? "filled" : ""} ${isInsertAnchor ? "insert-anchor" : ""} ${selected ? "region-selected" : ""} ${!display.visible ? "palette-hidden" : ""} ${guideRow ? "guide-row" : ""} ${guideCol ? "guide-col" : ""} ${progress ? "progress-row" : ""} ${completed ? "completed-row" : ""} ${progressMark ? "progress-note" : ""} ${stitchHere ? "progress-stitch" : ""}`}
+      data-row={r}
+      data-col={c}
       style={{
         background:
           shouldShowCell && displayMode !== "code" ? display.color : "#fff",

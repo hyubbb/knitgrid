@@ -437,7 +437,8 @@
   }
 
   .chart-grid {
-    @apply relative grid w-max items-start overflow-visible rounded-md border border-[var(--kg-line-strong)] bg-[var(--kg-surface)] shadow-[0_18px_45px_rgba(0,0,0,0.13)];
+    @apply relative grid w-max select-none items-start overflow-visible rounded-md border border-[var(--kg-line-strong)] bg-[var(--kg-surface)] shadow-[0_18px_45px_rgba(0,0,0,0.13)];
+    -webkit-touch-callout: none;
     grid-template-columns: 38px max-content 38px;
     grid-template-rows: 32px max-content 32px;
   }
@@ -446,12 +447,12 @@
     @apply h-8 w-[38px] border-[var(--kg-line-strong)] bg-[var(--kg-bg)];
   }
 
-  /* 번호 여백(헤더/모서리)은 드래그로 화면 이동 — grab 커서로 안내 */
+  /* 번호 여백(헤더/모서리): 마우스는 드래그로 화면 이동, 터치는 한 손가락 스크롤 */
   .chart-grid .header-row,
   .chart-grid .header-column,
   .chart-grid .corner {
     cursor: grab;
-    touch-action: none;
+    touch-action: pan-x pan-y;
   }
 
   .chart-grid .header-row:active,
@@ -521,7 +522,14 @@
   }
 
   .cells {
-    @apply relative grid select-none touch-none;
+    @apply relative grid select-none;
+    /* 기본은 한 손가락 스크롤 허용 — 그릴 수 없는 화면에서 도안이 갇히지 않게 한다. */
+    touch-action: pan-x pan-y;
+  }
+
+  /* 한 손가락 드래그가 그리기인 화면에서만 기본 터치 스크롤을 끈다(두 손가락 = 화면 이동). */
+  .grid-scroll.touch-paint .cells {
+    touch-action: none;
   }
 
   .applied-source-overlay {

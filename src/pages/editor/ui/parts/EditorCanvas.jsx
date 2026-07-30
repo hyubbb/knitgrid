@@ -22,6 +22,8 @@ const CHART_FIXED_WIDTH = 76;
 const CHART_FIXED_HEIGHT = 64;
 const FULLSCREEN_MAX_CELL_SIZE = 34;
 const FULLSCREEN_MIN_CELL_SIZE = 2;
+// 이 거리 이상 움직여야 '탭'이 아닌 '드래그 그리기'로 본다.
+const TOUCH_DRAG_THRESHOLD = 6;
 
 export function EditorCanvas({ editor }) {
   const {
@@ -43,10 +45,16 @@ export function EditorCanvas({ editor }) {
     gridSelection,
     deleteSelection,
     clearSelection,
+    handlePointerDown,
+    handlePointerEnter,
+    handlePointerUp,
   } = editor;
   const canEditSourceOverlay = mode === "edit";
   const canFitWholePreview = mode === "preview";
   const isPanTool = tool === "pan";
+  // 한 손가락 드래그가 '그리기'인 화면에서만 터치 제스처를 직접 다룬다(그 외엔 브라우저 기본 스크롤).
+  const usesTouchDragPaint =
+    !isPanTool && (mode === "edit" || mode === "progress");
   const { w: cellWScale, h: cellHScale } = editor.cellAspectScale;
   // 종횡비가 켜지면 확대되는 축을 기준으로 기준 셀을 줄여 전체보기가 화면에 담기도록 한다.
   const cellAspectMaxScale = Math.max(cellWScale, cellHScale);
@@ -57,6 +65,12 @@ export function EditorCanvas({ editor }) {
   const gridScrollRef = useRef(null);
   const fullscreenCloseButtonRef = useRef(null);
   const panDragRef = useRef(null);
+  // 터치 포인터 추적: 두 손가락 = 화면 이동, 한 손가락 = 그리기/선택
+  const touchPointsRef = useRef(new Map());
+  const touchPanRef = useRef(null);
+  const touchPaintCellRef = useRef(null);
+  const touchPendingPaintRef = useRef(null);
+  const touchGestureRef = useRef(null);
   const previousToolRef = useRef(tool);
 
   const openFullscreenPreview = () => {
@@ -122,11 +136,105 @@ export function EditorCanvas({ editor }) {
 
   useEffect(() => {
     if (!isPanTool) panDragRef.current = null;
-  }, [isPanTool]);
+    if (usesTouchDragPaint) return;
+    // 그리기 화면을 벗어나면 진행 중이던 터치 제스처 상태를 남기지 않는다.
+    touchPointsRef.current.clear();
+    touchPanRef.current = null;
+    touchPendingPaintRef.current = null;
+    touchPaintCellRef.current = null;
+    touchGestureRef.current = null;
+  }, [isPanTool, usesTouchDragPaint]);
+
+  const getTouchMidpoint = () => {
+    const points = [...touchPointsRef.current.values()];
+    if (!points.length) return { x: 0, y: 0 };
+    const total = points.reduce(
+      (acc, point) => ({ x: acc.x + point.x, y: acc.y + point.y }),
+      { x: 0, y: 0 },
+    );
+    return { x: total.x / points.length, y: total.y / points.length };
+  };
+
+  const readCellPosition = (element) => {
+    const cellElement = element?.closest?.(".cell[data-row]");
+    if (!cellElement) return null;
+    const row = Number(cellElement.dataset.row);
+    const col = Number(cellElement.dataset.col);
+    if (!Number.isFinite(row) || !Number.isFinite(col)) return null;
+    return { row, col };
+  };
+
+  // 손가락 아래 셀을 찾아 드래그 그리기를 이어준다.
+  // 터치는 pointerdown 대상에 암시적 포인터 캡처가 걸려 다른 셀의 pointerenter가 오지 않는다 → 좌표로 직접 찾는다.
+  const paintTouchCellUnderPointer = (event) => {
+    const position = readCellPosition(
+      document.elementFromPoint(event.clientX, event.clientY),
+    );
+    if (!position) return;
+    const last = touchPaintCellRef.current;
+    if (last && last.row === position.row && last.col === position.col) return;
+    touchPaintCellRef.current = position;
+    handlePointerEnter(position.row, position.col);
+  };
+
+  // 첫 칸은 바로 칠하지 않고 예약만 한다 — 두 번째 손가락(화면 이동)이 곧 닿을 수 있기 때문.
+  const commitPendingTouchPaint = () => {
+    const pending = touchPendingPaintRef.current;
+    if (!pending) return false;
+    touchPendingPaintRef.current = null;
+    touchPaintCellRef.current = { row: pending.row, col: pending.col };
+    handlePointerDown(pending.row, pending.col);
+    return true;
+  };
 
   const handleGridPointerDownCapture = (event) => {
     const container = gridScrollRef.current;
     if (!container) return;
+
+    if (event.pointerType === "touch") {
+      // 화면 이동 도구·미리보기에서는 브라우저 기본 스크롤(touch-action)에 맡긴다.
+      if (!usesTouchDragPaint) return;
+      // 격자 밖(번호 여백·원본 오버레이)은 기본 동작 그대로 둔다.
+      if (!event.target?.closest?.(".cells")) return;
+      touchPointsRef.current.set(event.pointerId, {
+        x: event.clientX,
+        y: event.clientY,
+      });
+      // 셀이 pointerdown 즉시 칠하지 않도록 전파를 끊고, 칠하기 시점은 여기서 정한다.
+      event.stopPropagation();
+
+      if (touchPointsRef.current.size >= 2) {
+        // 두 손가락 = 화면 이동: 예약된 첫 칸은 버리고 진행 중이던 스트로크는 끝낸다.
+        touchPendingPaintRef.current = null;
+        touchPaintCellRef.current = null;
+        handlePointerUp();
+        touchGestureRef.current = "pan";
+        const midpoint = getTouchMidpoint();
+        touchPanRef.current = {
+          startX: midpoint.x,
+          startY: midpoint.y,
+          scrollLeft: container.scrollLeft,
+          scrollTop: container.scrollTop,
+        };
+        return;
+      }
+
+      // 화면 이동 제스처의 남은 손가락은 그리기로 넘기지 않는다.
+      if (touchGestureRef.current === "pan") return;
+      touchPaintCellRef.current = null;
+      const position = readCellPosition(event.target);
+      touchPendingPaintRef.current = position
+        ? {
+            pointerId: event.pointerId,
+            row: position.row,
+            col: position.col,
+            startX: event.clientX,
+            startY: event.clientY,
+          }
+        : null;
+      return;
+    }
+
     if (event.button !== 0) return;
     const target = event.target;
     // 번호 여백(헤더/모서리)에서 시작한 드래그는 도구와 무관하게 화면 이동. 그 외엔 화면 이동 도구일 때만.
@@ -156,15 +264,68 @@ export function EditorCanvas({ editor }) {
   const handleGridPointerMove = (event) => {
     const container = gridScrollRef.current;
     if (!container) return;
+
+    if (event.pointerType === "touch") {
+      if (!usesTouchDragPaint) return;
+      if (!touchPointsRef.current.has(event.pointerId)) return;
+      touchPointsRef.current.set(event.pointerId, {
+        x: event.clientX,
+        y: event.clientY,
+      });
+      const touchPan = touchPanRef.current;
+      if (touchPan && touchPointsRef.current.size >= 2) {
+        const midpoint = getTouchMidpoint();
+        // 스크롤 위치를 직접 옮긴다(transform 이동은 스크롤 영역 밖으로 도안을 밀어내 되돌아올 수 없다).
+        container.scrollLeft = touchPan.scrollLeft - (midpoint.x - touchPan.startX);
+        container.scrollTop = touchPan.scrollTop - (midpoint.y - touchPan.startY);
+        return;
+      }
+      // 두 손가락 제스처가 끝날 때까지는 남은 손가락으로 그리지 않는다.
+      if (touchGestureRef.current === "pan") return;
+
+      const pending = touchPendingPaintRef.current;
+      if (pending) {
+        if (pending.pointerId !== event.pointerId) return;
+        // 손가락이 실제로 움직였을 때 비로소 스트로크를 시작한다(탭은 pointerup에서 처리).
+        const dx = event.clientX - pending.startX;
+        const dy = event.clientY - pending.startY;
+        if (Math.hypot(dx, dy) < TOUCH_DRAG_THRESHOLD) return;
+        commitPendingTouchPaint();
+        return;
+      }
+      paintTouchCellUnderPointer(event);
+      return;
+    }
+
     const drag = panDragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
     event.preventDefault();
-    // 스크롤 위치를 직접 옮긴다(transform 이동은 스크롤 영역 밖으로 도안을 밀어내 되돌아올 수 없다).
     container.scrollLeft = drag.scrollLeft - (event.clientX - drag.startX);
     container.scrollTop = drag.scrollTop - (event.clientY - drag.startY);
   };
 
-  const handleGridPointerUp = (event) => {
+  const handleGridPointerUp = (event, canceled = false) => {
+    if (event.pointerType === "touch") {
+      touchPointsRef.current.delete(event.pointerId);
+      if (touchPointsRef.current.size < 2) touchPanRef.current = null;
+
+      const pending = touchPendingPaintRef.current;
+      if (pending && pending.pointerId === event.pointerId) {
+        touchPendingPaintRef.current = null;
+        // 움직임 없이 뗀 손가락 = 탭 → 그 칸 하나만 칠한다.
+        if (!canceled && touchGestureRef.current !== "pan") {
+          handlePointerDown(pending.row, pending.col);
+          handlePointerUp();
+        }
+      }
+
+      if (touchPointsRef.current.size === 0) {
+        touchGestureRef.current = null;
+        touchPaintCellRef.current = null;
+      }
+      return;
+    }
+
     const drag = panDragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
     event.preventDefault();
@@ -276,11 +437,11 @@ export function EditorCanvas({ editor }) {
 
         <div
           ref={gridScrollRef}
-          className={`grid-scroll mode-${mode} ${isPanTool ? "tool-pan" : ""}`}
+          className={`grid-scroll mode-${mode} ${isPanTool ? "tool-pan" : ""} ${usesTouchDragPaint ? "touch-paint" : ""}`}
           onPointerDownCapture={handleGridPointerDownCapture}
           onPointerMove={handleGridPointerMove}
           onPointerUp={handleGridPointerUp}
-          onPointerCancel={handleGridPointerUp}
+          onPointerCancel={(event) => handleGridPointerUp(event, true)}
         >
           <ChartGrid
             editor={editor}
