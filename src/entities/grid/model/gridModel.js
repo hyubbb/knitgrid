@@ -124,6 +124,28 @@ export const moveGridRegion = (grid, sel, dRow, dCol) => {
   return next;
 };
 
+// 선택 영역을 2차원 셀 배열로 복사한다(격자엔 변화 없음).
+export const copyGridRegion = (grid, sel) =>
+  Array.from({ length: sel.r1 - sel.r0 + 1 }, (_, r) =>
+    Array.from({ length: sel.c1 - sel.c0 + 1 }, (_, c) => ({ ...grid[sel.r0 + r][sel.c0 + c] }))
+  );
+
+// 복사해 둔 셀들을 (row, col) 좌상단 기준으로 덮어쓴다. 격자 밖은 클리핑.
+export const pasteGridRegion = (grid, cells, row, col) => {
+  const rows = grid.length;
+  const cols = grid[0]?.length ?? 0;
+  const next = grid.map((gridRow) => gridRow.map((cell) => ({ ...cell })));
+  cells.forEach((cellRow, rowOffset) => {
+    cellRow.forEach((cell, colOffset) => {
+      const targetRow = row + rowOffset;
+      const targetCol = col + colOffset;
+      if (targetRow < 0 || targetRow >= rows || targetCol < 0 || targetCol >= cols) return;
+      next[targetRow][targetCol] = { ...cell };
+    });
+  });
+  return next;
+};
+
 export const insertGridRow = (grid, index) => {
   const cols = grid[0]?.length ?? 0;
   const safeIndex = clampNumber(index, 0, grid.length);

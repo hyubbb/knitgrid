@@ -2,6 +2,9 @@ import { Slider, Toolbar } from "../../../../components/index.js";
 import { useEffect, useRef, useState } from "react";
 import {
   ChevronDown,
+  ClipboardPaste,
+  Copy,
+  Scissors,
   X,
   Hand,
   Maximize2,
@@ -45,6 +48,10 @@ export function EditorCanvas({ editor }) {
     gridSelection,
     deleteSelection,
     clearSelection,
+    selectionClipboard,
+    copySelection,
+    cutSelection,
+    pasteClipboard,
     handlePointerDown,
     handlePointerEnter,
     handlePointerUp,
@@ -410,6 +417,18 @@ export function EditorCanvas({ editor }) {
               <span>
                 선택 {gridSelection.c1 - gridSelection.c0 + 1} x {gridSelection.r1 - gridSelection.r0 + 1}칸 · 드래그·방향키로 이동
               </span>
+              <button onClick={copySelection} title='선택 영역 복사 (Ctrl/⌘+C)'>
+                <Copy size={14} />
+                복사
+              </button>
+              <button onClick={cutSelection} title='선택 영역 잘라내기 (Ctrl/⌘+X)'>
+                <Scissors size={14} />
+                잘라내기
+              </button>
+              <button onClick={pasteClipboard} disabled={!selectionClipboard} title='선택 좌상단에 붙여넣기 (Ctrl/⌘+V)'>
+                <ClipboardPaste size={14} />
+                붙여넣기
+              </button>
               <button onClick={deleteSelection} title='선택 영역 지우기 (Delete)'>
                 <Trash2 size={14} />
                 선택 지우기

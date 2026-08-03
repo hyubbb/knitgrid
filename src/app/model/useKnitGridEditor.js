@@ -120,6 +120,8 @@ import {
   scaleGridDown,
   clearGridRegion,
   moveGridRegion,
+  copyGridRegion,
+  pasteGridRegion,
   removeGridRowRange,
   removeGridColRange,
   insertGridRow,
@@ -224,6 +226,8 @@ export function useKnitGridEditor() {
   // 이동 드래그 미리보기 델타 {dRow,dCol}. 커밋은 pointerup에서.
   const [selectionMoveDelta, setSelectionMoveDelta] = useState(null);
   const selectionDragRef = useRef(null);
+  // 복사/잘라내기해 둔 선택 영역 셀들(2차원 배열) | null. 세션 동안 유지.
+  const [selectionClipboard, setSelectionClipboard] = useState(null);
   const [projectName, setProjectName] = useAtom(projectNameAtom);
   const [cropDraft, setCropDraft] = useAtom(cropDraftAtom);
   const [imageDraft, setImageDraft] = useAtom(imageDraftAtom);
@@ -968,6 +972,38 @@ export function useKnitGridEditor() {
     setGrid((previous) => clearGridRegion(previous, gridSelection));
   }, [gridSelection, pushHistory, setGrid]);
 
+  // 선택 영역을 클립보드로 복사(격자엔 변화 없음)
+  const copySelection = useCallback(() => {
+    if (!gridSelection) return;
+    setSelectionClipboard(copyGridRegion(grid, gridSelection));
+  }, [grid, gridSelection]);
+
+  // 잘라내기 = 복사 + 선택 영역 비우기(실행취소 가능)
+  const cutSelection = useCallback(() => {
+    if (!gridSelection) return;
+    setSelectionClipboard(copyGridRegion(grid, gridSelection));
+    pushHistory();
+    setGrid((previous) => clearGridRegion(previous, gridSelection));
+  }, [grid, gridSelection, pushHistory, setGrid]);
+
+  // 붙여넣기: 선택이 있으면 선택 좌상단, 없으면 삽입 기준 셀이 좌상단. 격자 밖은 클리핑.
+  // 붙여넣은 영역이 새 선택이 되어 바로 드래그·방향키로 옮길 수 있다.
+  const pasteClipboard = useCallback(() => {
+    const clipRows = selectionClipboard?.length ?? 0;
+    const clipCols = selectionClipboard?.[0]?.length ?? 0;
+    if (!clipRows || !clipCols) return;
+    const targetRow = gridSelection ? gridSelection.r0 : insertAnchorCell.row;
+    const targetCol = gridSelection ? gridSelection.c0 : insertAnchorCell.col;
+    pushHistory();
+    setGrid((previous) => pasteGridRegion(previous, selectionClipboard, targetRow, targetCol));
+    setGridSelection({
+      r0: targetRow,
+      c0: targetCol,
+      r1: clampNumber(targetRow + clipRows - 1, 0, rows - 1),
+      c1: clampNumber(targetCol + clipCols - 1, 0, cols - 1)
+    });
+  }, [selectionClipboard, gridSelection, insertAnchorCell, pushHistory, setGrid, setGridSelection, rows, cols]);
+
   // 도구/모드가 바뀌면 선택 해제
   useEffect(() => {
     if (tool !== 'select' || mode !== 'edit') clearSelection();
@@ -1010,12 +1046,29 @@ export function useKnitGridEditor() {
     } : sel));
   }, [gridSelection, pushHistory, setGrid, setGridSelection, rows, cols]);
 
-  // 선택 도구: Delete/Backspace = 선택 영역 지우기, Escape = 해제, 방향키 = 선택 영역 1칸 이동
+  // 선택 도구: Delete/Backspace = 지우기, Esc = 해제, 방향키 = 1칸 이동, mod+C/X/V = 복사/잘라내기/붙여넣기
   useEffect(() => {
     if (mode !== 'edit' || tool !== 'select') return undefined;
     const arrows = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };
     const handleKeyDown = (event) => {
       if (event.target?.closest?.('input, textarea, [contenteditable="true"]')) return;
+      const mod = event.metaKey || event.ctrlKey;
+      if (mod && !event.altKey && !event.shiftKey && event.code === 'KeyC' && gridSelection) {
+        event.preventDefault();
+        copySelection();
+        return;
+      }
+      if (mod && !event.altKey && !event.shiftKey && event.code === 'KeyX' && gridSelection) {
+        event.preventDefault();
+        cutSelection();
+        return;
+      }
+      if (mod && !event.altKey && !event.shiftKey && event.code === 'KeyV' && selectionClipboard) {
+        event.preventDefault();
+        pasteClipboard();
+        return;
+      }
+      if (mod || event.altKey) return;
       if (event.key === 'Delete' || event.key === 'Backspace') {
         event.preventDefault();
         deleteSelection();
@@ -1028,7 +1081,7 @@ export function useKnitGridEditor() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [mode, tool, deleteSelection, clearSelection, gridSelection, moveSelection]);
+  }, [mode, tool, deleteSelection, clearSelection, gridSelection, moveSelection, copySelection, cutSelection, pasteClipboard, selectionClipboard]);
 
   // 화면에 표시할 선택 사각형(이동 드래그 중엔 델타 반영 미리보기)
   const selectionRect = useMemo(() => {
@@ -2067,6 +2120,10 @@ export function useKnitGridEditor() {
     selectionRect,
     clearSelection,
     deleteSelection,
+    selectionClipboard,
+    copySelection,
+    cutSelection,
+    pasteClipboard,
     removeSelectedRows,
     removeSelectedCols,
     scalePattern,

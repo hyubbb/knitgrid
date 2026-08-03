@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createGrid, scaleGridUp, scaleGridDown, clearGridRegion, moveGridRegion, removeGridRowRange, removeGridColRange } from '../src/entities/grid/model/gridModel.js';
+import { createGrid, scaleGridUp, scaleGridDown, clearGridRegion, moveGridRegion, copyGridRegion, pasteGridRegion, removeGridRowRange, removeGridColRange } from '../src/entities/grid/model/gridModel.js';
 
 test('removeGridRowRange/ColRange remove the whole selected span', () => {
   const grid = createGrid(5, 5);
@@ -97,4 +97,38 @@ test('moveGridRegion cuts, pastes at delta, overwrites destination, clips at edg
   const clipped = moveGridRegion(grid, { r0: 0, c0: 0, r1: 0, c1: 1 }, -1, 0);
   assert.equal(clipped[0][0].active, false);
   assert.equal(clipped.flat().filter((cell) => cell.paletteId === 'a').length, 0);
+});
+
+test('copyGridRegion snapshots the region without touching the grid', () => {
+  const grid = createGrid(3, 3);
+  paint(grid, 1, 1, 'a');
+  paint(grid, 2, 2, 'b');
+
+  const cells = copyGridRegion(grid, { r0: 1, c0: 1, r1: 2, c1: 2 });
+  assert.equal(cells.length, 2);
+  assert.equal(cells[0].length, 2);
+  assert.equal(cells[0][0].paletteId, 'a');
+  assert.equal(cells[1][1].paletteId, 'b');
+  assert.equal(cells[0][1].active, false);
+
+  // 복사본이어야 한다 — 원본 격자를 바꿔도 클립보드는 그대로
+  grid[1][1].paletteId = 'mutated';
+  assert.equal(cells[0][0].paletteId, 'a');
+});
+
+test('pasteGridRegion overwrites at target and clips at edges', () => {
+  const grid = createGrid(3, 3);
+  paint(grid, 0, 0, 'src');
+  const cells = copyGridRegion(grid, { r0: 0, c0: 0, r1: 0, c1: 1 }); // [src, 빈칸]
+  paint(grid, 2, 1, 'dest');
+  paint(grid, 2, 2, 'dest2');
+
+  const next = pasteGridRegion(grid, cells, 2, 1);
+  assert.equal(next[2][1].paletteId, 'src'); // 목적지 덮어씀
+  assert.equal(next[2][2].active, false); // 클립보드의 빈 칸도 그대로 붙음
+  assert.equal(next[0][0].paletteId, 'src'); // 원본 위치는 유지(복사이므로)
+
+  // 격자 밖으로 나가는 부분은 클리핑, 에러 없음
+  const clipped = pasteGridRegion(grid, cells, 2, 2);
+  assert.equal(clipped[2][2].paletteId, 'src');
 });
