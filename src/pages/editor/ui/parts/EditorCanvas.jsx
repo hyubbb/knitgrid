@@ -1,5 +1,5 @@
 import { Slider, Toolbar } from "../../../../components/index.js";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ChevronDown,
   ClipboardPaste,
@@ -37,6 +37,7 @@ export function EditorCanvas({ editor }) {
     setTool,
     zoom,
     setZoom,
+    canvasProjectRevision,
     guideEvery,
     appliedSourceImage,
     appliedSourceSizeChanged,
@@ -79,6 +80,57 @@ export function EditorCanvas({ editor }) {
   const touchPendingPaintRef = useRef(null);
   const touchGestureRef = useRef(null);
   const previousToolRef = useRef(tool);
+  const lastAutoFitRef = useRef(null);
+
+  const fitToViewport = useCallback(() => {
+    const container = gridScrollRef.current;
+    const chart = container?.querySelector(".chart-grid");
+    const cells = chart?.querySelector(".cells");
+    if (
+      !container ||
+      !chart ||
+      !cells ||
+      !container.clientWidth ||
+      !container.clientHeight
+    )
+      return false;
+
+    const padding = getComputedStyle(container);
+    const chartRect = chart.getBoundingClientRect();
+    const cellsRect = cells.getBoundingClientRect();
+    const availableWidth =
+      container.clientWidth -
+      parseFloat(padding.paddingLeft) -
+      parseFloat(padding.paddingRight) -
+      (chartRect.width - cellsRect.width);
+    const availableHeight =
+      container.clientHeight -
+      parseFloat(padding.paddingTop) -
+      parseFloat(padding.paddingBottom) -
+      (chartRect.height - cellsRect.height);
+    setZoom(
+      getViewportFitZoom(
+        availableWidth,
+        availableHeight,
+        rows,
+        cols,
+        cellWScale,
+        cellHScale,
+      ),
+    );
+    container.scrollLeft = 0;
+    container.scrollTop = 0;
+    return true;
+  }, [rows, cols, cellWScale, cellHScale, setZoom]);
+
+  useEffect(() => {
+    const key = `${canvasProjectRevision}:${rows}:${cols}`;
+    if (lastAutoFitRef.current === key) return undefined;
+    const frame = requestAnimationFrame(() => {
+      if (fitToViewport()) lastAutoFitRef.current = key;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [canvasProjectRevision, rows, cols, fitToViewport]);
 
   const openFullscreenPreview = () => {
     setFullscreenCellSize(
@@ -283,8 +335,10 @@ export function EditorCanvas({ editor }) {
       if (touchPan && touchPointsRef.current.size >= 2) {
         const midpoint = getTouchMidpoint();
         // 스크롤 위치를 직접 옮긴다(transform 이동은 스크롤 영역 밖으로 도안을 밀어내 되돌아올 수 없다).
-        container.scrollLeft = touchPan.scrollLeft - (midpoint.x - touchPan.startX);
-        container.scrollTop = touchPan.scrollTop - (midpoint.y - touchPan.startY);
+        container.scrollLeft =
+          touchPan.scrollLeft - (midpoint.x - touchPan.startX);
+        container.scrollTop =
+          touchPan.scrollTop - (midpoint.y - touchPan.startY);
         return;
       }
       // 두 손가락 제스처가 끝날 때까지는 남은 손가락으로 그리지 않는다.
@@ -346,22 +400,24 @@ export function EditorCanvas({ editor }) {
   const [isToolbarCollapsed, setIsToolbarCollapsed] = useState(false);
 
   return (
-    <main className='workspace'>
-      <section className='canvas-panel'>
-        <Toolbar className={`canvas-toolbar ${isToolbarCollapsed ? "is-collapsed" : ""}`}>
-          <div className='canvas-toolbar-summary'>
+    <main className="workspace">
+      <section className="canvas-panel">
+        <Toolbar
+          className={`canvas-toolbar ${isToolbarCollapsed ? "is-collapsed" : ""}`}
+        >
+          <div className="canvas-toolbar-summary">
             <div>
               <strong>
                 {cols} x {rows}
               </strong>
               <span>
-                {guideEvery > 0 ? `${guideEvery}칸 보조선` : "보조선 없음"} · 최대
-                200 x 200
+                {guideEvery > 0 ? `${guideEvery}칸 보조선` : "보조선 없음"} ·
+                최대 200 x 200
               </span>
             </div>
             <button
-              type='button'
-              className='canvas-toolbar-toggle'
+              type="button"
+              className="canvas-toolbar-toggle"
               onClick={() => setIsToolbarCollapsed((value) => !value)}
               aria-expanded={!isToolbarCollapsed}
               title={isToolbarCollapsed ? "도구 펼치기" : "도구 접기"}
@@ -370,7 +426,7 @@ export function EditorCanvas({ editor }) {
               <ChevronDown size={16} />
             </button>
           </div>
-          <div className='canvas-zoom-actions'>
+          <div className="canvas-zoom-actions">
             <Slider
               min={CANVAS_MIN_ZOOM}
               max={CANVAS_MAX_ZOOM}
@@ -381,11 +437,28 @@ export function EditorCanvas({ editor }) {
               valueLabel={`${zoom}%`}
             />
             <button
+              className="canvas-fit-button"
+              type="button"
+              onClick={fitToViewport}
+              title="현재 화면에 도안 맞추기"
+            >
+              <Maximize2 size={14} />
+              화면 맞춤
+            </button>
+            <button
+              className="canvas-fit-button"
+              type="button"
+              onClick={() => setZoom(100)}
+              title="기본 크기 100%로 보기"
+            >
+              100%
+            </button>
+            <button
               className={`canvas-pan-button ${isPanTool ? "active" : ""}`}
-              type='button'
+              type="button"
               onClick={toggleCanvasPanMode}
               aria-pressed={isPanTool}
-              title='격자 화면 이동'
+              title="격자 화면 이동"
               aria-label={
                 isPanTool ? "격자 화면 이동 끄기" : "격자 화면 이동 켜기"
               }
@@ -395,11 +468,11 @@ export function EditorCanvas({ editor }) {
             </button>
             {canFitWholePreview ? (
               <button
-                className='canvas-fit-button'
-                type='button'
+                className="canvas-fit-button"
+                type="button"
                 onClick={openFullscreenPreview}
-                title='전체 화면에서 도안 보기'
-                aria-label='미리보기 전체보기'
+                title="전체 화면에서 도안 보기"
+                aria-label="미리보기 전체보기"
               >
                 <Maximize2 size={14} />
                 전체보기
@@ -412,35 +485,47 @@ export function EditorCanvas({ editor }) {
             isPanTool={isPanTool}
             previousToolRef={previousToolRef}
           />
-          {mode === 'edit' && gridSelection ? (
-            <div className='source-overlay-control selection-actions'>
+          {mode === "edit" && gridSelection ? (
+            <div className="source-overlay-control selection-actions">
               <span>
-                선택 {gridSelection.c1 - gridSelection.c0 + 1} x {gridSelection.r1 - gridSelection.r0 + 1}칸 · 드래그·방향키로 이동
+                선택 {gridSelection.c1 - gridSelection.c0 + 1} x{" "}
+                {gridSelection.r1 - gridSelection.r0 + 1}칸 · 드래그·방향키로
+                이동
               </span>
-              <button onClick={copySelection} title='선택 영역 복사 (Ctrl/⌘+C)'>
+              <button onClick={copySelection} title="선택 영역 복사 (Ctrl/⌘+C)">
                 <Copy size={14} />
                 복사
               </button>
-              <button onClick={cutSelection} title='선택 영역 잘라내기 (Ctrl/⌘+X)'>
+              <button
+                onClick={cutSelection}
+                title="선택 영역 잘라내기 (Ctrl/⌘+X)"
+              >
                 <Scissors size={14} />
                 잘라내기
               </button>
-              <button onClick={pasteClipboard} disabled={!selectionClipboard} title='선택 좌상단에 붙여넣기 (Ctrl/⌘+V)'>
+              <button
+                onClick={pasteClipboard}
+                disabled={!selectionClipboard}
+                title="선택 좌상단에 붙여넣기 (Ctrl/⌘+V)"
+              >
                 <ClipboardPaste size={14} />
                 붙여넣기
               </button>
-              <button onClick={deleteSelection} title='선택 영역 지우기 (Delete)'>
+              <button
+                onClick={deleteSelection}
+                title="선택 영역 지우기 (Delete)"
+              >
                 <Trash2 size={14} />
                 선택 지우기
               </button>
-              <button onClick={clearSelection} title='선택 해제 (Esc)'>
+              <button onClick={clearSelection} title="선택 해제 (Esc)">
                 해제
               </button>
             </div>
           ) : null}
         </Toolbar>
         {appliedSourceImage && appliedSourceSizeChanged ? (
-          <div className='source-overlay-note'>
+          <div className="source-overlay-note">
             원본은 {appliedSourceImage.cols} x {appliedSourceImage.rows}칸 적용
             당시 기준입니다.
           </div>
@@ -474,30 +559,30 @@ export function EditorCanvas({ editor }) {
       </section>
       {isFullscreenPreviewOpen ? (
         <div
-          className='preview-fullscreen-backdrop'
-          role='dialog'
-          aria-modal='true'
-          aria-labelledby='preview-fullscreen-title'
+          className="preview-fullscreen-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="preview-fullscreen-title"
         >
-          <div className='preview-fullscreen-modal'>
-            <header className='preview-fullscreen-header'>
+          <div className="preview-fullscreen-modal">
+            <header className="preview-fullscreen-header">
               <div>
-                <strong id='preview-fullscreen-title'>전체보기</strong>
+                <strong id="preview-fullscreen-title">전체보기</strong>
                 <span>
                   {cols} x {rows} 도안을 화면에 맞춰 표시합니다.
                 </span>
               </div>
               <button
                 ref={fullscreenCloseButtonRef}
-                type='button'
+                type="button"
                 onClick={() => setIsFullscreenPreviewOpen(false)}
-                aria-label='전체보기 닫기'
-                title='닫기'
+                aria-label="전체보기 닫기"
+                title="닫기"
               >
                 <X size={18} />
               </button>
             </header>
-            <div className='preview-fullscreen-stage'>
+            <div className="preview-fullscreen-stage">
               <ChartGrid
                 editor={editor}
                 cellSize={fullscreenCellSize}
@@ -513,6 +598,24 @@ export function EditorCanvas({ editor }) {
       ) : null}
     </main>
   );
+}
+
+function getViewportFitZoom(width, height, rows, cols, cellWScale, cellHScale) {
+  // ChartGrid rounds the base cell size, so fit against that same rendered size.
+  for (
+    let candidate = CANVAS_MAX_ZOOM;
+    candidate >= CANVAS_MIN_ZOOM;
+    candidate -= 1
+  ) {
+    const cellSize = Math.round((candidate / 100) * CANVAS_BASE_CELL_SIZE);
+    if (
+      cols * cellSize * cellWScale <= width &&
+      rows * cellSize * cellHScale <= height
+    ) {
+      return candidate;
+    }
+  }
+  return CANVAS_MIN_ZOOM;
 }
 
 function getFullscreenPreviewCellSize(rows, cols, maxScale = 1) {

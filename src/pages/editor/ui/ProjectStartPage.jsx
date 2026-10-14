@@ -1,4 +1,11 @@
-import { FolderOpen, Grid3X3, Palette, Plus, Sparkles } from "lucide-react";
+import {
+  FolderOpen,
+  Grid3X3,
+  ImagePlus,
+  Palette,
+  Plus,
+  Sparkles,
+} from "lucide-react";
 import {
   countPaintedCells,
   createProjectThumbnail,
@@ -53,14 +60,14 @@ export function ProjectStartPage({ editor }) {
   const {
     localProjects,
     openLocalProject,
-    resetToNewProject,
-    setStartScreenDismissed,
+    requestNewProject,
+    fileInputRef,
+    projectInputRef,
+    localSaveState,
+    localSaveMessage,
   } = editor;
 
-  const startNewProject = () => {
-    setStartScreenDismissed(true);
-    resetToNewProject();
-  };
+  const startNewProject = requestNewProject;
 
   return (
     <main className="project-start-page">
@@ -77,6 +84,32 @@ export function ProjectStartPage({ editor }) {
           <Plus size={18} />새 도안 만들기
         </button>
       </header>
+
+      <section className="project-start-actions" aria-label="도안 시작 방법">
+        <button className="project-start-primary" onClick={startNewProject}>
+          <Plus size={18} /> 빈 도안 시작
+        </button>
+        <button
+          className="project-start-primary"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <ImagePlus size={18} /> 이미지로 시작
+        </button>
+        <button
+          className="project-start-primary"
+          onClick={() => projectInputRef.current?.click()}
+        >
+          <FolderOpen size={18} /> 프로젝트 JSON 열기
+        </button>
+      </section>
+      <p className="project-start-storage-note">
+        도안은 현재 기기의 이 브라우저에만 저장되며 다른 기기로 자동 동기화되지
+        않습니다. 브라우저 데이터를 지우면 사라질 수 있으니 중요한 도안은
+        JSON으로 내보내 보관하세요.
+      </p>
+      {localSaveState === "error" ? (
+        <p role="alert">{localSaveMessage}</p>
+      ) : null}
 
       <section className="project-start-hero hidden" aria-label="KnitGrid 소개">
         <div>
@@ -115,7 +148,7 @@ export function ProjectStartPage({ editor }) {
             </span>
             <strong>아직 저장된 도안이 없습니다</strong>
             <p>
-              새 도안을 만들면 이곳에 대표색과 크기, 최근 수정일이 카드로
+              도안을 로컬 저장하면 이곳에 대표색과 크기, 최근 수정일이 카드로
               쌓입니다.
             </p>
             <button onClick={startNewProject}>

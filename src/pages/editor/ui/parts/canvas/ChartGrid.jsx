@@ -62,7 +62,7 @@ export function ChartGrid({
       {showSourceOverlay ? (
         <div
           className={`applied-source-overlay ${canEditSourceOverlay && isAdjustingAppliedSourceOverlay ? "adjusting" : ""}`}
-          aria-hidden='true'
+          aria-hidden="true"
           style={{
             opacity: appliedSourceOverlayOpacity / 100,
             transform: appliedSourceTransformCss,
@@ -74,7 +74,7 @@ export function ChartGrid({
         >
           <img
             src={appliedSourceImage.src}
-            alt=''
+            alt=""
             style={{
               objectFit:
                 appliedSourceImage.imageOptions.fit === "stretch"
@@ -85,18 +85,24 @@ export function ChartGrid({
           />
         </div>
       ) : null}
-      <div className='corner top-left' />
-      <HeaderRow cols={cols} colNumber={colNumber} area='top' />
-      <div className='corner top-right' />
+      <div className="corner top-left" />
+      <HeaderRow
+        cols={cols}
+        colNumber={colNumber}
+        area="top"
+        cellWidth={cellSize * cellWScale}
+      />
+      <div className="corner top-right" />
       <HeaderColumn
         rows={rows}
         rowNumber={rowNumber}
-        area='left'
+        area="left"
+        cellHeight={cellSize * cellHScale}
         completedRows={completedRows}
         showCompleted={mode === "progress"}
       />
       <div
-        className='cells'
+        className="cells"
         style={{
           gridTemplateColumns: `repeat(${cols}, var(--cell-w, var(--cell)))`,
         }}
@@ -109,8 +115,7 @@ export function ChartGrid({
               ? r < rows - 1 && (rows - 1 - r) % guideEvery === 0
               : (r + 1) % guideEvery === 0);
           const progress = mode === "progress" && rowLabel === progressRow;
-          const completed =
-            mode === "progress" && completedRows.has(rowLabel);
+          const completed = mode === "progress" && completedRows.has(rowLabel);
           return row.map((cell, c) => {
             const guideCol = guideEvery > 0 && (c + 1) % guideEvery === 0;
             const progressMark =
@@ -127,8 +132,10 @@ export function ChartGrid({
             const selected =
               mode === "edit" &&
               !!selectionRect &&
-              r >= selectionRect.r0 && r <= selectionRect.r1 &&
-              c >= selectionRect.c0 && c <= selectionRect.c1;
+              r >= selectionRect.r0 &&
+              r <= selectionRect.r1 &&
+              c >= selectionRect.c0 &&
+              c <= selectionRect.c1;
 
             return (
               <Cell
@@ -161,20 +168,26 @@ export function ChartGrid({
         <HeaderColumn
           rows={rows}
           rowNumber={rowNumber}
-          area='right'
+          area="right"
+          cellHeight={cellSize * cellHScale}
           completedRows={completedRows}
           showCompleted={mode === "progress"}
         />
       ) : (
         <div />
       )}
-      {showOppositeHeaders ? <div className='corner bottom-left' /> : <div />}
+      {showOppositeHeaders ? <div className="corner bottom-left" /> : <div />}
       {showOppositeHeaders ? (
-        <HeaderRow cols={cols} colNumber={colNumber} area='bottom' />
+        <HeaderRow
+          cols={cols}
+          colNumber={colNumber}
+          area="bottom"
+          cellWidth={cellSize * cellWScale}
+        />
       ) : (
         <div />
       )}
-      {showOppositeHeaders ? <div className='corner bottom-right' /> : <div />}
+      {showOppositeHeaders ? <div className="corner bottom-right" /> : <div />}
     </div>
   );
 }

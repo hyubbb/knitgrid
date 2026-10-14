@@ -12,7 +12,14 @@
     --kg-text-xl: 16px;
     --kg-text-2xl: 18px;
     --kg-text-3xl: 20px;
-    font-family: var(--kg-font-sans, system-ui, sans-serif);
+    font-family:
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Apple SD Gothic Neo",
+      "Malgun Gothic",
+      "Noto Sans KR",
+      sans-serif;
     font-size: var(--kg-text-base);
     line-height: 1.4;
     letter-spacing: 0;
@@ -24,6 +31,7 @@
 
   body {
     @apply m-0 min-w-[1100px] bg-[var(--kg-offwhite)] text-[var(--kg-ink)];
+    font-size: 14px;
   }
 
   button,
@@ -47,14 +55,14 @@
   }
 
   label {
-    @apply grid gap-[5px] text-[10px] font-bold uppercase tracking-[0.04em] text-[var(--kg-muted)];
-    font-family: var(--kg-font-sans, ui-monospace, Monaco, monospace);
+    @apply grid gap-[5px] text-[12px] font-semibold text-[var(--kg-muted)];
+    font-family: inherit;
   }
 
   label input,
   label select,
   textarea {
-    @apply min-h-8 w-full rounded-[7px] border border-[var(--kg-line)] bg-[var(--kg-surface)] px-[9px] text-[11px] text-[var(--kg-ink)];
+    @apply min-h-8 w-full rounded-[7px] border border-[var(--kg-line)] bg-[var(--kg-surface)] px-[9px] text-[13px] text-[var(--kg-ink)];
   }
 }
 
@@ -2225,7 +2233,7 @@
   }
 
   .project-color-card.dark-text {
-    @apply text-[var(--kg-ink)];
+    color: #18212b;
   }
 
   .project-color-card.light-text {
@@ -2799,6 +2807,140 @@
   }
 }
 
+@layer components {
+  .topbar button,
+  .brand input,
+  .dropdown-menu-item,
+  .panel-title strong,
+  .inspector-header strong,
+  .panel button,
+  .panel input,
+  .panel select,
+  .image-modal-actions button,
+  .image-modal-body button,
+  .text-modal-body button,
+  .source-overlay-control button {
+    font-size: 13px;
+  }
+
+  .panel label,
+  .setting-hint,
+  .option-stack small,
+  .local-save-state,
+  .source-overlay-control label,
+  .source-overlay-control label span,
+  .palette-row span,
+  .palette-summary-row strong,
+  .palette-summary-row span,
+  .palette-summary-row em,
+  .palette-summary-row b,
+  .structure-title > span,
+  .gauge-result-label,
+  .written-option-label,
+  .image-modal-header span,
+  .text-input-block small {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .tool-rail button span {
+    font-size: 11px;
+  }
+
+  .brand input:focus-visible {
+    outline: 2px solid var(--kg-teal);
+    outline-offset: 3px;
+  }
+
+  .dropdown-menu-content {
+    max-width: calc(100vw - 24px);
+    max-height: calc(100dvh - 180px);
+    overflow-y: auto;
+  }
+
+  .dropdown-menu-item span {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .project-start-page,
+  [data-theme="dark"] .project-start-page {
+    background: var(--kg-bg);
+    color: var(--kg-ink);
+  }
+
+  .project-start-hero,
+  .project-color-stack,
+  .project-start-empty,
+  [data-theme="dark"] .project-start-hero,
+  [data-theme="dark"] .project-color-stack,
+  [data-theme="dark"] .project-start-empty {
+    border-color: var(--kg-line);
+    background: var(--kg-surface);
+    color: var(--kg-ink);
+    box-shadow: 0 4px 18px rgb(0 0 0 / 6%);
+  }
+
+  .project-start-header span,
+  .project-hero-copy,
+  .project-start-empty p,
+  .project-start-storage-note {
+    color: var(--kg-muted);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .project-start-mark,
+  .project-empty-icon,
+  .project-eyebrow,
+  .project-hero-stats span,
+  [data-theme="dark"] .project-start-mark,
+  [data-theme="dark"] .project-empty-icon,
+  [data-theme="dark"] .project-eyebrow,
+  [data-theme="dark"] .project-hero-stats span {
+    border-color: var(--kg-line);
+    background: var(--kg-surface-soft);
+    color: var(--kg-ink);
+  }
+
+  .project-start-primary,
+  .project-start-header button,
+  .project-start-empty button,
+  [data-theme="dark"] .project-start-primary,
+  [data-theme="dark"] .project-start-empty button {
+    border-color: var(--kg-line-strong);
+    background: var(--kg-surface-soft);
+    color: var(--kg-ink);
+    font-size: 13px;
+    box-shadow: none;
+    white-space: normal;
+  }
+
+  .project-start-header {
+    flex-wrap: wrap;
+  }
+
+  .project-start-actions,
+  .project-start-header div.project-start-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .project-start-storage-note {
+    margin-top: 12px;
+  }
+
+  .project-color-card:hover:not(:disabled) {
+    background: var(--project-color);
+  }
+
+  .project-card-meta small {
+    font-size: 12px;
+    opacity: 0.8;
+  }
+}
+
 @media (max-width: 1180px) {
   body {
     @apply min-w-0;
@@ -2951,7 +3093,19 @@
   }
 
   .brand {
-    @apply hidden;
+    @apply flex min-w-0;
+    order: -1;
+  }
+
+  .brand > div {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .brand input {
+    width: 100%;
+    min-height: 28px;
+    font-size: 16px;
   }
 
   .mode-tabs {
@@ -2963,12 +3117,28 @@
   }
 
   .command-group {
-    @apply ml-0 w-full justify-start gap-1.5 overflow-x-auto pb-0.5;
-    scrollbar-width: none;
+    @apply ml-0 w-full min-w-0 flex-wrap justify-start gap-1.5 overflow-visible;
   }
 
-  .command-group::-webkit-scrollbar {
-    display: none;
+  .command-group .local-save-state {
+    order: 1;
+    flex-basis: 100%;
+    min-height: 22px;
+    border: 0;
+    padding: 0;
+    background: transparent;
+  }
+
+  .command-history button {
+    width: 40px;
+    min-height: 40px;
+    padding: 0;
+  }
+
+  .command-group > button {
+    min-height: 40px;
+    padding-inline: 10px;
+    margin-left: auto;
   }
 
   .command-group > *,
@@ -3016,7 +3186,7 @@
     @apply gap-2 px-2.5;
   }
 
-  .canvas-toolbar span {
+  .canvas-toolbar > span {
     @apply hidden;
   }
 
