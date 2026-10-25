@@ -5,7 +5,8 @@ import {
   MousePointer2,
   PaintBucket,
   PenLine,
-  Pipette
+  Pipette,
+  Spline
 } from 'lucide-react';
 
 export const PRESETS = [
@@ -26,13 +27,16 @@ export const TOOLS = [
   { id: 'eraser', label: '지우개', icon: Eraser, shortcut: 'e' },
   { id: 'fill', label: '채우기', icon: PaintBucket, shortcut: 'f' },
   { id: 'picker', label: '스포이드', icon: Pipette, shortcut: 's' },
-  { id: 'mirror', label: '좌우 반전', icon: Maximize2, shortcut: 'm' }
+  { id: 'mirror', label: '좌우 반전', icon: Maximize2, shortcut: 'm' },
+  // 대바늘 도안에서만 노출
+  { id: 'stitch', label: '기호', icon: Spline, shortcut: 'k', chartType: 'knit' }
 ];
 
 export const DISPLAY_MODES = [
   { id: 'color-code', label: '색상 + 코드' },
   { id: 'color', label: '색상만' },
-  { id: 'code', label: '코드만' }
+  { id: 'code', label: '코드만' },
+  { id: 'knit', label: '실물' }
 ];
 
 export const DEFAULT_APPLIED_SOURCE_OVERLAY_TRANSFORM = {

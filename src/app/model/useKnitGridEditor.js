@@ -73,6 +73,8 @@ import {
   pendingNewProjectAtom,
   startScreenDismissedAtom,
   routeProjectAtom,
+  chartTypeAtom,
+  activeStitchIdAtom,
 } from "../state/editorAtoms.js";
 import {
   PRESETS,
@@ -173,11 +175,31 @@ import {
   getImageAspectGridSize,
   detectPixelGrid,
   analyzeProgressRow,
+  getDefaultKnitCellScale,
+  placeKnitStitch,
+  clearKnitStitches,
+  fillKnitSequence,
+  invertKnitStitches,
+  applyKnitSelectionAction,
+  analyzeKnitRows,
+  getKnitStitch,
 } from "./knitgridModel.js";
 import { useExport } from "./hooks/useExport.js";
 import { useAppliedSourceOverlay } from "./hooks/useAppliedSourceOverlay.js";
 
 const progressMarkKey = (row, col) => `${row}:${col}`;
+
+// 코바늘 도안은 별도 편집기에서 연다(?project=new-crochet | crochet-<id>).
+export const isCrochetRoute = (project) =>
+  project === "new-crochet" || Boolean(project?.startsWith?.("crochet-"));
+
+// 색 칸을 바꿀 때 기존 대바늘 기법 기호는 유지한다.
+const withStitch = (cell, source) => {
+  if (!source?.stitch) return cell;
+  const next = { ...cell, stitch: source.stitch };
+  if (source.stitchPart !== undefined) next.stitchPart = source.stitchPart;
+  return next;
+};
 const TOOL_SHORTCUTS = new Map(
   TOOLS.flatMap((tool) => (tool.shortcut ? [[tool.shortcut, tool.id]] : [])),
 );
@@ -202,6 +224,9 @@ export function useKnitGridEditor() {
   const [palette, setPalette] = useAtom(paletteAtom);
   const [activePaletteId, setActivePaletteId] = useAtom(activePaletteIdAtom);
   const [tool, setTool] = useAtom(toolAtom);
+  const [chartType, setChartType] = useAtom(chartTypeAtom);
+  const [activeStitchId, setActiveStitchId] = useAtom(activeStitchIdAtom);
+  const isKnitChart = chartType === "knit";
   const [mode, setMode] = useAtom(modeAtom);
   const [displayMode, setDisplayMode] = useAtom(displayModeAtom);
   const [zoom, setZoom] = useAtom(zoomAtom);
@@ -617,11 +642,13 @@ export function useKnitGridEditor() {
   // 넓이를 유지하도록 기하평균으로 정규화(면적 ≈ 기준 셀²)해 확대/축소 왜곡을 최소화한다.
   const cellAspectActive = hasGauge && cellAspectRatio;
   const cellAspectScale = useMemo(() => {
-    if (!cellAspectActive) return { w: 1, h: 1 };
+    // 실물 모드는 게이지가 없어도 메리야스 기본 비율로 보여준다.
+    if (!cellAspectActive)
+      return displayMode === "knit" ? getDefaultKnitCellScale() : { w: 1, h: 1 };
     const ratio = gaugeRows / gaugeStitches; // 가로/세로
     const root = Math.sqrt(ratio);
     return { w: root, h: 1 / root };
-  }, [cellAspectActive, gaugeRows, gaugeStitches]);
+  }, [cellAspectActive, displayMode, gaugeRows, gaugeStitches]);
 
   // 목표 치수(cm) → 필요한 격자 크기(코수 × 단수). 게이지 없으면 null.
   const computeGridSizeForDimensions = useCallback(
@@ -668,6 +695,7 @@ export function useKnitGridEditor() {
   const serializeCurrentProject = useCallback(
     () => ({
       version: 2,
+      chartType,
       projectName,
       rows,
       cols,
@@ -696,6 +724,7 @@ export function useKnitGridEditor() {
     [
       activePaletteId,
       cellAspectRatio,
+      chartType,
       cols,
       completedRows,
       displayMode,
@@ -772,7 +801,12 @@ export function useKnitGridEditor() {
       );
       setActivePaletteId(loadedActivePaletteId);
       setExpandedPaletteId("");
-      setDisplayMode(data.displayMode || "color");
+      setDisplayMode(
+        DISPLAY_MODES.some((item) => item.id === data.displayMode)
+          ? data.displayMode
+          : "color",
+      );
+      setChartType(data.chartType === "knit" ? "knit" : "colorwork");
       setGuideColorMode(data.guideColorMode || "black");
       setGuideCustomColor(normalizeHex(data.guideCustomColor) || "#111827");
       setGridLineColorMode(data.gridLineColorMode || "default");
@@ -868,11 +902,15 @@ export function useKnitGridEditor() {
   ]);
 
   const resetToNewProject = useCallback(
-    ({ replace = false, fromHistory = false } = {}) => {
+    ({ replace = false, fromHistory = false, chartType: nextChartType = "colorwork" } = {}) => {
       setCanvasProjectRevision((revision) => revision + 1);
-      const nextRows = 64;
-      const nextCols = 48;
-      setProjectName("새 도안");
+      const isKnit = nextChartType === "knit";
+      // 대바늘 기호도안은 무늬 단위로 작게 시작한다.
+      const nextRows = isKnit ? 24 : 64;
+      const nextCols = isKnit ? 24 : 48;
+      setChartType(isKnit ? "knit" : "colorwork");
+      setTool(isKnit ? "stitch" : "pen");
+      setProjectName(isKnit ? "새 대바늘 도안" : "새 도안");
       setRows(nextRows);
       setCols(nextCols);
       setDraftRows(nextRows);
@@ -887,8 +925,8 @@ export function useKnitGridEditor() {
       setGaugeStitches(0);
       setGaugeRows(0);
       setCellAspectRatio(false);
-      setCurrentCell({ row: 23, col: 17 });
-      setInsertAnchorCell({ row: 23, col: 17 });
+      setCurrentCell({ row: Math.min(23, nextRows - 1), col: Math.min(17, nextCols - 1) });
+      setInsertAnchorCell({ row: Math.min(23, nextRows - 1), col: Math.min(17, nextCols - 1) });
       setProgressRow(1);
       setProgressStitch(1);
       setProgressAutoAdvance(true);
@@ -917,7 +955,8 @@ export function useKnitGridEditor() {
     projectNavigationRef.current.initialize();
     const initial = new URLSearchParams(window.location.search).get("project");
     if (initial === "new") resetToNewProject({ replace: true });
-    else if (initial) openLocalProject(initial, { fromHistory: true });
+    else if (initial && !isCrochetRoute(initial))
+      openLocalProject(initial, { fromHistory: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -1064,12 +1103,25 @@ export function useKnitGridEditor() {
       lastSavedSignatureRef.current = currentSignature;
       navigateToProject(null);
     });
-  const requestNewProject = () => requestNavigation(resetToNewProject);
+  const requestNewProject = (options = {}) =>
+    requestNavigation(() =>
+      resetToNewProject({ chartType: options?.chartType }),
+    );
+  const startNewCrochetProject = () =>
+    requestNavigation(() => navigateToProject("new-crochet"));
+  // 코바늘 새 도안이 처음 저장되면 주소만 실제 id로 교체한다(편집기는 다시 마운트하지 않음).
+  const replaceCrochetRoute = (id) =>
+    projectNavigationRef.current.navigate(id, { replace: true });
 
   const openLocalProject = (id, { fromHistory = false } = {}) => {
     const open = async () => {
       try {
         const record = await loadLocalProject(id);
+        if (record?.kind === "crochet") {
+          setLocalProjectsOpen(false);
+          navigateToProject(id, { fromHistory });
+          return;
+        }
         if (!record?.projectData)
           throw new Error("저장된 도안을 찾을 수 없습니다.");
         applyProjectData(record.projectData, { localId: record.id });
@@ -1101,6 +1153,8 @@ export function useKnitGridEditor() {
             navigateToProject(null, { fromHistory: true });
           } else if (next === "new") {
             resetToNewProject({ fromHistory: true });
+          } else if (next === "new-crochet") {
+            navigateToProject(next, { fromHistory: true });
           } else openLocalProject(next, { fromHistory: true });
         },
       });
@@ -1684,8 +1738,26 @@ export function useKnitGridEditor() {
 
       if (shouldRecord) pushHistory();
 
+      if (selectedTool === "stitch") {
+        setGrid((previous) => {
+          const existing = previous[row][col];
+          // 같은 기호를 다시 누르면 겉뜨기(빈 칸)로 되돌린다.
+          const same =
+            shouldRecord &&
+            (existing.stitch || "k") === activeStitchId &&
+            !(existing.stitchPart > 0);
+          return placeKnitStitch(previous, row, col, same ? "" : activeStitchId);
+        });
+        return;
+      }
+
       setGrid((previous) => {
-        const next = cloneGrid(previous);
+        // 지우개는 걸쳐 있는 교차뜨기까지 통째로 정리한 뒤 칸을 비운다.
+        const next = cloneGrid(
+          selectedTool === "eraser"
+            ? clearKnitStitches(previous, { r0: row, r1: row, c0: col, c1: col })
+            : previous,
+        );
         if (selectedTool === "eraser") {
           next[row][col] = makeCell();
         } else if (selectedTool === "fill") {
@@ -1710,14 +1782,14 @@ export function useKnitGridEditor() {
             const target = previous[r][c];
             const targetKey = `${target.active}-${target.paletteId}-${target.symbol}`;
             if (targetKey !== sourceKey) continue;
-            next[r][c] = replacement;
+            next[r][c] = withStitch(replacement, target);
             queue.push([r + 1, c], [r - 1, c], [r, c + 1], [r, c - 1]);
           }
         } else {
           const existing = previous[row][col];
           const same =
             existing.active && existing.paletteId === activePalette.id;
-          next[row][col] =
+          next[row][col] = withStitch(
             same && shouldRecord
               ? makeCell()
               : {
@@ -1727,12 +1799,14 @@ export function useKnitGridEditor() {
                   label: activePalette.name,
                   note: "",
                   paletteId: activePalette.id,
-                };
+                },
+            existing,
+          );
         }
         return next;
       });
     },
-    [activePalette, cols, grid, mode, pushHistory, rows, tool],
+    [activePalette, activeStitchId, cols, grid, mode, pushHistory, rows, tool],
   );
 
   // memo된 셀에 내려가는 콜백은 참조가 안정적이어야 스킵이 동작한다 → useCallback 필수.
@@ -1803,7 +1877,12 @@ export function useKnitGridEditor() {
         return;
       }
       // ponytail: hover마다 setCurrentCell 하면 전역 atom→전체 리렌더. 드래그 페인팅 중엔 paintCell이 갱신함.
-      if (!isDragging || !["pen", "eraser"].includes(tool)) return;
+      if (!isDragging) return;
+      // 한 칸짜리 기호는 드래그로 연속해서 놓을 수 있다.
+      const paintsOnDrag =
+        ["pen", "eraser"].includes(tool) ||
+        (tool === "stitch" && getKnitStitch(activeStitchId).span === 1);
+      if (!paintsOnDrag) return;
       setCurrentCell({ row, col });
       if (mode === "progress") {
         updateProgressMark(row, col, tool === "eraser" ? "remove" : "add");
@@ -1811,7 +1890,7 @@ export function useKnitGridEditor() {
       }
       paintCell(row, col, tool, false);
     },
-    [isDragging, tool, mode, setGridSelection, updateProgressMark, paintCell],
+    [activeStitchId, isDragging, tool, mode, setGridSelection, updateProgressMark, paintCell],
   );
 
   const handlePointerUp = useCallback(() => {
@@ -2067,6 +2146,7 @@ export function useKnitGridEditor() {
         : event.key.toLowerCase();
       const nextTool = TOOL_SHORTCUTS.get(key);
       if (!nextTool) return;
+      if (nextTool === "stitch" && chartType !== "knit") return;
       event.preventDefault();
       if (nextTool === "mirror") {
         mirrorGrid();
@@ -2076,7 +2156,7 @@ export function useKnitGridEditor() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [mode, mirrorGrid, setTool]);
+  }, [chartType, mode, mirrorGrid, setTool]);
 
   // 전역 단축키: mod+Z 되돌리기, mod+Shift+Z 다시실행, mod+S 저장, +/- 줌. 물리 키(code) 기반이라 한/영 무관.
   useEffect(() => {
@@ -2188,6 +2268,7 @@ export function useKnitGridEditor() {
     buildWrittenPattern,
     downloadWrittenPatternText,
     exportPng,
+    exportKnitPng,
     exportPdf,
     saveProject,
   } = useExport({
@@ -2211,6 +2292,7 @@ export function useKnitGridEditor() {
     writtenKnitMode,
     writtenStartDirection,
     writtenIncludeInPdf,
+    isKnitChart,
   });
 
   const loadProject = (event) => {
@@ -2567,9 +2649,96 @@ export function useKnitGridEditor() {
   };
 
   // URL이 진실의 원천: '/'(project 파라미터 없음)는 항상 인덱스(홈), ?project=...는 에디터
+  // ── 대바늘: 선택 영역 변환(우클릭 메뉴) ──
+  const updateSelectionGrid = (transform) => {
+    if (!gridSelection || mode !== "edit") return;
+    pushHistory();
+    setGrid((previous) => transform(previous, gridSelection));
+  };
+
+  const applyStitchToSelection = (stitchId) => {
+    const span = getKnitStitch(stitchId).span;
+    updateSelectionGrid((previous, { r0, r1, c0, c1 }) => {
+      let next = previous;
+      for (let r = r0; r <= r1; r += 1) {
+        // 선택 폭이 기호 폭보다 좁으면 한 번만 놓고, 넓으면 기호 폭 단위로 반복한다.
+        if (c1 - c0 + 1 < span) {
+          next = placeKnitStitch(next, r, c0, stitchId);
+          continue;
+        }
+        for (let c = c0; c + span - 1 <= c1; c += span)
+          next = placeKnitStitch(next, r, c, stitchId);
+      }
+      return next;
+    });
+    setActiveStitchId(stitchId);
+  };
+  const applySelectionAction = (action) =>
+    updateSelectionGrid((previous, sel) => applyKnitSelectionAction(previous, sel, action));
+  const fillSelectionPattern = (pattern) =>
+    updateSelectionGrid((previous, sel) =>
+      fillKnitSequence(previous, sel, pattern.sequence, { rowShift: pattern.rowShift || 0 }),
+    );
+  const invertSelectionStitches = () =>
+    updateSelectionGrid((previous, sel) => invertKnitStitches(previous, sel));
+  const clearSelectionStitches = () =>
+    updateSelectionGrid((previous, sel) => clearKnitStitches(previous, sel));
+  const paintSelection = (erase = false) =>
+    updateSelectionGrid((previous, { r0, r1, c0, c1 }) =>
+      previous.map((cells, r) =>
+        r < r0 || r > r1
+          ? cells
+          : cells.map((cell, c) => {
+              if (c < c0 || c > c1) return cell;
+              return withStitch(
+                erase
+                  ? makeCell()
+                  : {
+                      active: true,
+                      color: activePalette.color,
+                      symbol: activePalette.code,
+                      label: activePalette.name,
+                      note: "",
+                      paletteId: activePalette.id,
+                    },
+                cell,
+              );
+            }),
+      ),
+    );
+
+  // 단별 코 수 검사(대바늘 도안에서만)
+  const knitRowAnalysis = useMemo(
+    () => (isKnitChart ? analyzeKnitRows(grid) : []),
+    [grid, isKnitChart],
+  );
+  const knitRowIssues = useMemo(
+    () => new Map(knitRowAnalysis.filter((item) => !item.ok).map((item) => [item.row, item])),
+    [knitRowAnalysis],
+  );
+
   const showProjectStartScreen = routeProject === null;
+  const crochetRoute = isCrochetRoute(routeProject) ? routeProject : null;
 
   return {
+    chartType,
+    isKnitChart,
+    activeStitchId,
+    setActiveStitchId,
+    selection: gridSelection,
+    setSelection: setGridSelection,
+    applyStitchToSelection,
+    applySelectionAction,
+    fillSelectionPattern,
+    invertSelectionStitches,
+    clearSelectionStitches,
+    paintSelection,
+    knitRowAnalysis,
+    knitRowIssues,
+    crochetRoute,
+    startNewCrochetProject,
+    replaceCrochetRoute,
+    exportKnitPng,
     canvasProjectRevision,
     rows,
     setRows,

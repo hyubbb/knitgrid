@@ -5,6 +5,8 @@ import {
   Palette,
   Plus,
   Sparkles,
+  Spline,
+  Waypoints,
 } from "lucide-react";
 import {
   countPaintedCells,
@@ -15,6 +17,8 @@ import {
 } from "../../../app/model/knitgridModel.js";
 
 const FALLBACK_COLOR = "#10243a";
+
+const CHART_TYPE_LABELS = { colorwork: "배색", knit: "대바늘" };
 
 const getProjectPalette = (project) => project.projectData?.palette || [];
 
@@ -61,13 +65,14 @@ export function ProjectStartPage({ editor }) {
     localProjects,
     openLocalProject,
     requestNewProject,
+    startNewCrochetProject,
     fileInputRef,
     projectInputRef,
     localSaveState,
     localSaveMessage,
   } = editor;
 
-  const startNewProject = requestNewProject;
+  const startNewProject = () => requestNewProject();
 
   return (
     <main className="project-start-page">
@@ -87,7 +92,19 @@ export function ProjectStartPage({ editor }) {
 
       <section className="project-start-actions" aria-label="도안 시작 방법">
         <button className="project-start-primary" onClick={startNewProject}>
-          <Plus size={18} /> 빈 도안 시작
+          <Plus size={18} /> 빈 배색·방안 도안
+        </button>
+        <button
+          className="project-start-primary"
+          onClick={() => requestNewProject({ chartType: "knit" })}
+        >
+          <Spline size={18} /> 대바늘 기호도안
+        </button>
+        <button
+          className="project-start-primary"
+          onClick={startNewCrochetProject}
+        >
+          <Waypoints size={18} /> 코바늘 기호도안
         </button>
         <button
           className="project-start-primary"
@@ -157,6 +174,37 @@ export function ProjectStartPage({ editor }) {
           </div>
         ) : null}
         {localProjects.map((project) => {
+          if (project.kind === "crochet") {
+            return (
+              <button
+                key={project.id}
+                className="project-color-card dark-text crochet-card"
+                style={{ "--project-color": "#f4efe6" }}
+                onClick={() => openLocalProject(project.id)}
+              >
+                {project.thumbnail ? (
+                  <span className="project-card-thumb" aria-hidden="true">
+                    <img src={project.thumbnail} alt="" />
+                  </span>
+                ) : null}
+                <span className="project-card-title">
+                  {project.name || "이름 없는 도안"}
+                </span>
+                <span className="project-card-meta">
+                  <b>코바늘</b>
+                  <small>종류</small>
+                </span>
+                <span className="project-card-meta">
+                  <b>{project.summary?.stitchCount ?? 0}기호</b>
+                  <small>{project.summary?.roundCount ?? 0}단</small>
+                </span>
+                <span className="project-card-meta">
+                  <b>{formatProjectDate(project.updatedAt)}</b>
+                  <small>수정일</small>
+                </span>
+              </button>
+            );
+          }
           const color = getDominantProjectColor(project);
           const darkText = luminance(color) > 0.58;
           const info = getProjectInfo(project);
@@ -190,7 +238,10 @@ export function ProjectStartPage({ editor }) {
                 <b>
                   {info.cols} x {info.rows}
                 </b>
-                <small>격자</small>
+                <small>
+                  {CHART_TYPE_LABELS[project.projectData?.chartType] || "배색"}{" "}
+                  격자
+                </small>
               </span>
               <span className="project-card-meta">
                 <b>{info.colorCount}색</b>

@@ -8,6 +8,7 @@ import { EditorStatus } from "./parts/EditorStatus.jsx";
 import { EditorToolRail } from "./parts/EditorToolRail.jsx";
 import { EditorTopbar } from "./parts/EditorTopbar.jsx";
 import { ProjectStartPage } from "./ProjectStartPage.jsx";
+import { CrochetEditorPage } from "../../crochet/CrochetEditorPage.jsx";
 
 export function EditorPage() {
   const editor = useKnitGridEditor();
@@ -65,7 +66,18 @@ export function EditorPage() {
         hidden
       />
       <EditorModals editor={editor} />
-      {editor.showProjectStartScreen ? (
+      {editor.crochetRoute ? (
+        // 코바늘 도안은 자유 배치 편집기. 새 도안이면 첫 저장 때 id가 생긴다.
+        <CrochetEditorPage
+          key={editor.crochetRoute}
+          projectId={editor.crochetRoute === "new-crochet" ? null : editor.crochetRoute}
+          onSaved={editor.replaceCrochetRoute}
+          onExit={() => {
+            editor.goToStartScreen();
+            editor.refreshLocalProjects();
+          }}
+        />
+      ) : editor.showProjectStartScreen ? (
         <ProjectStartPage editor={editor} />
       ) : (
         <div

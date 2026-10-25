@@ -19,6 +19,7 @@ import {
   Grid3X3,
   ImagePlus,
   Layers,
+  Shirt,
   Menu,
   MoreVertical,
   PenLine,
@@ -58,6 +59,7 @@ export function EditorTopbar({ editor, mobileDrawer, onOpenMobileDrawer }) {
     referenceInputRef,
     openTextDraft,
     exportPng,
+    exportKnitPng,
     exportPdf,
     saveProject,
   } = editor;
@@ -133,6 +135,12 @@ export function EditorTopbar({ editor, mobileDrawer, onOpenMobileDrawer }) {
       label: "PNG 내보내기",
       icon: FileImage,
       onSelect: exportPng,
+    },
+    {
+      id: "export-knit-png",
+      label: "실물 이미지(PNG) 내보내기",
+      icon: Shirt,
+      onSelect: exportKnitPng,
     },
     {
       id: "export-pdf",

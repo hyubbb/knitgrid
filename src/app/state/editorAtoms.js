@@ -90,3 +90,8 @@ export const startScreenDismissedAtom = atom(false);
 export const routeProjectAtom = atom(
   typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('project') : null
 );
+
+// 도안 종류: colorwork(방안뜨기) | knit(대바늘 기호도안)
+export const chartTypeAtom = atom('colorwork');
+// 대바늘 기호 도구에 쓰는 현재 기법
+export const activeStitchIdAtom = atom('p');

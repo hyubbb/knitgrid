@@ -535,6 +535,151 @@
     touch-action: pan-x pan-y;
   }
 
+  /* 실물 보기: 편물 캔버스를 셀 아래에 깔고 셀은 투명한 클릭 영역으로 둔다. */
+  .knit-preview-layer {
+    @apply pointer-events-none absolute left-0 z-0;
+  }
+
+  .cells.knit-mode .cell {
+    @apply z-[1];
+    background: transparent !important;
+    border-color: transparent;
+  }
+
+  .cells.knit-mode .cell.guide-row {
+    border-bottom-color: color-mix(in srgb, var(--guide-color, var(--kg-ink)) 45%, transparent);
+  }
+
+  .cells.knit-mode .cell.guide-col {
+    border-right-color: color-mix(in srgb, var(--guide-color, var(--kg-ink)) 45%, transparent);
+  }
+
+  /* 대바늘 기호 */
+  .cell-stitch-glyph {
+    @apply pointer-events-none absolute left-0 top-0 z-[2] overflow-visible;
+    height: 100%;
+  }
+
+  .cell.no-stitch {
+    background: repeating-linear-gradient(135deg, #c7ccd4 0 3px, #dfe3e8 3px 6px) !important;
+  }
+
+
+  .header-column div.row-issue {
+    @apply font-bold text-[var(--kg-coral)];
+    background: color-mix(in srgb, var(--kg-coral) 16%, transparent);
+  }
+
+  .knit-context-menu {
+    @apply fixed z-[200] flex max-h-[80vh] w-[300px] flex-col gap-1 overflow-y-auto rounded-xl border border-[var(--kg-line)] bg-[var(--kg-surface,#fff)] p-2 text-[13px] text-[var(--kg-ink)] shadow-xl;
+  }
+
+  .knit-context-title {
+    @apply px-2 pb-1 pt-0.5 text-xs font-semibold text-[var(--kg-muted,#667085)];
+  }
+
+  .knit-context-group {
+    @apply flex flex-col border-t border-[var(--kg-line)] pt-1;
+  }
+
+  .knit-context-label {
+    @apply px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--kg-muted,#667085)];
+  }
+
+  .knit-context-menu .knit-context-group > button {
+    @apply flex min-h-0 w-full items-center gap-2 rounded-md border-0 bg-transparent px-2 py-1.5 text-left text-[13px] font-medium shadow-none hover:bg-[var(--kg-surface-soft)] focus-visible:bg-[var(--kg-surface-soft)] focus-visible:outline-none;
+  }
+
+  .knit-context-group > button small {
+    @apply ml-auto whitespace-nowrap text-[11px] text-[var(--kg-muted,#667085)];
+  }
+
+  .knit-context-glyphs {
+    @apply flex shrink-0 items-center rounded border border-[var(--kg-line)] bg-white px-0.5 text-[#172033];
+  }
+
+  .knit-context-swatch {
+    @apply inline-block size-4 shrink-0 rounded border border-[var(--kg-line)];
+  }
+
+  .knit-context-stitches {
+    @apply flex flex-col gap-1 px-2 py-1;
+  }
+
+  .knit-context-stitch-row {
+    @apply flex flex-wrap gap-1;
+  }
+
+  .stitch-palette {
+    @apply flex flex-col gap-2;
+  }
+
+  .stitch-palette-label {
+    @apply mb-1 block text-[11px] font-semibold text-[var(--kg-muted)];
+  }
+
+  .stitch-palette-grid {
+    @apply grid grid-cols-4 gap-1;
+  }
+
+  .stitch-palette-item {
+    @apply flex flex-col items-center gap-0.5 rounded-lg border border-transparent px-0.5 py-1 text-[10px] leading-tight text-[var(--kg-ink)] hover:bg-[var(--kg-surface-soft)];
+  }
+
+  .stitch-palette-item.wide {
+    @apply col-span-2;
+  }
+
+  .stitch-palette-item.active {
+    @apply border-[var(--kg-teal)] bg-[color-mix(in_srgb,var(--kg-teal)_14%,transparent)];
+  }
+
+  .stitch-palette-glyph {
+    @apply grid h-7 min-w-7 place-items-center rounded border border-[var(--kg-line)] bg-white px-0.5 text-[#172033];
+  }
+
+  .stitch-palette-glyph.no-stitch {
+    background: repeating-linear-gradient(135deg, #c7ccd4 0 3px, #dfe3e8 3px 6px);
+  }
+
+  .stitch-palette-name {
+    @apply text-center break-keep;
+  }
+
+  .stitch-palette-tip {
+    @apply m-0 text-[11px] leading-snug text-[var(--kg-muted)];
+  }
+
+  .stitch-count-check {
+    @apply mt-2 flex flex-col gap-1 rounded-lg border border-[var(--kg-line)] p-2 text-xs;
+    color: var(--kg-green, #2f7a52);
+  }
+
+  .stitch-count-check.has-issues {
+    @apply text-[var(--kg-coral)];
+    background: color-mix(in srgb, var(--kg-coral) 8%, transparent);
+  }
+
+  .stitch-count-head {
+    @apply flex items-center gap-1.5;
+  }
+
+  .stitch-count-range {
+    @apply text-[var(--kg-muted)];
+  }
+
+  .stitch-count-check ul {
+    @apply m-0 flex list-none flex-col gap-0.5 p-0 text-[var(--kg-ink)];
+  }
+
+  .stitch-count-check small {
+    @apply text-[var(--kg-muted)];
+  }
+
+  .knit-context-stitch-row button {
+    @apply grid h-8 min-w-8 place-items-center rounded-md border border-[var(--kg-line)] bg-white px-1 text-[#172033] hover:border-[var(--kg-teal)];
+  }
+
   /* 한 손가락 드래그가 그리기인 화면에서만 기본 터치 스크롤을 끈다(두 손가락 = 화면 이동). */
   .grid-scroll.touch-paint .cells {
     touch-action: none;

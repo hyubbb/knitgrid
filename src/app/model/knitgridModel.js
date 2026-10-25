@@ -6,3 +6,6 @@ export * from '../../features/image-conversion/model/imageConversionModel.js';
 export * from '../../features/text-conversion/model/textConversionModel.js';
 export * from '../../features/written-pattern/model/writtenPatternModel.js';
 export * from './editorConfig.js';
+export * from '../../features/knit-preview/model/knitLayout.js';
+export * from '../../features/knit-preview/model/knitRenderer.js';
+export * from '../../entities/knit-stitch/model/knitStitchModel.js';

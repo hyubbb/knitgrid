@@ -32,7 +32,7 @@ export function EditorToolRail({ editor, onMobileAction }) {
 
   return (
     <ToolRail
-      items={TOOLS}
+      items={TOOLS.filter((item) => !item.chartType || item.chartType === editor.chartType)}
       value={tool}
       onSelect={(id) => {
         if (id === 'mirror') {

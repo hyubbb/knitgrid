@@ -75,9 +75,9 @@ const MOD = isMac ? '⌘' : 'Ctrl+';
 
 /**
  * 코바늘 기호도안 편집기
- * @param {{ projectId: string|null, onExit: () => void }} props
+ * @param {{ projectId: string|null, onExit: () => void, onSaved?: (id: string) => void }} props
  */
-export function CrochetEditorPage({ projectId, onExit }) {
+export function CrochetEditorPage({ projectId, onExit, onSaved }) {
   const history = useChartHistory(createEmptyChart());
   const { chart, commit, undo, redo, reset } = history;
   const [projectName, setProjectName] = useState(DEFAULT_CROCHET_NAME);
@@ -213,6 +213,8 @@ export function CrochetEditorPage({ projectId, onExit }) {
         recordRef.current
       );
       await saveLocalProject(record);
+      // 새 도안의 첫 저장이면 주소를 실제 id로 바꿔 새로고침해도 열리게 한다.
+      if (!idRef.current) onSaved?.(id);
       idRef.current = id;
       recordRef.current = record;
       setSaved({ chart, name: projectName });
@@ -222,7 +224,7 @@ export function CrochetEditorPage({ projectId, onExit }) {
       setPersist('error');
       flash('저장하지 못했습니다.');
     }
-  }, [chart, projectName, flash]);
+  }, [chart, projectName, flash, onSaved]);
 
   // ── 편집 동작 ──
   const counts = useMemo(() => countRoundStitches(chart), [chart]);

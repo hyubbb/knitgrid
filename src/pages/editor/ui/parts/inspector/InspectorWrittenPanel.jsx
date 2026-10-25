@@ -20,8 +20,11 @@ export function InspectorWrittenPanel({ editor, action }) {
     setWrittenStartDirection,
     writtenIncludeInPdf,
     setWrittenIncludeInPdf,
-    paintedCellCount
+    paintedCellCount,
+    isKnitChart
   } = editor;
+  // 대바늘 도안은 빈 칸도 겉뜨기라 항상 서술도안이 있다.
+  const hasPattern = Boolean(paintedCellCount || isKnitChart);
 
   const [copied, setCopied] = useState(false);
 
@@ -75,7 +78,7 @@ export function InspectorWrittenPanel({ editor, action }) {
         />
       </div>
 
-      {paintedCellCount ? (
+      {hasPattern ? (
         <div className="written-preview" role="group" aria-label="서술형 도안 미리보기">
           <pre>{lines.join('\n')}</pre>
         </div>
@@ -84,10 +87,10 @@ export function InspectorWrittenPanel({ editor, action }) {
       )}
 
       <div className="written-actions">
-        <Button icon={copied ? Check : ClipboardCopy} onClick={handleCopy} disabled={!paintedCellCount}>
+        <Button icon={copied ? Check : ClipboardCopy} onClick={handleCopy} disabled={!hasPattern}>
           {copied ? '복사됨' : '복사'}
         </Button>
-        <Button icon={Download} onClick={downloadWrittenPatternText} disabled={!paintedCellCount}>
+        <Button icon={Download} onClick={downloadWrittenPatternText} disabled={!hasPattern}>
           .txt 저장
         </Button>
       </div>

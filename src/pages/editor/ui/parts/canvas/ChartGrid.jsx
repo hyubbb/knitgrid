@@ -1,4 +1,7 @@
+import { useState } from "react";
 import { Cell } from "./Cell.jsx";
+import { KnitPreviewLayer } from "../KnitPreviewLayer.jsx";
+import { KnitContextMenu } from "../KnitContextMenu.jsx";
 import { HeaderRow, HeaderColumn } from "./GridHeaders.jsx";
 
 export function ChartGrid({
@@ -42,9 +45,34 @@ export function ChartGrid({
     gridLineColor,
     isAdjustingAppliedSourceOverlay,
     selectionRect,
+    isKnitChart,
+    selection,
+    setSelection,
+    knitRowIssues,
   } = editor;
   const showSourceOverlay =
     includeSourceOverlay && appliedSourceImage && showAppliedSourceOverlay;
+  const isKnitMode = displayMode === "knit";
+  const showStitchGlyphs = isKnitChart && !isKnitMode;
+  const [contextMenu, setContextMenu] = useState(null);
+
+  // 우클릭: 선택 영역 밖을 누르면 그 칸을 새로 선택하고 메뉴를 연다.
+  const openContextMenu = (event) => {
+    if (readOnly || mode !== "edit") return;
+    const target = event.target.closest("[data-row]");
+    if (!target) return;
+    event.preventDefault();
+    const r = Number(target.dataset.row);
+    const c = Number(target.dataset.col);
+    const inside =
+      selection &&
+      r >= selection.r0 &&
+      r <= selection.r1 &&
+      c >= selection.c0 &&
+      c <= selection.c1;
+    if (!inside) setSelection({ r0: r, c0: c, r1: r, c1: c });
+    setContextMenu({ x: event.clientX, y: event.clientY });
+  };
 
   return (
     <div
@@ -100,13 +128,25 @@ export function ChartGrid({
         cellHeight={cellSize * cellHScale}
         completedRows={completedRows}
         showCompleted={mode === "progress"}
+        rowIssues={isKnitChart ? knitRowIssues : null}
       />
       <div
-        className="cells"
+        className={`cells ${isKnitMode ? "knit-mode" : ""}`}
         style={{
           gridTemplateColumns: `repeat(${cols}, var(--cell-w, var(--cell)))`,
         }}
+        onContextMenu={openContextMenu}
       >
+        {isKnitMode ? (
+          <KnitPreviewLayer
+            grid={grid}
+            palette={palette}
+            rows={rows}
+            cols={cols}
+            cellW={cellSize * cellWScale}
+            cellH={cellSize * cellHScale}
+          />
+        ) : null}
         {grid.map((row, r) => {
           const rowLabel = rowNumber(r);
           const guideRow =
@@ -145,6 +185,7 @@ export function ChartGrid({
                 cell={cell}
                 palette={palette}
                 displayMode={displayMode}
+                showStitchGlyph={showStitchGlyphs}
                 guideRow={guideRow}
                 guideCol={guideCol}
                 progress={progress}
@@ -172,10 +213,18 @@ export function ChartGrid({
           cellHeight={cellSize * cellHScale}
           completedRows={completedRows}
           showCompleted={mode === "progress"}
+          rowIssues={isKnitChart ? knitRowIssues : null}
         />
       ) : (
         <div />
       )}
+      {contextMenu ? (
+        <KnitContextMenu
+          editor={editor}
+          position={contextMenu}
+          onClose={() => setContextMenu(null)}
+        />
+      ) : null}
       {showOppositeHeaders ? <div className="corner bottom-left" /> : <div />}
       {showOppositeHeaders ? (
         <HeaderRow

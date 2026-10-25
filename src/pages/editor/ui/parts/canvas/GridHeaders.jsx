@@ -32,17 +32,23 @@ export function HeaderColumn({
   completedRows,
   showCompleted,
   cellHeight,
+  rowIssues,
 }) {
   const step = labelStep(cellHeight, 14);
   return (
     <div className={`header-column ${area}`}>
       {Array.from({ length: rows }, (_, index) => {
         const number = rowNumber(index);
+        const issue = rowIssues?.get(index);
         return (
           <div
             key={index}
-            title={`${number}행`}
-            className={showCompleted && completedRows.has(number) ? "done" : ""}
+            title={
+              issue
+                ? `${number}단: 아랫단 ${issue.expected}코를 받아야 하는데 ${issue.consumes}코를 뜹니다`
+                : `${number}행`
+            }
+            className={`${showCompleted && completedRows.has(number) ? "done" : ""} ${issue ? "row-issue" : ""}`}
           >
             {step === 1 || number % step === 0 ? number : ""}
           </div>
