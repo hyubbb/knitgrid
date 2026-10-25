@@ -1,0 +1,978 @@
+/* 코바늘 기호도안 편집기 — 앱 공통 변수(--kg-*)를 재사용하고 .ce- 접두어로 범위를 한정한다 */
+
+.ce-page {
+  --ce-select: rgba(94, 106, 210, 0.38);
+  --ce-canvas-bg: #fbfbfc;
+  --ce-dot: rgba(22, 24, 27, 0.2);
+  --ce-dot-major: rgba(22, 24, 27, 0.32);
+  --ce-radius: 8px;
+  display: grid;
+  grid-template-columns: 252px minmax(0, 1fr) 292px;
+  grid-template-rows: 56px minmax(0, 1fr) 30px;
+  grid-template-areas:
+    'top top top'
+    'left stage right'
+    'status status status';
+  height: 100vh;
+  min-height: 560px;
+  overflow: hidden;
+  background: var(--kg-bg);
+  color: var(--kg-ink);
+  font-size: 13px;
+}
+
+[data-theme='dark'] .ce-page {
+  --ce-select: rgba(129, 143, 255, 0.42);
+  --ce-canvas-bg: #121316;
+  --ce-dot: rgba(247, 248, 248, 0.16);
+  --ce-dot-major: rgba(247, 248, 248, 0.28);
+}
+
+.ce-page button {
+  font: inherit;
+  color: inherit;
+}
+
+.ce-page kbd {
+  display: inline-block;
+  min-width: 16px;
+  padding: 0 4px;
+  border: 1px solid var(--kg-line);
+  border-radius: 4px;
+  background: var(--kg-surface-soft);
+  color: var(--kg-muted);
+  font: 600 10px/16px ui-monospace, SFMono-Regular, Menlo, monospace;
+  text-align: center;
+}
+
+/* ── 공통 버튼 ── */
+.ce-icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--kg-muted);
+}
+
+.ce-page .ce-icon-btn:hover:not(:disabled) {
+  border-color: var(--kg-line);
+  background: var(--kg-surface-soft);
+  color: var(--kg-ink);
+}
+
+.ce-icon-btn.is-danger:hover:not(:disabled) {
+  color: var(--kg-coral);
+}
+
+.ce-top-btn,
+.ce-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--kg-line);
+  border-radius: var(--ce-radius);
+  background: var(--kg-surface);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ce-page .ce-top-btn.primary {
+  border-color: var(--kg-navy);
+  background: var(--kg-navy);
+  color: #fff;
+}
+
+.ce-page .ce-top-btn.primary:hover:not(:disabled) {
+  border-color: var(--kg-teal);
+  background: var(--kg-teal);
+}
+
+/* ── 상단 바 ── */
+.ce-topbar {
+  grid-area: top;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--kg-line);
+  background: var(--kg-surface);
+}
+
+.ce-title {
+  display: grid;
+  min-width: 200px;
+  max-width: 320px;
+}
+
+.ce-kind {
+  color: var(--kg-teal);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.ce-name {
+  width: 100%;
+  min-height: 24px;
+  padding: 0 4px;
+  margin-left: -4px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--kg-ink);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.ce-name:hover {
+  border-color: var(--kg-line);
+}
+
+.ce-name:focus {
+  border-color: var(--kg-teal);
+  outline: none;
+  background: var(--kg-surface);
+}
+
+.ce-top-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--kg-line);
+  border-radius: var(--ce-radius);
+  background: var(--kg-surface-soft);
+}
+
+.ce-zoom-label {
+  min-width: 52px;
+  height: 30px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.ce-top-spacer {
+  flex: 1;
+}
+
+.ce-save-state {
+  padding: 3px 8px;
+  border: 1px solid var(--kg-line);
+  border-radius: 6px;
+  background: var(--kg-surface-soft);
+  color: var(--kg-muted);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ce-save-state.state-saved {
+  border-color: var(--kg-green);
+  background: var(--kg-green-soft);
+  color: var(--kg-green);
+}
+
+.ce-save-state.state-saving,
+.ce-save-state.state-dirty {
+  border-color: var(--kg-saffron);
+  background: var(--kg-saffron-soft);
+  color: var(--kg-saffron);
+}
+
+.ce-save-state.state-error {
+  border-color: var(--kg-coral);
+  background: var(--kg-coral-soft);
+  color: var(--kg-coral);
+}
+
+/* ── 왼쪽: 도구 + 기호 라이브러리 ── */
+.ce-left {
+  grid-area: left;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  padding: 12px;
+  overflow-y: auto;
+  border-right: 1px solid var(--kg-line);
+  background: var(--kg-surface);
+}
+
+.ce-tools {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+.ce-tool {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 8px;
+  border: 1px solid var(--kg-line);
+  border-radius: 7px;
+  background: var(--kg-surface);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ce-tool span {
+  flex: 1;
+  text-align: left;
+}
+
+.ce-page .ce-tool.is-active {
+  border-color: var(--kg-teal);
+  background: var(--kg-teal-soft);
+  color: var(--kg-teal);
+}
+
+.ce-tool-hint {
+  margin: 0;
+  color: var(--kg-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.ce-generator-btn {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: 8px;
+  padding: 9px 12px;
+  border: 1px dashed var(--kg-teal);
+  border-radius: var(--ce-radius);
+  background: var(--kg-teal-soft);
+  color: var(--kg-teal);
+  font-weight: 700;
+  text-align: left;
+}
+
+.ce-generator-btn small {
+  grid-column: 2;
+  color: var(--kg-muted);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.ce-library {
+  display: grid;
+  gap: 12px;
+}
+
+.ce-library-group h3 {
+  margin: 0 0 6px;
+  color: var(--kg-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ce-symbol-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+
+.ce-symbol {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-height: 60px;
+  padding: 6px 2px 5px;
+  border: 1px solid var(--kg-line);
+  border-radius: 7px;
+  background: var(--kg-surface);
+  color: var(--kg-ink);
+}
+
+.ce-symbol span {
+  overflow: hidden;
+  max-width: 100%;
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  word-break: keep-all;
+}
+
+.ce-page .ce-symbol.is-active {
+  border-color: var(--kg-teal);
+  background: var(--kg-teal-soft);
+  color: var(--kg-teal);
+  box-shadow: inset 0 0 0 1px var(--kg-teal);
+}
+
+.ce-symbol-icon {
+  display: block;
+  overflow: visible;
+}
+
+/* ── 캔버스 ── */
+.ce-stage {
+  grid-area: stage;
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--ce-canvas-bg);
+}
+
+.ce-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  user-select: none;
+}
+
+.ce-canvas.tool-select {
+  cursor: default;
+}
+
+.ce-canvas.tool-place,
+.ce-canvas.tool-row {
+  cursor: crosshair;
+}
+
+.ce-canvas.tool-pan {
+  cursor: grab;
+}
+
+.ce-canvas.is-panning {
+  cursor: grabbing;
+}
+
+.ce-grid-dot {
+  fill: var(--ce-dot);
+}
+
+.ce-grid-dot-major {
+  fill: var(--ce-dot-major);
+}
+
+.ce-hit {
+  fill: transparent;
+}
+
+.ce-canvas.tool-select .ce-stitch:not(.is-locked) {
+  cursor: move;
+}
+
+.ce-canvas.tool-select .ce-stitch:not(.is-locked):hover .ce-hit {
+  fill: var(--ce-select);
+  fill-opacity: 0.25;
+}
+
+.ce-selection-box {
+  fill: none;
+  stroke: var(--kg-teal);
+}
+
+.ce-marquee {
+  fill: var(--kg-teal);
+  fill-opacity: 0.08;
+  stroke: var(--kg-teal);
+}
+
+.ce-row-guide {
+  stroke: var(--kg-teal);
+}
+
+.ce-count-badge {
+  fill: var(--kg-teal);
+}
+
+.ce-count-badge-text {
+  fill: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ce-empty-hint {
+  fill: var(--kg-muted);
+  font-size: 13px;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.ce-active-chip {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--kg-line);
+  border-radius: 999px;
+  background: var(--kg-surface);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  color: var(--kg-ink);
+  font-size: 12px;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.ce-toast {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: var(--kg-navy);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+/* ── 오른쪽 패널 ── */
+.ce-right {
+  grid-area: right;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  padding: 12px;
+  overflow-y: auto;
+  border-left: 1px solid var(--kg-line);
+  background: var(--kg-surface-soft);
+}
+
+.ce-right .panel {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--kg-line);
+  border-radius: 10px;
+  background: var(--kg-surface);
+}
+
+.ce-right .panel-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+
+.ce-right .panel-title strong {
+  flex: 1;
+  font-size: 13px;
+}
+
+.ce-right .panel-collapse {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--kg-muted);
+}
+
+.ce-right .panel.is-collapsed .panel-collapse svg {
+  transform: rotate(-90deg);
+}
+
+.ce-panel-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 8px;
+  border: 1px solid var(--kg-line);
+  border-radius: 6px;
+  background: var(--kg-surface);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ce-round-list {
+  display: grid;
+  gap: 4px;
+  max-height: 300px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.ce-round {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 4px 3px 6px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+}
+
+.ce-round.is-active {
+  border-color: var(--kg-teal);
+  background: var(--kg-teal-soft);
+}
+
+.ce-round.is-hidden .ce-round-name {
+  color: var(--kg-faint);
+  text-decoration: line-through;
+}
+
+.ce-round-color {
+  position: relative;
+  display: block;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.ce-round-color input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.ce-round-color span {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
+}
+
+.ce-round-name {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 0;
+  height: 28px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.ce-page .ce-round-name:hover {
+  background: transparent;
+}
+
+.ce-round-name em {
+  color: var(--kg-muted);
+  font-size: 11px;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+}
+
+.ce-round-name-input {
+  flex: 1;
+  min-width: 0;
+  height: 26px;
+  padding: 0 6px;
+  border: 1px solid var(--kg-teal);
+  border-radius: 5px;
+  background: var(--kg-surface);
+  color: var(--kg-ink);
+  font-size: 12px;
+}
+
+.ce-round-actions {
+  display: flex;
+}
+
+.ce-round-actions .ce-icon-btn {
+  width: 24px;
+  height: 24px;
+}
+
+.ce-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--kg-ink);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ce-switch input {
+  width: 15px;
+  height: 15px;
+  min-height: 0;
+  accent-color: var(--kg-teal);
+}
+
+.ce-arrange-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+.ce-arrange-grid button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 30px;
+  border: 1px solid var(--kg-line);
+  border-radius: 6px;
+  background: var(--kg-surface);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ce-arrange-grid button.is-danger {
+  color: var(--kg-coral);
+}
+
+.ce-align-row {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 2px;
+}
+
+.ce-align-row .ce-icon-btn {
+  width: 100%;
+}
+
+.ce-shortcuts {
+  margin: 0;
+  color: var(--kg-muted);
+  font-size: 11px;
+  line-height: 1.8;
+}
+
+/* ── 상태 바 ── */
+.ce-statusbar {
+  grid-area: status;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 14px;
+  border-top: 1px solid var(--kg-line);
+  background: var(--kg-surface);
+  color: var(--kg-muted);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ce-status-tool {
+  margin-left: auto;
+}
+
+/* ── 우클릭 메뉴 ── */
+.ce-context-menu {
+  position: fixed;
+  z-index: 80;
+}
+
+.ce-menu-list {
+  display: grid;
+  min-width: 220px;
+  padding: 4px;
+  border: 1px solid var(--kg-line-strong);
+  border-radius: 9px;
+  background: var(--kg-surface);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.16);
+}
+
+.ce-menu-item-wrap {
+  position: relative;
+}
+
+.ce-submenu {
+  position: absolute;
+  top: -5px;
+  left: calc(100% + 2px);
+  min-width: 200px;
+  max-height: min(560px, calc(100vh - 24px));
+  overflow-y: auto;
+}
+
+.ce-submenu.is-flipped {
+  right: calc(100% + 2px);
+  left: auto;
+}
+
+.ce-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 30px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--kg-ink);
+  font-size: 12.5px;
+  text-align: left;
+}
+
+.ce-page .ce-menu-item.is-active:not(:disabled),
+.ce-page .ce-menu-item:focus-visible {
+  outline: none;
+  background: var(--kg-teal-soft);
+  color: var(--kg-teal);
+}
+
+.ce-menu-item.is-danger {
+  color: var(--kg-coral);
+}
+
+.ce-menu-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  color: currentColor;
+}
+
+.ce-menu-label {
+  flex: 1;
+  white-space: nowrap;
+}
+
+.ce-menu-hint {
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.ce-menu-chevron {
+  color: var(--kg-muted);
+}
+
+.ce-menu-separator {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--kg-line);
+}
+
+.ce-menu-swatch {
+  display: block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+/* ── 모달 ── */
+.image-modal.ce-modal {
+  max-width: 600px;
+}
+
+.ce-modal-body {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  min-height: 0;
+  padding: 18px 20px;
+  overflow-y: auto;
+}
+
+.ce-form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+
+.ce-check {
+  display: flex !important;
+  align-items: center;
+  gap: 7px;
+  color: var(--kg-ink) !important;
+  cursor: pointer;
+}
+
+.ce-check input {
+  width: 15px !important;
+  min-height: 0 !important;
+  accent-color: var(--kg-teal);
+}
+
+.ce-fieldset {
+  margin: 0;
+  padding: 10px 12px 12px;
+  border: 1px solid var(--kg-line);
+  border-radius: 9px;
+}
+
+.ce-fieldset legend {
+  padding: 0 4px;
+  color: var(--kg-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ce-form-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+  align-items: end;
+  gap: 8px;
+}
+
+.ce-modal-body select,
+.ce-modal-body input:not([type='checkbox']) {
+  width: 100%;
+  min-height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--kg-line);
+  border-radius: 6px;
+  background: var(--kg-surface);
+  color: var(--kg-ink);
+  font-size: 12.5px;
+}
+
+.ce-autofill,
+.ce-add-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--kg-line);
+  border-radius: 6px;
+  background: var(--kg-surface-soft);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ce-round-table {
+  display: grid;
+  gap: 4px;
+}
+
+.ce-round-table-head,
+.ce-round-table-row {
+  display: grid;
+  grid-template-columns: 44px 80px minmax(0, 1fr) 140px 32px;
+  align-items: center;
+  gap: 8px;
+}
+
+.ce-round-table-head {
+  color: var(--kg-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ce-round-table-row > span:first-child {
+  font-weight: 700;
+}
+
+.ce-round-change {
+  color: var(--kg-muted);
+  font-size: 11.5px;
+}
+
+.ce-add-row {
+  justify-self: start;
+  margin-top: 4px;
+}
+
+.ce-pattern-list {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ce-pattern-list li {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.ce-pattern-list li:nth-child(odd) {
+  background: var(--kg-surface-soft);
+}
+
+.ce-pattern-list strong {
+  min-width: 34px;
+}
+
+.ce-pattern-text {
+  flex: 1;
+}
+
+.ce-pattern-count {
+  color: var(--kg-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.ce-pattern-dot {
+  display: inline-block;
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.ce-copy-state {
+  margin-right: auto;
+  color: var(--kg-green);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ce-muted {
+  margin: 0;
+  color: var(--kg-muted);
+}
+
+.image-modal.ce-modal .image-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--kg-line);
+}
+
+.image-modal.ce-modal .image-modal-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 7px;
+  font-weight: 700;
+}
+
+.ce-page .image-modal.ce-modal .image-modal-actions button.primary {
+  border-color: var(--kg-navy);
+  background: var(--kg-navy);
+  color: #fff;
+}
+
+.ce-page .image-modal.ce-modal .image-modal-actions button.primary:hover:not(:disabled) {
+  border-color: var(--kg-teal);
+  background: var(--kg-teal);
+}
