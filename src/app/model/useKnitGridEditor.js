@@ -183,6 +183,7 @@ import {
   applyKnitSelectionAction,
   analyzeKnitRows,
   getKnitStitch,
+  buildKnitProgressRuns,
 } from "./knitgridModel.js";
 import { useExport } from "./hooks/useExport.js";
 import { useAppliedSourceOverlay } from "./hooks/useAppliedSourceOverlay.js";
@@ -1586,7 +1587,7 @@ export function useKnitGridEditor() {
   // 진행 모드일 때만 현재 행을 읽기 순서로 분석(코 단위 스트립/색 요약/현재 코 위치용).
   const currentRowAnalysis = useMemo(() => {
     if (mode !== "progress") return null;
-    return analyzeProgressRow({
+    const analysis = analyzeProgressRow({
       grid,
       palette,
       rows,
@@ -1597,7 +1598,18 @@ export function useKnitGridEditor() {
       knitMode: writtenKnitMode,
       startDirection: writtenStartDirection,
     });
+    // 대바늘 도안은 색 대신 그 단에서 뜰 기법 순서를 보여준다.
+    if (analysis && chartType === "knit") {
+      const sequence = progressRow - numberStart;
+      analysis.stitchRuns = buildKnitProgressRuns(
+        grid[analysis.rowIndex] || [],
+        analysis.cells.map((cell) => cell.col),
+        { wrongSide: writtenKnitMode === "flat" && sequence % 2 === 1 },
+      );
+    }
+    return analysis;
   }, [
+    chartType,
     mode,
     grid,
     palette,

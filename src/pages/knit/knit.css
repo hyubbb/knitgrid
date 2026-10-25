@@ -1,0 +1,130 @@
+/* 대바늘 기호도안 화면 — 코바늘 편집기(.ce-)의 틀을 그대로 쓰고 차이만 덧붙인다 */
+
+.ke-page .ce-topbar {
+  overflow-x: auto;
+}
+
+.ke-page .ce-top-btn.is-active {
+  border-color: var(--kg-teal);
+  background: var(--kg-teal-soft);
+  color: var(--kg-teal);
+}
+
+.ke-modes {
+  gap: 0;
+}
+
+.ke-modes .ce-top-btn {
+  height: 30px;
+  padding: 0 10px;
+}
+
+/* 가운데: 기존 격자 캔버스를 스테이지 크기에 맞춘다 */
+.ke-stage {
+  display: grid;
+  background: var(--kg-bg);
+}
+
+.ke-stage > .workspace {
+  height: 100%;
+  min-height: 0;
+  padding: 10px;
+  background: transparent;
+}
+
+/* 기호 라이브러리: 교차뜨기는 두 칸 폭 */
+.ke-symbol.is-wide {
+  grid-column: span 3;
+}
+
+.ke-symbol-glyph {
+  display: grid;
+  place-items: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 3px;
+  border-radius: 5px;
+  background: #fff;
+  color: #172033;
+}
+
+.ke-symbol-glyph.is-no-stitch {
+  background: repeating-linear-gradient(135deg, #c7ccd4 0 3px, #dfe3e8 3px 6px);
+}
+
+/* 오른쪽 패널: 기존 인스펙터 패널을 카드로 */
+.ke-right > .panel,
+.ke-right > section {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--kg-line);
+  border-radius: 10px;
+  background: var(--kg-surface);
+}
+
+.ke-count .ke-count-head {
+  font-size: 13px;
+  color: var(--kg-green, #2f7a52);
+}
+
+.ke-count.has-issues .ke-count-head {
+  color: var(--kg-coral);
+}
+
+.ke-count.has-issues {
+  border-color: color-mix(in srgb, var(--kg-coral) 45%, var(--kg-line));
+}
+
+.ke-count-range,
+.ke-count-tip {
+  margin: 0;
+  color: var(--kg-muted);
+  font-size: 12px;
+}
+
+.ke-count-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+}
+
+.ke-count-list small {
+  display: block;
+  color: var(--kg-muted);
+}
+
+.ke-pattern-options {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.ke-pattern-lines {
+  display: grid;
+  gap: 4px;
+  max-height: 52vh;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  font-size: 13px;
+}
+
+.ke-pattern-lines li {
+  display: grid;
+  grid-template-columns: 9.5em 1fr;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: var(--kg-surface-soft);
+}
+
+.ke-pattern-lines b {
+  color: var(--kg-muted);
+  font-weight: 700;
+  white-space: nowrap;
+}

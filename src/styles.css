@@ -610,71 +610,21 @@
     @apply flex flex-wrap gap-1;
   }
 
-  .stitch-palette {
-    @apply flex flex-col gap-2;
-  }
 
-  .stitch-palette-label {
-    @apply mb-1 block text-[11px] font-semibold text-[var(--kg-muted)];
-  }
 
-  .stitch-palette-grid {
-    @apply grid grid-cols-4 gap-1;
-  }
 
-  .stitch-palette-item {
-    @apply flex flex-col items-center gap-0.5 rounded-lg border border-transparent px-0.5 py-1 text-[10px] leading-tight text-[var(--kg-ink)] hover:bg-[var(--kg-surface-soft)];
-  }
 
-  .stitch-palette-item.wide {
-    @apply col-span-2;
-  }
 
-  .stitch-palette-item.active {
-    @apply border-[var(--kg-teal)] bg-[color-mix(in_srgb,var(--kg-teal)_14%,transparent)];
-  }
 
-  .stitch-palette-glyph {
-    @apply grid h-7 min-w-7 place-items-center rounded border border-[var(--kg-line)] bg-white px-0.5 text-[#172033];
-  }
 
-  .stitch-palette-glyph.no-stitch {
-    background: repeating-linear-gradient(135deg, #c7ccd4 0 3px, #dfe3e8 3px 6px);
-  }
 
-  .stitch-palette-name {
-    @apply text-center break-keep;
-  }
 
-  .stitch-palette-tip {
-    @apply m-0 text-[11px] leading-snug text-[var(--kg-muted)];
-  }
 
-  .stitch-count-check {
-    @apply mt-2 flex flex-col gap-1 rounded-lg border border-[var(--kg-line)] p-2 text-xs;
-    color: var(--kg-green, #2f7a52);
-  }
 
-  .stitch-count-check.has-issues {
-    @apply text-[var(--kg-coral)];
-    background: color-mix(in srgb, var(--kg-coral) 8%, transparent);
-  }
 
-  .stitch-count-head {
-    @apply flex items-center gap-1.5;
-  }
 
-  .stitch-count-range {
-    @apply text-[var(--kg-muted)];
-  }
 
-  .stitch-count-check ul {
-    @apply m-0 flex list-none flex-col gap-0.5 p-0 text-[var(--kg-ink)];
-  }
 
-  .stitch-count-check small {
-    @apply text-[var(--kg-muted)];
-  }
 
   .knit-context-stitch-row button {
     @apply grid h-8 min-w-8 place-items-center rounded-md border border-[var(--kg-line)] bg-white px-1 text-[#172033] hover:border-[var(--kg-teal)];

@@ -353,3 +353,26 @@ export const buildKnitWrittenLines = ({
     return `${rowNumberOf(rowIndex)}단 (${label}): ${compressTokens(tokens) || '-'} (${produces}코)`;
   });
 };
+
+/**
+ * 진행 모드용: 한 단을 뜨는 순서(orderedCols)대로 기법을 묶는다.
+ * 안면 단(wrongSide)은 서술도안과 같이 겉↔안을 바꿔 보여주고, 교차뜨기는 칸 수와 상관없이 1묶음이다.
+ * @returns {{ id, label, count, startOrdinal, endOrdinal }[]} ordinal은 칸 순번(1부터)
+ */
+export const buildKnitProgressRuns = (rowCells, orderedCols, { wrongSide = false } = {}) => {
+  const runs = [];
+  orderedCols.forEach((col, index) => {
+    const cell = rowCells[col];
+    let stitch = getKnitStitch(cell?.stitch);
+    if (wrongSide && stitch.ws) stitch = getKnitStitch(stitch.ws);
+    const key = stitch.span > 1 ? `${stitch.id}@${col - (cell?.stitchPart || 0)}` : stitch.id;
+    const last = runs[runs.length - 1];
+    if (last && last.key === key) {
+      if (stitch.span === 1) last.count += 1;
+      last.endOrdinal = index + 1;
+      return;
+    }
+    runs.push({ key, id: stitch.id, label: stitch.short, count: 1, startOrdinal: index + 1, endOrdinal: index + 1 });
+  });
+  return runs.map(({ key, ...rest }) => rest);
+};

@@ -1,6 +1,9 @@
+import { StitchGlyph } from "../StitchGlyph.jsx";
+
 // 진행 모드: 현재 행을 색상 run 단위로 요약한 가로 스트립. 현재 코가 속한 run을 강조.
+// 대바늘 도안이면(analysis.stitchRuns) 색 대신 기법 순서를 보여준다.
 export function ProgressRowStrip({ analysis, progressRow, progressStitch }) {
-  const { runs, arrow, totalStitches } = analysis;
+  const { runs, arrow, totalStitches, stitchRuns } = analysis;
   return (
     <div className='progress-strip' aria-label={`${progressRow}행 코 구성`}>
       <div className='progress-strip-lead'>
@@ -16,7 +19,25 @@ export function ProgressRowStrip({ analysis, progressRow, progressStitch }) {
         </span>
       </div>
       <div className='progress-strip-runs'>
-        {runs.map((run, index) => {
+        {stitchRuns?.map((run, index) => {
+          const active =
+            progressStitch >= run.startOrdinal &&
+            progressStitch <= run.endOrdinal;
+          return (
+            <span
+              key={index}
+              className={`progress-strip-run ${active ? "active" : ""}`}
+              title={`${run.label} ${run.count} (${run.startOrdinal}~${run.endOrdinal}번째 칸)`}
+            >
+              <StitchGlyph id={run.id} size={14} />
+              <span className='progress-strip-label'>{run.label}</span>
+              {run.count > 1 ? (
+                <span className='progress-strip-mult'>×{run.count}</span>
+              ) : null}
+            </span>
+          );
+        })}
+        {stitchRuns ? null : runs.map((run, index) => {
           const active =
             progressStitch >= run.startOrdinal &&
             progressStitch <= run.endOrdinal;

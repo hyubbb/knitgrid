@@ -3,6 +3,7 @@ import test from 'node:test';
 import {
   analyzeKnitRows,
   applyKnitSelectionAction,
+  buildKnitProgressRuns,
   buildKnitWrittenLines,
   clearKnitStitches,
   fillKnitSequence,
@@ -109,4 +110,15 @@ test('every stitch has a glyph definition (except no-stitch)', () => {
     assert.ok(getStitchGlyph(id).length > 0, id);
   });
   assert.deepEqual(getStitchGlyph('ns'), []);
+});
+
+test('buildKnitProgressRuns groups stitches in working order and keeps a cable as one run', () => {
+  const cells = placeKnitStitch([row('p', 'p', '', '', '', '')], 0, 2, 'c2-2r')[0];
+  const rtl = buildKnitProgressRuns(cells, [5, 4, 3, 2, 1, 0]);
+  assert.deepEqual(rtl.map((r) => [r.label, r.count, r.startOrdinal, r.endOrdinal]), [
+    ['2×2오른교차', 1, 1, 4],
+    ['안', 2, 5, 6]
+  ]);
+  const ws = buildKnitProgressRuns(row('k', 'k', 'p'), [0, 1, 2], { wrongSide: true });
+  assert.deepEqual(ws.map((r) => [r.label, r.count]), [['안', 2], ['겉', 1]]);
 });

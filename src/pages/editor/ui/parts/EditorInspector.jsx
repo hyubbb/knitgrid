@@ -4,7 +4,6 @@ import { InspectorGaugePanel } from "./inspector/InspectorGaugePanel.jsx";
 import { InspectorPalettePanel } from "./inspector/InspectorPalettePanel.jsx";
 import { InspectorProgressPanel } from "./inspector/InspectorProgressPanel.jsx";
 import { InspectorSetupPanel } from "./inspector/InspectorSetupPanel.jsx";
-import { InspectorStitchPanel } from "./inspector/InspectorStitchPanel.jsx";
 import { InspectorViewControls } from "./inspector/InspectorViewControls.jsx";
 import { InspectorViewPanel } from "./inspector/InspectorViewPanel.jsx";
 import { InspectorWrittenPanel } from "./inspector/InspectorWrittenPanel.jsx";
@@ -59,9 +58,6 @@ export function EditorInspector({ editor, onMobileClose }) {
               <X size={15} />
             </button>
           </div>
-          {editor.isKnitChart && !isProgressMode ? (
-            <InspectorStitchPanel editor={editor} editable={isEditMode} />
-          ) : null}
           <InspectorPalettePanel editor={editor} editable={isEditMode} />
           {isEditMode ? <InspectorSetupPanel editor={editor} /> : null}
           {isEditMode ? (

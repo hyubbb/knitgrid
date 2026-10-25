@@ -9,6 +9,7 @@ import { EditorToolRail } from "./parts/EditorToolRail.jsx";
 import { EditorTopbar } from "./parts/EditorTopbar.jsx";
 import { ProjectStartPage } from "./ProjectStartPage.jsx";
 import { CrochetEditorPage } from "../../crochet/CrochetEditorPage.jsx";
+import { KnitEditorPage } from "../../knit/KnitEditorPage.jsx";
 
 export function EditorPage() {
   const editor = useKnitGridEditor();
@@ -79,6 +80,9 @@ export function EditorPage() {
         />
       ) : editor.showProjectStartScreen ? (
         <ProjectStartPage editor={editor} />
+      ) : editor.isKnitChart ? (
+        // 대바늘은 코바늘과 같은 틀의 전용 화면(데이터·편집은 격자 훅 공유)
+        <KnitEditorPage editor={editor} />
       ) : (
         <div
           className={`app ${editor.isInspectorCollapsed ? "inspector-collapsed" : ""} ${mobileDrawer ? `mobile-drawer-${mobileDrawer}` : ""}`}
