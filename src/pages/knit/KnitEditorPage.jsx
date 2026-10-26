@@ -51,6 +51,8 @@ export function KnitEditorPage({ editor }) {
     currentCell,
     rowNumber,
     knitRowIssues,
+    progressRow,
+    progressStitch,
     handlePointerUp
   } = editor;
   const [patternOpen, setPatternOpen] = useState(false);
@@ -147,13 +149,19 @@ export function KnitEditorPage({ editor }) {
         <span>
           {cols}코 × {rows}단
         </span>
-        {currentCell ? (
+        {mode === 'progress' ? (
+          <span>
+            진행 {progressRow}단 {progressStitch}번째 코
+          </span>
+        ) : currentCell ? (
           <span>
             현재 {rowNumber(currentCell.row)}단 {currentCell.col + 1}번째 코
           </span>
         ) : null}
         <span>{knitRowIssues.size ? `코 수 오류 ${knitRowIssues.size}단` : '코 수 정상'}</span>
-        <span className="ce-status-tool">{KNIT_TOOLS.find((item) => item.id === tool)?.label}</span>
+        <span className="ce-status-tool">
+          {mode === 'progress' ? '진행 모드' : KNIT_TOOLS.find((item) => item.id === tool)?.label}
+        </span>
       </footer>
 
       <KnitWrittenModal open={patternOpen} onClose={() => setPatternOpen(false)} editor={editor} />

@@ -4,10 +4,14 @@ import { StitchGlyph } from "../StitchGlyph.jsx";
 // 대바늘 도안이면(analysis.stitchRuns) 색 대신 기법 순서를 보여준다.
 export function ProgressRowStrip({ analysis, progressRow, progressStitch }) {
   const { runs, arrow, totalStitches, stitchRuns } = analysis;
+  const unit = stitchRuns ? "단" : "행";
   return (
-    <div className='progress-strip' aria-label={`${progressRow}행 코 구성`}>
+    <div className='progress-strip' aria-label={`${progressRow}${unit} 코 구성`}>
       <div className='progress-strip-lead'>
-        <strong>{progressRow}행</strong>
+        <strong>
+          {progressRow}
+          {unit}
+        </strong>
         <span
           className='progress-strip-arrow'
           title={analysis.ltr ? "왼쪽→오른쪽" : "오른쪽→왼쪽"}
